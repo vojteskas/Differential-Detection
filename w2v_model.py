@@ -3,6 +3,8 @@ import numpy as np
 
 import fairseq # type: ignore
 
+# TODO: Try updating to PyTorch 2 and use built-in Wav2Vec2 XLSR model from torchaudio
+
 class SSLModel(nn.Module):
     def __init__(self,device):
         super(SSLModel, self).__init__()

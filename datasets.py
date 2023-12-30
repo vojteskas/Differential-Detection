@@ -4,7 +4,7 @@ from torchaudio import load
 import os
 import pandas as pd
 
-# Add collate function so that the dataloader can return a batch of data
+# TODO: Add collate function so that the dataloader can return a batch of data
 
 class ASVspoof2019Dataset(Dataset):
     def __init__(self, root_dir, protocol_file_name):
@@ -39,6 +39,7 @@ class ASVspoof2019Dataset(Dataset):
         gt_audio_name = os.path.join(self.rec_dir, gt_audio_file_name + '.flac')
         gt_waveform, _ = load(gt_audio_name)
 
+        print(f"Loaded GT:{gt_audio_name} and TEST:{test_audio_name}")
         return gt_waveform, test_waveform, label
 
 # Usage

@@ -13,12 +13,14 @@ if __name__ == '__main__':
     model = SSLModel(device=d)
 
     # load audio
-    audio, _ = librosa.load('./real.wav', sr=None)
+    audio, _ = librosa.load('./real.flac', sr=None)
     audio_real = torch.from_numpy(audio[np.newaxis, :]).to(d)
-    audio, _ = librosa.load('./real2.wav', sr=None)
+    audio, _ = librosa.load('./real2.flac', sr=None)
     audio_real2 = torch.from_numpy(audio[np.newaxis, :]).to(d)
-    audio, _ = librosa.load('./fake.wav', sr=None)
+    audio, _ = librosa.load('./fake.flac', sr=None)
     audio_fake = torch.from_numpy(audio[np.newaxis, :]).to(d)
+
+    print('### Audio shape:', audio_real.shape, audio_real2.shape, audio_fake.shape)
 
     # extract feature
     feat_real = model.extract_feat(audio_real)
