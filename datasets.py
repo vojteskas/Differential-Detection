@@ -1,3 +1,4 @@
+from typing import Literal
 import torch
 from torch.utils.data import Dataset
 from torchaudio import load
@@ -7,14 +8,14 @@ import pandas as pd
 # TODO: Add collate function so that the dataloader can return a batch of data
 
 class ASVspoof2019Dataset(Dataset):
-    def __init__(self, root_dir, protocol_file_name):
-        self.root_dir = root_dir # E:\VUT\Deepfakes\Datasets\LA
+    def __init__(self, root_dir, protocol_file_name, variant: Literal['train', 'dev', 'eval'] = 'train'):
+        self.root_dir = root_dir # Path to the LA folder
 
         protocol_file = os.path.join(self.root_dir, 'ASVspoof2019_LA_cm_protocols', protocol_file_name)
         self.protocol_df = pd.read_csv(protocol_file, sep=" ", header=None)
         self.protocol_df.columns = ["SPEAKER_ID", "AUDIO_FILE_NAME", "SYSTEM_ID", "-", "KEY"]
 
-        self.rec_dir = os.path.join(self.root_dir, 'ASVspoof2019_LA_train', 'flac')
+        self.rec_dir = os.path.join(self.root_dir, 'ASVspoof2019_LA_' + variant, 'flac')
 
     def __len__(self):
         return len(self.protocol_df)
