@@ -23,24 +23,28 @@ def evaluate(model, dataloader, device):
             correct += (predicted == label).sum().item()
 
             if i % 10 == 0:
-                print(f'[{i}/{len(dataloader)}]')
+                print(f"[{i}/{len(dataloader)}]")
 
             if i >= 100:
                 break
 
     accuracy = correct / total
-    print(f'Accuracy of the model on the {total} test images: {accuracy * 100}%')
+    print(f"Accuracy of the model on the {total} test images: {accuracy * 100}%")
 
 
-if __name__ == '__main__':
-    d = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f'Using device: {d}')
+if __name__ == "__main__":
+    d = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {d}")
     # Load the trained model
     model = DiffModel(device=d)
-    model.load_state_dict(torch.load('./diffmodel.pt'))
+    model.load_state_dict(torch.load("./diffmodel.pt"))
 
     # Create a DataLoader for the validation dataset
-    validation_dataset = ASVspoof2019Dataset(root_dir='/mnt/e/VUT/Deepfakes/Datasets/LA', protocol_file_name='ASVspoof2019.LA.cm.dev.trl.txt', train=False)
+    validation_dataset = ASVspoof2019Dataset(
+        root_dir="/mnt/e/VUT/Deepfakes/Datasets/LA",
+        protocol_file_name="ASVspoof2019.LA.cm.dev.trl.txt",
+        variant="dev"
+    )
     validation_dataloader = DataLoader(validation_dataset, shuffle=True)
 
     # Evaluate the model

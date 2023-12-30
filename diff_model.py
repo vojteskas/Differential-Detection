@@ -5,6 +5,7 @@ from w2v_model import SSLModel
 
 # TODO: Update for batch training after adding collate function to dataset (dont forget to add batch normalization)
 
+
 class DiffModel(nn.Module):
     def __init__(self, device):
         super(DiffModel, self).__init__()

@@ -11,8 +11,9 @@ import matplotlib.pyplot as plt
 # TODO: Add adaptive learning rate
 # TODO: Update for batch training after adding collate function to dataset
 
+
 def train(model: DiffModel, dataloader: DataLoader, device: torch.device):
-    print(f'Using device: {device}, starting training...')
+    print(f"Using device: {device}, starting training...")
     lossfn = CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters())
 
@@ -23,7 +24,7 @@ def train(model: DiffModel, dataloader: DataLoader, device: torch.device):
     accuracies = []
 
     for i, (gt, test, label) in enumerate(dataloader):
-        gt = gt.squeeze(0).to(device) # Squeeze the first dimension (batch size = 1)
+        gt = gt.squeeze(0).to(device)  # Squeeze the first dimension (batch size = 1)
         test = test.squeeze(0).to(device)
         label = label.to(device)
 
@@ -43,30 +44,32 @@ def train(model: DiffModel, dataloader: DataLoader, device: torch.device):
         accuracies.append(accuracy)
 
         if i % 10 == 0:
-            print(f'[{i}/{len(dataloader)}] Loss: {loss.item()}')
+            print(f"[{i}/{len(dataloader)}] Loss: {loss.item()}")
 
-        if i >= 100:
+        if i >= 10:
             break
-    
+
     # save the model
-    torch.save(model.state_dict(), './diffmodel.pt')
+    torch.save(model.state_dict(), "./diffmodel.pt")
 
     # plot loss and accuracy
-    print('Training finished, plotting results...')
+    print("Training finished, plotting results...")
     plt.figure(figsize=(12, 6))
-    plt.plot(losses, label='Loss')
-    plt.plot(accuracies, label='Accuracy')
-    plt.title('Training Loss and Accuracy')
-    plt.xlabel('Iteration')
-    plt.ylabel('Loss/Accuracy')
+    plt.plot(losses, label="Loss")
+    plt.plot(accuracies, label="Accuracy")
+    plt.title("Training Loss and Accuracy")
+    plt.xlabel("Iteration")
+    plt.ylabel("Loss/Accuracy")
     plt.legend()
-    plt.savefig('TrainingLossAndAccuracy.png')
+    plt.savefig("TrainingLossAndAccuracy.png")
 
 
-if __name__ == '__main__':
-    # d = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    d = torch.device('cpu')
+if __name__ == "__main__":
+    d = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = DiffModel(device=d)
-    dataset = ASVspoof2019Dataset(root_dir='/mnt/e/VUT/Deepfakes/Datasets/LA', protocol_file_name='ASVspoof2019.LA.cm.train.trn.txt')
+    dataset = ASVspoof2019Dataset(
+        root_dir="/mnt/e/VUT/Deepfakes/Datasets/LA",
+        protocol_file_name="ASVspoof2019.LA.cm.train.trn.txt",
+    )
     dataloader = DataLoader(dataset, shuffle=True)
     train(model, dataloader, d)
