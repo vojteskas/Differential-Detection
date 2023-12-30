@@ -20,13 +20,13 @@ class SSLModel(nn.Module):
             self.model.to(input_data.device, dtype=input_data.dtype)
             self.model.train()
 
-        if True:
-            # input should be in shape (batch, length)
-            if input_data.ndim == 3:
-                input_tmp = input_data[:, :, 0]
-            else:
-                input_tmp = input_data
-                
-            # [batch, length, dim]
-            emb = self.model(input_tmp, mask=False, features_only=True)['x']
+        # input should be in shape (batch, length)
+        if input_data.ndim == 3:
+            input_tmp = input_data[:, :, 0]
+        else:
+            input_tmp = input_data
+
+        # [batch, length, dim]
+        emb = self.model(input_tmp, mask=False, features_only=True)['x']
+
         return emb
