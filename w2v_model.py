@@ -1,5 +1,5 @@
+import torch
 import torch.nn as nn
-import numpy as np
 
 import fairseq  # type: ignore
 
@@ -31,7 +31,13 @@ class SSLModel(nn.Module):
         else:
             input_tmp = input_data
 
-        # [batch, length, dim]
-        emb = self.model(input_tmp, mask=False, features_only=True)["x"]
+        # Batch support - process one utterance at a time
+        emb_list = []
+        for seq in input_tmp:
+            seq = seq.unsqueeze(0)  # add batch dimension (batch of size 1)
+            emb_seq = self.model(seq, mask=False, features_only=True)["x"]  # extract embedding
+            emb_list.append(emb_seq)  # append to list
+
+        emb = torch.cat(emb_list, dim=0)  # concatenate all embeddings into one batch
 
         return emb

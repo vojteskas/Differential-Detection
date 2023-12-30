@@ -3,10 +3,13 @@
 import librosa
 import torch
 import numpy as np
+from datasets import ASVspoof2019Dataset
+from torch.utils.data import DataLoader
 
-from w2v_model import SSLModel
+from diff_model import DiffModel
 
-if __name__ == '__main__':
+
+def init_test():
     d = 'cuda' if torch.cuda.is_available() else 'cpu'
     # load model
     print(f'Using device: {d}')
@@ -52,3 +55,27 @@ if __name__ == '__main__':
     # print distances
     print('### Euclidean distance between real recordings:', dist_real.item())
     print('### Euclidean distance between real and fake:', dist_fake.item())
+
+def batch_test():
+    d = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f'Using device: {d}')
+    
+    # load model
+    model = DiffModel(device=d)
+    model.load_state_dict(torch.load('./diffmodel.pt'))
+    dataset = ASVspoof2019Dataset(
+        root_dir="/mnt/e/VUT/Deepfakes/Datasets/LA",
+        protocol_file_name="ASVspoof2019.LA.cm.train.trn.txt",
+    )
+    dataloader = DataLoader(dataset, shuffle=True)
+
+    model.to(d)
+    model.train()
+    batch = next(iter(dataloader))
+    output = model(batch[0], batch[1])
+
+    print(output.shape, output)
+
+
+if __name__ == '__main__':
+    batch_test()

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 from time import sleep
+from numpy import var
 import torch
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
 from diff_model import DiffModel
-from datasets import ASVspoof2019Dataset
+from datasets import ASVspoof2019Dataset, custom_batch_create
 import matplotlib.pyplot as plt
 
 # TODO: Add adaptive learning rate
@@ -24,12 +25,12 @@ def train(model: DiffModel, dataloader: DataLoader, device: torch.device):
     accuracies = []
 
     for i, (gt, test, label) in enumerate(dataloader):
-        gt = gt.squeeze(0).to(device)  # Squeeze the first dimension (batch size = 1)
-        test = test.squeeze(0).to(device)
+        gt = gt.transpose(1, 2).to(device)
+        test = test.transpose(1, 2).to(device)
         label = label.to(device)
 
         optimizer.zero_grad()
-        output = model(gt, test).unsqueeze(0)
+        output = model(gt, test)
 
         loss = lossfn(output, label.long())
         loss.backward()
@@ -70,6 +71,7 @@ if __name__ == "__main__":
     dataset = ASVspoof2019Dataset(
         root_dir="/mnt/e/VUT/Deepfakes/Datasets/LA",
         protocol_file_name="ASVspoof2019.LA.cm.train.trn.txt",
+        variant="train",
     )
-    dataloader = DataLoader(dataset, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=32, shuffle=True, collate_fn=custom_batch_create)
     train(model, dataloader, d)
