@@ -1,4 +1,4 @@
-from typing import Literal
+from typing_extensions import Literal
 import torch
 from torch.utils.data import Dataset
 from torchaudio import load

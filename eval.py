@@ -25,9 +25,6 @@ def evaluate(model, dataloader, device):
             if i % 10 == 0:
                 print(f"[{i}/{len(dataloader)}]")
 
-            if i >= 100:
-                break
-
     accuracy = correct / total
     print(f"Accuracy of the model on the {total} test images: {accuracy * 100}%")
 

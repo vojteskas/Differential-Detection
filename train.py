@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from time import sleep
 import torch
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
@@ -45,9 +44,6 @@ def train(model: DiffModel, dataloader: DataLoader, device: torch.device):
 
         if i % 10 == 0:
             print(f"[{i}/{len(dataloader)}] Loss: {loss.item()}")
-
-        if i >= 10:
-            break
 
     # save the model
     torch.save(model.state_dict(), "./diffmodel.pt")
