@@ -13,11 +13,11 @@ def evaluate(model, dataloader, device):
     correct = 0
     with torch.no_grad():  # don't compute gradients
         for i, (gt, test, label) in enumerate(dataloader):
-            gt = gt.squeeze(0).to(device)
-            test = test.squeeze(0).to(device)
+            gt = gt.to(device)
+            test = test.to(device)
             label = label.to(device)
 
-            output = model(gt, test).unsqueeze(0)
+            output = model(gt, test)
             _, predicted = torch.max(output.data, 1)
             total += label.size(0)
             correct += (predicted == label).sum().item()
