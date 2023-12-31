@@ -4,6 +4,7 @@ import torch
 from torch.utils.data import DataLoader
 from datasets import ASVspoof2019Dataset
 from diff_model import DiffModel
+from sys import argv
 
 
 def evaluate(model, dataloader, device):
@@ -13,8 +14,8 @@ def evaluate(model, dataloader, device):
     correct = 0
     with torch.no_grad():  # don't compute gradients
         for i, (gt, test, label) in enumerate(dataloader):
-            gt = gt.to(device)
-            test = test.to(device)
+            gt = gt.transpose(1, 2).to(device)
+            test = test.transpose(1, 2).to(device)
             label = label.to(device)
 
             output = model(gt, test)
@@ -30,6 +31,8 @@ def evaluate(model, dataloader, device):
 
 
 if __name__ == "__main__":
+    data_dir = "/mnt/e/VUT/Deepfakes/Datasets/LA" if "--local" in argv else "./LA"
+
     d = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {d}")
     # Load the trained model
@@ -38,7 +41,7 @@ if __name__ == "__main__":
 
     # Create a DataLoader for the validation dataset
     validation_dataset = ASVspoof2019Dataset(
-        root_dir="/mnt/e/VUT/Deepfakes/Datasets/LA",
+        root_dir=data_dir,
         protocol_file_name="ASVspoof2019.LA.cm.dev.trl.txt",
         variant="dev"
     )

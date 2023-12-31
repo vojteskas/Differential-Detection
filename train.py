@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from diff_model import DiffModel
 from datasets import ASVspoof2019Dataset, custom_batch_create
 import matplotlib.pyplot as plt
+from sys import argv
 
 # TODO: Add adaptive learning rate
 # TODO: Update for batch training after adding collate function to dataset
@@ -61,10 +62,12 @@ def train(model: DiffModel, dataloader: DataLoader, device: torch.device):
 
 
 if __name__ == "__main__":
+    data_dir = "/mnt/e/VUT/Deepfakes/Datasets/LA" if "--local" in argv else "./LA"
+
     d = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = DiffModel(device=d)
     dataset = ASVspoof2019Dataset(
-        root_dir="/mnt/e/VUT/Deepfakes/Datasets/LA",
+        root_dir=data_dir,
         protocol_file_name="ASVspoof2019.LA.cm.train.trn.txt",
         variant="train",
     )
