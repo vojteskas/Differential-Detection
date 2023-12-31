@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -N SSL_Spoofing
 #PBS -q gpu@meta-pbs.metacentrum.cz
-#PBS -l select=1:ncpus=4:mem=64gb:ngpus=1:scratch_ssd=100gb
+#PBS -l select=1:ncpus=2:mem=64gb:ngpus=1:scratch_ssd=100gb
 #PBS -q gpu
 #PBS -l walltime=24:00:00
 #PBS -m ae
@@ -33,7 +33,7 @@ unzip dp.zip
 pip install -r requirements.txt --cache-dir $TMPDIR
 
 cp -r $DATADIR/deepfakes/datasets/LA.zip .
-unzip LA.zip
+unzip LA.zip 2>1 > /dev/null
 cp $DATADIR/DP/xlsr2_300m.pt .
 
 chmod 755 *.py
