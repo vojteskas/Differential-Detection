@@ -14,10 +14,10 @@ class DiffModel(nn.Module):
 
         self.classifier = nn.Sequential(
             nn.Linear(1024, 512),
-            nn.LayerNorm(512),
+            nn.BatchNorm1d(512),
             nn.ReLU(),
             nn.Linear(512, 256),
-            nn.LayerNorm(256),
+            nn.BatchNorm1d(256),
             nn.ReLU(),
             nn.Linear(256, 2),
         )
