@@ -1,10 +1,13 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from w2v_model import SSLModel
 
-# TODO: Update for batch training after adding collate function to dataset (dont forget to add batch normalization)
-
+# TODO: Add dropout?
+# TODO: Migrate to PyTorch Lightning?
+# TODO: Migrate to newer PyTorch version and use torch.hub to load the build-in 
+#       wav2vec model instead of using the custom one
 
 class DiffModel(nn.Module):
     def __init__(self, device):
@@ -26,9 +29,6 @@ class DiffModel(nn.Module):
         return
 
     def forward(self, input_data_ground_truth, input_data_tested):
-        print(f"GT: {input_data_ground_truth.shape}, TEST: {input_data_tested.shape}")
-        batch_size = input_data_ground_truth.shape[0]
-
         emb_gt = self.wav2vec.extract_feat(input_data_ground_truth)
         emb_test = self.wav2vec.extract_feat(input_data_tested)
 
@@ -38,5 +38,6 @@ class DiffModel(nn.Module):
         diff = emb_gt - emb_test
 
         out = self.classifier(diff)
+        prob = F.softmax(out, dim=1)
 
-        return out
+        return out, prob

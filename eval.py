@@ -2,7 +2,7 @@
 
 import torch
 from torch.utils.data import DataLoader
-from datasets import ASVspoof2019Dataset
+from datasets import ASVspoof2019Dataset, custom_batch_create
 from diff_model import DiffModel
 from sys import argv
 
@@ -18,19 +18,24 @@ def evaluate(model, dataloader, device):
             test = test.transpose(1, 2).to(device)
             label = label.to(device)
 
-            output = model(gt, test)
-            _, predicted = torch.max(output.data, 1)
+            vals, probs = model(gt, test)
+            print(f"output: {probs}")
+            predicted = torch.argmax(probs, dim=1)
+            print(f"predicted: {predicted}, label: {label}")
             total += label.size(0)
             correct += (predicted == label).sum().item()
 
             if i % 10 == 0:
                 print(f"[{i}/{len(dataloader)}]")
 
+            if "--local" in argv and i == 100:
+                break
+
     accuracy = correct / total
     print(f"Accuracy of the model on the {total} test images: {accuracy * 100}%")
 
-
 if __name__ == "__main__":
+    # TODO: Better path handling
     data_dir = "/mnt/e/VUT/Deepfakes/Datasets/LA" if "--local" in argv else "./LA"
 
     d = "cuda" if torch.cuda.is_available() else "cpu"
@@ -42,10 +47,10 @@ if __name__ == "__main__":
     # Create a DataLoader for the validation dataset
     validation_dataset = ASVspoof2019Dataset(
         root_dir=data_dir,
-        protocol_file_name="ASVspoof2019.LA.cm.dev.trl.txt",
-        variant="dev"
+        protocol_file_name="ASVspoof2019.LA.cm.eval.trl.txt",
+        variant="eval"
     )
-    validation_dataloader = DataLoader(validation_dataset, shuffle=True)
+    validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=True, collate_fn=custom_batch_create)
 
     # Evaluate the model
     evaluate(model, validation_dataloader, d)

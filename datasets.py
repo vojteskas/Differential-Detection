@@ -4,9 +4,7 @@ from torch.utils.data import Dataset
 from torchaudio import load
 import os
 import pandas as pd
-
-# TODO: Add collate function so that the dataloader can return a batch of data
-
+import numpy as np
 
 def custom_batch_create(batch):
     # Get the lengths of all tensors in the batch
@@ -56,24 +54,34 @@ class ASVspoof2019Dataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        speaker_id = self.protocol_df.loc[idx, "SPEAKER_ID"]
+        speaker_id = self.protocol_df.loc[idx, "SPEAKER_ID"] # Get the speaker ID
 
         test_audio_file_name = self.protocol_df.loc[idx, "AUDIO_FILE_NAME"]
         test_audio_name = os.path.join(self.rec_dir, test_audio_file_name + ".flac")
-        test_waveform, _ = load(test_audio_name)
+        test_waveform, _ = load(test_audio_name) # Load the tested speech
 
         label = self.protocol_df.loc[idx, "KEY"]
         label = 0 if label == "bonafide" else 1  # 0 for genuine speech, 1 for spoofing speech
 
+        # Get the genuine speech of the same speaker for differentiation
         speaker_recordings_df = self.protocol_df[self.protocol_df["SPEAKER_ID"] == speaker_id]
         if speaker_recordings_df.empty:
             raise Exception(f"Speaker {speaker_id} genuine speech not found in protocol file")
-        gt_audio_file_name = speaker_recordings_df.sample(n=1).iloc[0]["AUDIO_FILE_NAME"]
-        gt_audio_name = os.path.join(self.rec_dir, gt_audio_file_name + ".flac")
-        gt_waveform, _ = load(gt_audio_name)
+        gt_audio_file_name = speaker_recordings_df.sample(n=1).iloc[0]["AUDIO_FILE_NAME"] # Get a random genuine speech
+        gt_audio_name = os.path.join(self.rec_dir, gt_audio_file_name + ".flac") 
+        gt_waveform, _ = load(gt_audio_name) # Load the genuine speech
 
         # print(f"Loaded GT:{gt_audio_name} and TEST:{test_audio_name}")
         return gt_waveform, test_waveform, label
+    
+    def get_labels(self) -> np.ndarray:
+        return self.protocol_df["KEY"].map({"bonafide": 0, "spoof": 1}).to_numpy()
+    
+    def get_class_weights(self) -> np.ndarray:
+        labels = self.get_labels()
+        class_counts = np.bincount(labels)
+        class_weights = 1. / class_counts
+        return torch.FloatTensor(class_weights)
 
 
 # Usage

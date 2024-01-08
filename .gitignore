@@ -1,7 +1,5 @@
 LA_model.pth
-xlsr2_2B_1000k.pt
-xlsr2_300m.pt
 __pycache__
-diffmodel.pt
+*.pt
 *.zip
 *.png
