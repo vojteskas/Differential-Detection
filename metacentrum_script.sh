@@ -1,8 +1,8 @@
 #!/bin/bash
-#PBS -N SSL_Spoofing
-#PBS -q phi@cerit-pbs.cerit-sc.cz
-#PBS -l select=1:ncpus=256:mem=385gb:scratch_ssd=100gb
-#PBS -l walltime=96:00:00
+#PBS -N DiffModel
+#PBS -q gpu@meta-pbs.metacentrum.cz
+#PBS -l select=1:ncpus=4:mem=32gb:scratch_ssd=100gb
+#PBS -l walltime=24:00:00
 #PBS -m ae
 
 export OMP_NUM_THREADS=$PBS_NUM_PPN
@@ -40,7 +40,10 @@ chmod 755 ./*.py
 ./train.py
 ./eval.py
 
-cp TrainingLossAndAccuracy.png $DATADIR/DP/TrainingLossAndAccuracy.png
-cp diffmodel.pt $DATADIR/DP/diffmodel.pt
+zip results.zip ./*.pt ./*.png
+cp results.zip $DATADIR/DP/results.zip
+
+# cp TrainingLossAndAccuracy.png $DATADIR/DP/TrainingLossAndAccuracy.png
+# cp diffmodel.pt $DATADIR/DP/diffmodel.pt
 
 clean_scratch
