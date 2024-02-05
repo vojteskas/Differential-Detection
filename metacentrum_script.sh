@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -N DiffModel
 #PBS -q gpu@meta-pbs.metacentrum.cz
-#PBS -l select=1:ncpus=4:mem=32gb:scratch_ssd=100gb
+#PBS -l select=1:ncpus=4:mem=64gb:scratch_ssd=100gb
 #PBS -l walltime=24:00:00
 #PBS -m ae
 

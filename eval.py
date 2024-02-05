@@ -37,13 +37,13 @@ def evaluate(model, dataloader, device):
             # print(f"output: {probs}")
             predicted = torch.argmax(probs, dim=1)
             labels.extend(label.tolist())
-            predictions.extend(predicted.tolist())
-            print(f"predicted: {predicted}, label: {label}")
+            predictions.extend(probs[:, 0].tolist())
+            # print(f"probs: {probs},\npredicted:\n{predicted}\n, label:\n{label}\n")
             total += label.size(0)
             correct += (predicted == label).sum().item()
 
             if i % 10 == 0:
-                print(f"[{i}/{len(dataloader)}: correct {(predicted == label).sum().item()} / {label.size(0)}]")
+                print(f"[{i}/{len(dataloader)}: correct {correct} / {total}]")
 
             if "--local" in argv and i == 100:
                 break
@@ -69,17 +69,24 @@ if __name__ == "__main__":
     d = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {d}")
 
+    variant = "eval"
+    print(f"Using variant: {variant}")
     # Create a DataLoader for the validation dataset
     validation_dataset = ASVspoof2019Dataset(
-        root_dir=data_dir, protocol_file_name="ASVspoof2019.LA.cm.eval.trl.txt", variant="eval"
+        root_dir=data_dir, protocol_file_name="ASVspoof2019.LA.cm."+variant+".trl.txt", variant=variant
     )
-    validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=True, collate_fn=custom_batch_create)
+
+    samples_weights = [validation_dataset.get_class_weights()[i] for i in validation_dataset.get_labels()]
+    sampler = torch.utils.data.WeightedRandomSampler(samples_weights, len(validation_dataset))
+    validation_dataloader = DataLoader(validation_dataset, batch_size=32, collate_fn=custom_batch_create, sampler=sampler)
+
+    # validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=True, collate_fn=custom_batch_create)
 
     # Evaluate the model
-    numepochs = 1 if "--local" in argv else 11
-    for epoch in range(numepochs):
-        model = DiffModel(device=d)
-        model.load_state_dict(torch.load(f"./diffmodel_{epoch}.pt"))
-        print(f"Loaded model from epoch {epoch}")
-        evaluate(model, validation_dataloader, d)
-        print(f"^^^ Evaluated model diffmodel_{epoch}.pt ^^^")
+    # numepochs = 1 if "--local" in argv else 11
+    # for epoch in range(numepochs):
+    model = DiffModel(device=d)
+    model.load_state_dict(torch.load(f"./diffmodel_30.pt"))
+    # print(f"Loaded model from epoch {epoch}")
+    evaluate(model, validation_dataloader, d)
+    # print(f"^^^ Evaluated model diffmodel_{epoch}.pt ^^^")
