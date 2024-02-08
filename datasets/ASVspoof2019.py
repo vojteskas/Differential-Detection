@@ -23,8 +23,12 @@ def custom_batch_create(batch):
     for item in batch:
         waveform_gt = item[0]
         waveform_test = item[1]
-        padded_waveform_gt = torch.nn.functional.pad(waveform_gt, (0, max_length_gt - waveform_gt.size(1)))
-        padded_waveform_test = torch.nn.functional.pad(waveform_test, (0, max_length_test - waveform_test.size(1)))
+        padded_waveform_gt = torch.nn.functional.pad(
+            waveform_gt, (0, max_length_gt - waveform_gt.size(1))
+        ).squeeze(0)
+        padded_waveform_test = torch.nn.functional.pad(
+            waveform_test, (0, max_length_test - waveform_test.size(1))
+        ).squeeze(0)
         label = torch.tensor(item[2])
 
         padded_gts.append(padded_waveform_gt)
@@ -52,10 +56,6 @@ class ASVspoof2019Dataset(Dataset):
         return len(self.protocol_df)
 
     def __getitem__(self, idx):
-        """
-        Currently extracts the wav2vec2 embeddings before returning the data
-        TODO: Extract the embeddings in the model instead of here with torch.no_grad()
-        """
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
