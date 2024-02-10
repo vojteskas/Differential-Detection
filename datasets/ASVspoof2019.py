@@ -7,20 +7,25 @@ import pandas as pd
 import numpy as np
 
 
-def custom_batch_create(batch):
+def custom_batch_create(batch: list):
+    # Free unused memory before creating the new batch
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    
     # Get the lengths of all tensors in the batch
-    lengths_gt = [item[0].size(1) for item in batch]
-    lengths_test = [item[1].size(1) for item in batch]
+    batch_size = len(batch)
+    lengths_gt = torch.tensor([item[0].size(1) for item in batch])
+    lengths_test = torch.tensor([item[1].size(1) for item in batch])
 
     # Find the maximum length
-    max_length_gt = max(lengths_gt)
-    max_length_test = max(lengths_test)
+    max_length_gt = int(torch.max(lengths_gt))
+    max_length_test = int(torch.max(lengths_test))
 
     # Pad the tensors to have the maximum length
-    padded_gts = []
-    padded_tests = []
-    labels = []
-    for item in batch:
+    padded_gts = torch.zeros(batch_size, max_length_gt)
+    padded_tests = torch.zeros(batch_size, max_length_test)
+    labels = torch.zeros(batch_size)
+    for i, item in enumerate(batch):
         waveform_gt = item[0]
         waveform_test = item[1]
         padded_waveform_gt = torch.nn.functional.pad(
@@ -31,13 +36,9 @@ def custom_batch_create(batch):
         ).squeeze(0)
         label = torch.tensor(item[2])
 
-        padded_gts.append(padded_waveform_gt)
-        padded_tests.append(padded_waveform_test)
-        labels.append(label)
-
-    padded_gts = torch.stack(padded_gts)
-    padded_tests = torch.stack(padded_tests)
-    labels = torch.stack(labels)
+        padded_gts[i] = padded_waveform_gt
+        padded_tests[i] = padded_waveform_test
+        labels[i] = label
 
     return padded_gts, padded_tests, labels
 
@@ -50,7 +51,7 @@ class ASVspoof2019Dataset(Dataset):
         self.protocol_df = pd.read_csv(protocol_file, sep=" ", header=None)
         self.protocol_df.columns = ["SPEAKER_ID", "AUDIO_FILE_NAME", "SYSTEM_ID", "-", "KEY"]
 
-        self.rec_dir = os.path.join(self.root_dir, "ASVspoof2019_LA_" + variant, "flac")
+        self.rec_dir = os.path.join(self.root_dir, f"ASVspoof2019_LA_{variant}", "flac")
 
     def __len__(self):
         return len(self.protocol_df)
@@ -62,7 +63,7 @@ class ASVspoof2019Dataset(Dataset):
         speaker_id = self.protocol_df.loc[idx, "SPEAKER_ID"]  # Get the speaker ID
 
         test_audio_file_name = self.protocol_df.loc[idx, "AUDIO_FILE_NAME"]
-        test_audio_name = os.path.join(self.rec_dir, test_audio_file_name + ".flac")
+        test_audio_name = os.path.join(self.rec_dir, f"{test_audio_file_name}.flac")
         test_waveform, _ = load(test_audio_name)  # Load the tested speech
 
         label = self.protocol_df.loc[idx, "KEY"]
@@ -74,7 +75,7 @@ class ASVspoof2019Dataset(Dataset):
             raise Exception(f"Speaker {speaker_id} genuine speech not found in protocol file")
         # Get a random genuine speech of the speaker using sample()
         gt_audio_file_name = speaker_recordings_df.sample(n=1).iloc[0]["AUDIO_FILE_NAME"]
-        gt_audio_name = os.path.join(self.rec_dir, gt_audio_file_name + ".flac")
+        gt_audio_name = os.path.join(self.rec_dir, f"{gt_audio_file_name}.flac")
         gt_waveform, _ = load(gt_audio_name)  # Load the genuine speech
 
         # print(f"Loaded GT:{gt_audio_name} and TEST:{test_audio_name}")
@@ -87,7 +88,7 @@ class ASVspoof2019Dataset(Dataset):
         """
         return self.protocol_df["KEY"].map({"bonafide": 0, "spoof": 1}).to_numpy()
 
-    def get_class_weights(self) -> np.ndarray:
+    def get_class_weights(self):
         """Returns an array of class weights for the dataset, where 0 is genuine speech and 1 is spoofing speech"""
         labels = self.get_labels()
         class_counts = np.bincount(labels)

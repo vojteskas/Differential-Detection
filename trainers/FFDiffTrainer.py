@@ -48,7 +48,7 @@ class FFDiffTrainer(BaseTrainer):
 
             # Training loop
             for i, (gt, test, label) in enumerate(train_dataloader):
-                print(f"Batch {i} of {len(train_dataloader)}")
+                print(f"Batch {i+1} of {len(train_dataloader)}")
                 gt = gt.to(self.device)
                 test = test.to(self.device)
                 label = label.to(self.device)

@@ -1,4 +1,4 @@
-from BaseProcessor import BaseProcessor
+from feature_processors.BaseProcessor import BaseProcessor
 
 
 class MHFAProcessor(BaseProcessor):

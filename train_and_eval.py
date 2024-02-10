@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
 from sys import argv
 
 from classifiers.differential.FFDiff import FFDiff
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     # there is about 90% of spoofed recordings in the dataset, balance with weighted random sampling
     samples_weights = [train_dataset.get_class_weights()[i] for i in train_dataset.get_labels()]
-    weighted_sampler = torch.utils.data.WeightedRandomSampler(samples_weights, len(train_dataset))
+    weighted_sampler = WeightedRandomSampler(samples_weights, len(train_dataset))
 
     # create dataloader, use custom collate_fn to pad the data to the longest recording in batch
     train_dataloader = DataLoader(

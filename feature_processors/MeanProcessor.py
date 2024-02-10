@@ -1,6 +1,6 @@
 from typing import Union, Sequence
 
-from BaseProcessor import BaseProcessor
+from feature_processors.BaseProcessor import BaseProcessor
 
 
 class MeanProcessor(BaseProcessor):
