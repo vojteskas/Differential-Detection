@@ -1,4 +1,3 @@
-from typing import Literal
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -7,12 +6,18 @@ import torch.nn.functional as F
 
 
 class FFDiff(nn.Module):
+    """
+    Linear classifier using the difference between two embeddings.
+    """
+
     def __init__(self, extractor, feature_processor):
         """
-        Linear classifier using the difference between two embeddings.
+        Initialize the model.
 
         param extractor: Model to extract features from audio data.
                          Needs to provide method extract_features(input_data)
+        param feature_processor: Model to process the extracted features.
+                                 Needs to provide method __call__(input_data)
         """
 
         super().__init__()
