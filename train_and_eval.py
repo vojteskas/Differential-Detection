@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import torch
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from sys import argv
 
@@ -40,18 +39,20 @@ if __name__ == "__main__":
 
     # create dataloader, use custom collate_fn to pad the data to the longest recording in batch
     train_dataloader = DataLoader(
-        train_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, sampler=weighted_sampler
+        train_dataset,
+        batch_size=config["batch_size"],
+        collate_fn=custom_batch_create,
+        sampler=weighted_sampler,
     )
-    # Use bigger batch size for validation and evaluation as we don't need to backpropagate
-    dev_dataloader = DataLoader(
-        val_dataset, batch_size=config["batch_size"] * 4, collate_fn=custom_batch_create, shuffle=True
+    val_dataloader = DataLoader(
+        val_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, shuffle=True
     )
     eval_dataloader = DataLoader(
-        eval_dataset, batch_size=config["batch_size"] * 4, collate_fn=custom_batch_create, shuffle=True
+        eval_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, shuffle=True
     )
 
     model = FFDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)))
     trainer = FFDiffTrainer(model)
 
-    trainer.train(train_dataloader, dev_dataloader, numepochs=config["num_epochs"])
+    trainer.train(train_dataloader, val_dataloader, numepochs=config["num_epochs"])
     trainer.eval(eval_dataloader)

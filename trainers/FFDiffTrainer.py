@@ -14,7 +14,9 @@ class FFDiffTrainer(BaseTrainer):
 
         # Mabye TODO??? Add class weights for the loss function - maybe not necessary since we have weighted sampler
         self.lossfn = CrossEntropyLoss()  # Should also try with BCELoss
-        self.optimizer = torch.optim.Adam(model.parameters())  # Can play with lr and weight_decay for regularization
+        self.optimizer = torch.optim.Adam(
+            model.parameters()
+        )  # Can play with lr and weight_decay for regularization
         self.device = device
 
         model = model.to(device)
@@ -48,7 +50,7 @@ class FFDiffTrainer(BaseTrainer):
 
             # Training loop
             for i, (gt, test, label) in enumerate(train_dataloader):
-                print(f"Batch {i+1} of {len(train_dataloader)}")
+                # print(f"Batch {i+1} of {len(train_dataloader)}")  # TODO: Add progress bar
                 gt = gt.to(self.device)
                 test = test.to(self.device)
                 label = label.to(self.device)
@@ -79,32 +81,37 @@ class FFDiffTrainer(BaseTrainer):
             epoch_accuracy = np.mean(accuracies)
             epoch_loss = np.mean(losses)
             print(
-                f"Epoch {epoch} finished, training loss: {np.mean(losses)}, training accuracy: {np.mean(accuracies)}"
+                f"Epoch {epoch} finished,", 
+                f"training loss: {np.mean(losses)},", 
+                f"training accuracy: {np.mean(accuracies)}"
             )
 
             self.statistics["train_losses"].append(epoch_loss)
             self.statistics["train_accuracies"].append(epoch_accuracy)
 
-            # Every 10 epochs
+            # Every epoch
             # plot losses and accuracy and save the model
             # validate on the validation set (incl. computing EER)
-            if epoch % 10 == 0:
-                self._plot_loss_accuracy(
-                    self.statistics["train_losses"], self.statistics["train_accuracies"], f"Training epoch {epoch}"
-                )
-                self.save_model(f"./FFDiff_{epoch}.pt")
+            self._plot_loss_accuracy(
+                self.statistics["train_losses"],
+                self.statistics["train_accuracies"],
+                f"Training epoch {epoch}",
+            )
+            self.save_model(f"./FFDiff_{epoch}.pt")
 
-                # Validation
-                val_loss, val_accuracy, eer = self.val(val_dataloader)
-                print(f"Validation loss: {val_loss}, validation accuracy: {val_accuracy}")
-                print(f"Validation EER: {eer*100}%")
-                self.statistics["val_losses"].append(val_loss)
-                self.statistics["val_accuracies"].append(val_accuracy)
-                self.statistics["val_eers"].append(eer)
+            # Validation
+            val_loss, val_accuracy, eer = self.val(val_dataloader)
+            print(f"Validation loss: {val_loss}, validation accuracy: {val_accuracy}")
+            print(f"Validation EER: {eer*100}%")
+            self.statistics["val_losses"].append(val_loss)
+            self.statistics["val_accuracies"].append(val_accuracy)
+            self.statistics["val_eers"].append(eer)
 
-                # TODO: Enable early stopping based on validation accuracy/loss/EER
+            # TODO: Enable early stopping based on validation accuracy/loss/EER
 
-        self._plot_loss_accuracy(self.statistics["val_losses"], self.statistics["val_accuracies"], "Validation")
+        self._plot_loss_accuracy(
+            self.statistics["val_losses"], self.statistics["val_accuracies"], "Validation"
+        )
         self._plot_eer(self.statistics["val_eers"], "Validation")
 
     def val(self, val_dataloader) -> tuple[float, float, float]:
@@ -122,9 +129,12 @@ class FFDiffTrainer(BaseTrainer):
             losses = []
             # For EER computation
             labels = []
+            scores = []
             predictions = []
 
             for i, (gt, test, label) in enumerate(val_dataloader):
+                # print(f"Validation batch {i+1} of {len(val_dataloader)}")
+
                 gt = gt.to(self.device)
                 test = test.to(self.device)
                 label = label.to(self.device)
@@ -132,15 +142,15 @@ class FFDiffTrainer(BaseTrainer):
                 logits, probs = self.model(gt, test)
                 loss = self.lossfn(logits, label.long())
 
-                predicted = torch.argmax(probs, 1)
+                predictions.extend(torch.argmax(probs, 1).tolist())
 
                 losses.append(loss.item())
                 labels.extend(label.tolist())
-                predictions.extend(probs[:, 0].tolist())
+                scores.extend(probs[:, 0].tolist())
 
             val_loss = np.mean(losses)
-            val_accuracy = np.mean(labels == predictions)
-            eer = self._calculate_EER(labels, predictions)
+            val_accuracy = np.mean(np.array(labels) == np.array(predictions))
+            eer = self._calculate_EER(labels, scores)
 
             return val_loss, val_accuracy, eer
 

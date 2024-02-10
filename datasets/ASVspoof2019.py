@@ -43,7 +43,7 @@ def custom_batch_create(batch: list):
     return padded_gts, padded_tests, labels
 
 
-class ASVspoof2019Dataset(Dataset):
+class ASVspoof2019Dataset(Dataset):  # Consider doing own train/val split, now its 50/50, like 80/20 should suffice and give more training data
     def __init__(self, root_dir, protocol_file_name, variant: Literal["train", "dev", "eval"] = "train"):
         self.root_dir = root_dir  # Path to the LA folder
 
