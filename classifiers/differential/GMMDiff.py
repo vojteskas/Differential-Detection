@@ -23,6 +23,8 @@ class GMMDiff:
 
         self.extractor = extractor
         self.feature_processor = feature_processor
+        self.n_components = n_components
+        self.covariance_type = covariance_type
 
         self.bonafide_classifier = GaussianMixture(
             n_components=n_components, covariance_type=covariance_type
@@ -58,6 +60,7 @@ class GMMDiff:
         emb_test = self.feature_processor(emb_test)
 
         diff = emb_gt - emb_test
+        diff = diff.cpu()  # If extracting features on GPU, move the result back to cpu
 
         bonafide_score = self.bonafide_classifier.score_samples(diff)
         spoof_score = self.spoof_classifier.score_samples(diff)

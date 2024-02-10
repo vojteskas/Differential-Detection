@@ -21,6 +21,8 @@ class BaseTrainer:
         Save the model to the given path
         If model is a PyTorch model, it will be saved using torch.save(state_dict)
         If model is not a PyTorch model (i.e. from sklearn), it will be saved using joblib.dump
+        Problem is when non-PyTorch model contains a Pytorch component (e.g. extractor). In that case,
+        the trainer should implement custom saving/loading methods.
 
         param path: Path to save the model to
         """
@@ -34,6 +36,8 @@ class BaseTrainer:
         Load the model from the given path
         Try to load the model as a PyTorch model first using torch.load
         If that fails, try to load it as an sklearn model using joblib.load
+        Problem is when non-PyTorch model contains a Pytorch component (e.g. extractor). In that case,
+        the trainer should implement custom saving/loading methods.
 
         param path: Path to load the model from
         """
