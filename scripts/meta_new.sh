@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -N FFDiffModel
 #PBS -q gpu@meta-pbs.metacentrum.cz
-#PBS -l select=1:ncpus=4:mem=64gb:ngpus=1:scratch_ssd=100gb
+#PBS -l select=1:ncpus=4:mem=100gb:ngpus=1:gpu_mem=30gb:scratch_ssd=100gb
 #PBS -l walltime=24:00:00
 #PBS -m ae
 
@@ -31,7 +31,7 @@ chmod 755 ./*.py
 
 ./train_and_eval.py --metacentrum
 
-zip -r results.zip ./*
+zip -r results.zip classifiers datasets embeddings trainers config.py train_and_eval.py requirements.txt ./*.png ./*.pt >/dev/null 2>&1
 cp results.zip $DATADIR/DP/results.zip
 
 clean_scratch
