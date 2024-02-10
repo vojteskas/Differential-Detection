@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N GMMDiff
+#PBS -N GMMDiff_comp
 #PBS -q gpu@meta-pbs.metacentrum.cz
 #PBS -l select=1:ncpus=4:mem=64gb:ngpus=1:gpu_mem=8gb:scratch_ssd=100gb
 #PBS -l walltime=24:00:00
@@ -32,11 +32,11 @@ chmod 755 ./*.py
 ./train_and_eval.py --metacentrum
 
 rm -rf ./*__pycache__*
-zip -r GMMDiffResults.zip \
+zip -r GMMDiff_comp_Results.zip \
     classifiers datasets embeddings feature_processors trainers \
     config.py train_and_eval.py requirements.txt \
     ./*.png ./*.pt \
     >/dev/null 2>&1
-cp GMMDiffResults.zip $DATADIR/DP/GMMDiffResults.zip
+cp GMMDiff_comp_Results.zip $DATADIR/DP/GMMDiff_comp_Results.zip
 
 clean_scratch

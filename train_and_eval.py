@@ -58,7 +58,10 @@ if __name__ == "__main__":
     # trainer.train(train_dataloader, val_dataloader, numepochs=config["num_epochs"])
     # trainer.eval(eval_dataloader)
 
-    model = GMMDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)))
-    trainer = GMMDiffTrainer(model)
-    trainer.train(train_dataloader, val_dataloader, variant="all")
-    trainer.eval(eval_dataloader)
+    for comp in [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]:
+        model = GMMDiff(
+            XLSR_300M(), MeanProcessor(dim=(0, 2)), n_components=comp
+        )  # Also test different covariance types
+        trainer = GMMDiffTrainer(model)
+        trainer.train(train_dataloader, val_dataloader, variant="all")
+        trainer.eval(eval_dataloader)
