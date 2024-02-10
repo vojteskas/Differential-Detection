@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import re
 import torch
 from torch.utils.data import DataLoader
 from sys import argv
@@ -8,6 +7,7 @@ from sys import argv
 from classifiers.differential.FFDiff import FFDiff
 from datasets.ASVspoof2019 import ASVspoof2019Dataset, custom_batch_create
 from embeddings.XLSR.XLSR_300M import XLSR_300M
+from feature_processors.MeanProcessor import MeanProcessor
 from trainers.FFDiffTrainer import FFDiffTrainer
 
 from config import local_config, metacentrum_config
@@ -44,13 +44,13 @@ if __name__ == "__main__":
     )
     # Use bigger batch size for validation and evaluation as we don't need to backpropagate
     dev_dataloader = DataLoader(
-        val_dataset, batch_size=config["batch_size"]*4, collate_fn=custom_batch_create, shuffle=True
+        val_dataset, batch_size=config["batch_size"] * 4, collate_fn=custom_batch_create, shuffle=True
     )
     eval_dataloader = DataLoader(
-        eval_dataset, batch_size=config["batch_size"]*4, collate_fn=custom_batch_create, shuffle=True
+        eval_dataset, batch_size=config["batch_size"] * 4, collate_fn=custom_batch_create, shuffle=True
     )
 
-    model = FFDiff(XLSR_300M())
+    model = FFDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)))
     trainer = FFDiffTrainer(model)
 
     trainer.train(train_dataloader, dev_dataloader, numepochs=config["num_epochs"])

@@ -31,7 +31,7 @@ chmod 755 ./*.py
 
 ./train_and_eval.py --metacentrum
 
-zip -r results.zip classifiers datasets embeddings trainers config.py train_and_eval.py requirements.txt ./*.png ./*.pt >/dev/null 2>&1
+zip -r results.zip classifiers datasets embeddings feature_processors trainers config.py train_and_eval.py requirements.txt ./*.png ./*.pt >/dev/null 2>&1
 cp results.zip $DATADIR/DP/results.zip
 
 clean_scratch

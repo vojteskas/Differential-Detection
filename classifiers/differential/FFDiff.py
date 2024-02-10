@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 
 class FFDiff(nn.Module):
-    def __init__(self, extractor):
+    def __init__(self, extractor, feature_processor):
         """
         Linear classifier using the difference between two embeddings.
 
@@ -18,6 +18,7 @@ class FFDiff(nn.Module):
         super().__init__()
 
         self.extractor = extractor
+        self.feature_processor = feature_processor
 
         self.classifier = nn.Sequential(
             nn.Linear(1024, 512),
@@ -33,19 +34,19 @@ class FFDiff(nn.Module):
         """
         Forward pass through the model.
 
-        Extract features from the audio data, process them (pooling) and pass them through the classifier.
+        Extract features from the audio data, process them and pass them through the classifier.
 
         param input_data_ground_truth: Audio data of the ground truth of shape: (batch_size, seq_len)
         param input_data_tested: Audio data of the tested data of shape: (batch_size, seq_len)
 
-        return: Output of the model (logits) and the probabilities (softmax output of the logits).
+        return: Output of the model (logits) and the class probabilities (softmax output of the logits).
         """
 
         emb_gt = self.extractor.extract_features(input_data_ground_truth)
         emb_test = self.extractor.extract_features(input_data_tested)
 
-        emb_gt = self.process_features(emb_gt)
-        emb_test = self.process_features(emb_test)
+        emb_gt = self.feature_processor(emb_gt)
+        emb_test = self.feature_processor(emb_test)
 
         diff = emb_gt - emb_test
 
@@ -53,22 +54,3 @@ class FFDiff(nn.Module):
         prob = F.softmax(out, dim=1)
 
         return out, prob
-
-    def process_features(self, features, pooling: Literal["mean", "mhfa"] = "mean"):
-        """
-        Process features extracted from audio data.
-
-        param features: Features extracted from the audio data of shape:
-                        (num_transformer_layers or 1, batch_size, time_frame, feature_size == 1024)
-        param pooling: Pooling type to use for processing
-
-        return: Processed features of shape: (batch_size, 1024)
-        """
-
-        # TODO: add MHFA pooling as an alternative
-
-        if pooling == "mean":
-            # return the mean of the features over the time frame and transformer layers
-            return features.mean(dim=2).mean(dim=0)
-        else:
-            raise NotImplementedError(f"Pooling type '{pooling}' not supported.")
