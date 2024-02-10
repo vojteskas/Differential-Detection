@@ -2,7 +2,6 @@ import numpy as np
 import torch
 from torch.nn import CrossEntropyLoss
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve
 from tqdm import tqdm
 
 from classifiers.differential.FFDiff import FFDiff
@@ -20,7 +19,7 @@ class FFDiffTrainer(BaseTrainer):
         )  # Can play with lr and weight_decay for regularization
         self.device = device
 
-        model = model.to(device)
+        self.model = model.to(device)
 
         # A statistics tracker dict for the training and validation losses, accuracies and EERs
         self.statistics = {
@@ -151,7 +150,7 @@ class FFDiffTrainer(BaseTrainer):
 
             val_loss = np.mean(losses)
             val_accuracy = np.mean(np.array(labels) == np.array(predictions))
-            eer = self._calculate_EER(labels, scores)
+            eer = self.calculate_EER(labels, scores)
 
             return val_loss, val_accuracy, eer
 
@@ -162,23 +161,10 @@ class FFDiffTrainer(BaseTrainer):
         param eval_dataloader: Dataloader loading the test data
         """
 
-        # Reuse code from val() to evaluate the model on the test set
+        # Reuse code from val() to evaluate the model on the eval set
         eval_loss, eval_accuracy, eer = self.val(eval_dataloader)
         print(f"Eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
         print(f"Eval EER: {eer*100}%")
-
-    def _calculate_EER(self, labels, predictions) -> float:
-        """
-        Calculate the Equal Error Rate (EER) from the labels and predictions
-        """
-        fpr, tpr, threshold = roc_curve(labels, predictions, pos_label=0)
-        fnr = 1 - tpr
-
-        # eer from fpr and fnr can differ a bit (its a approximation), so we compute both and take the average
-        eer_1 = fpr[np.nanargmin(np.absolute((fnr - fpr)))]
-        eer_2 = fnr[np.nanargmin(np.absolute((fnr - fpr)))]
-        eer = (eer_1 + eer_2) / 2
-        return eer
 
     def _plot_loss_accuracy(self, losses, accuracies, subtitle: str = ""):
         """

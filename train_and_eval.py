@@ -4,10 +4,12 @@ from torch.utils.data import DataLoader, WeightedRandomSampler
 from sys import argv
 
 from classifiers.differential.FFDiff import FFDiff
+from classifiers.differential.GMMDiff import GMMDiff
 from datasets.ASVspoof2019 import ASVspoof2019Dataset, custom_batch_create
 from embeddings.XLSR.XLSR_300M import XLSR_300M
 from feature_processors.MeanProcessor import MeanProcessor
 from trainers.FFDiffTrainer import FFDiffTrainer
+from trainers.GMMDiffTrainer import GMMDiffTrainer
 
 from config import local_config, metacentrum_config
 
@@ -51,8 +53,12 @@ if __name__ == "__main__":
         eval_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, shuffle=True
     )
 
-    model = FFDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)))
-    trainer = FFDiffTrainer(model)
+    # model = FFDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)))
+    # trainer = FFDiffTrainer(model)
+    # trainer.train(train_dataloader, val_dataloader, numepochs=config["num_epochs"])
+    # trainer.eval(eval_dataloader)
 
-    trainer.train(train_dataloader, val_dataloader, numepochs=config["num_epochs"])
+    model = GMMDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)))
+    trainer = GMMDiffTrainer(model)
+    trainer.train(train_dataloader, val_dataloader, variant="all")
     trainer.eval(eval_dataloader)

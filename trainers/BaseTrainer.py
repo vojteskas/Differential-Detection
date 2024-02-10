@@ -1,6 +1,7 @@
 import torch
 import joblib
-
+from sklearn.metrics import roc_curve
+import numpy as np
 
 class BaseTrainer:
     def __init__(self, model):
@@ -38,5 +39,20 @@ class BaseTrainer:
         """
         try:
             self.model.load_state_dict(torch.load(path))
-        except:
+        except FileNotFoundError:
+            raise
+        except:  # Path correct, but not a PyTorch model
             self.model = joblib.load(path)
+
+    def calculate_EER(self, labels, predictions) -> float:
+        """
+        Calculate the Equal Error Rate (EER) from the labels and predictions
+        """
+        fpr, tpr, threshold = roc_curve(labels, predictions, pos_label=0)
+        fnr = 1 - tpr
+
+        # eer from fpr and fnr can differ a bit (its a approximation), so we compute both and take the average
+        eer_1 = fpr[np.nanargmin(np.absolute((fnr - fpr)))]
+        eer_2 = fnr[np.nanargmin(np.absolute((fnr - fpr)))]
+        eer = (eer_1 + eer_2) / 2
+        return eer
