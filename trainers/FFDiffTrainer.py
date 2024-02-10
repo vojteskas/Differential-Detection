@@ -3,6 +3,7 @@ import torch
 from torch.nn import CrossEntropyLoss
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve
+from tqdm import tqdm
 
 from classifiers.differential.FFDiff import FFDiff
 from trainers.BaseTrainer import BaseTrainer
@@ -49,8 +50,8 @@ class FFDiffTrainer(BaseTrainer):
             accuracies = []
 
             # Training loop
-            for i, (gt, test, label) in enumerate(train_dataloader):
-                # print(f"Batch {i+1} of {len(train_dataloader)}")  # TODO: Add progress bar
+            for gt, test, label in tqdm(train_dataloader):
+                
                 gt = gt.to(self.device)
                 test = test.to(self.device)
                 label = label.to(self.device)
@@ -132,7 +133,7 @@ class FFDiffTrainer(BaseTrainer):
             scores = []
             predictions = []
 
-            for i, (gt, test, label) in enumerate(val_dataloader):
+            for gt, test, label in tqdm(val_dataloader):
                 # print(f"Validation batch {i+1} of {len(val_dataloader)}")
 
                 gt = gt.to(self.device)
