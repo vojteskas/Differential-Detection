@@ -1,15 +1,18 @@
 #!/usr/bin/env python
-
+from matplotlib.pylab import f
+import numpy as np
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from sys import argv
 
 from classifiers.differential.FFDiff import FFDiff
 from classifiers.differential.GMMDiff import GMMDiff
+from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from datasets.ASVspoof2019 import ASVspoof2019Dataset, custom_batch_create
 from embeddings.XLSR.XLSR_300M import XLSR_300M
 from feature_processors.MeanProcessor import MeanProcessor
 from trainers.FFDiffTrainer import FFDiffTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
+from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
 
 from config import local_config, metacentrum_config
 
@@ -53,15 +56,7 @@ if __name__ == "__main__":
         eval_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, shuffle=True
     )
 
-    # model = FFDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)))
-    # trainer = FFDiffTrainer(model)
-    # trainer.train(train_dataloader, val_dataloader, numepochs=config["num_epochs"])
+    model = LDAGaussianDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)))
+    trainer = LDAGaussianDiffTrainer(model)
+    trainer.train(train_dataloader, val_dataloader)
     # trainer.eval(eval_dataloader)
-
-    for comp in [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]:
-        model = GMMDiff(
-            XLSR_300M(), MeanProcessor(dim=(0, 2)), n_components=comp
-        )  # Also test different covariance types
-        trainer = GMMDiffTrainer(model)
-        trainer.train(train_dataloader, val_dataloader, variant="all")
-        trainer.eval(eval_dataloader)

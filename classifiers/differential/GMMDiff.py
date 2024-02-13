@@ -2,7 +2,6 @@ from typing import Literal
 import numpy as np
 from sklearn.mixture import GaussianMixture
 
-
 class GMMDiff:
     def __init__(
         self,
@@ -23,6 +22,7 @@ class GMMDiff:
 
         self.extractor = extractor
         self.feature_processor = feature_processor
+
         self.n_components = n_components
         self.covariance_type = covariance_type
 
@@ -31,7 +31,7 @@ class GMMDiff:
         )
         self.spoof_classifier = GaussianMixture(
             n_components=n_components, covariance_type=covariance_type
-        )  # Maybe different number of components?
+        )
 
     def __call__(self, input_data_ground_truth, input_data_tested):
         """
@@ -40,6 +40,17 @@ class GMMDiff:
         It is a wrapper for the predict method for consistency with other (PyTorch) classifiers.
         """
         return self.predict(input_data_ground_truth, input_data_tested)
+
+    def fit(self, bonafide_features, spoof_features):
+        """
+        Fit the GMMs to the given features.
+
+        param bonafide_features: Features of the bonafide data of shape: (num_samples, num_features)
+        param spoof_features: Features of the spoof data of shape: (num_samples, num_features)
+        """
+
+        self.bonafide_classifier.fit(bonafide_features)
+        self.spoof_classifier.fit(spoof_features)
 
     def predict(self, input_data_ground_truth, input_data_tested):
         """
