@@ -2,7 +2,9 @@ from typing import Literal
 import numpy as np
 from sklearn.mixture import GaussianMixture
 
-class GMMDiff:
+from classifiers.differential.BaseSklearnModel import BaseSklearnModel
+
+class GMMDiff(BaseSklearnModel):
     def __init__(
         self,
         extractor,
@@ -32,14 +34,6 @@ class GMMDiff:
         self.spoof_classifier = GaussianMixture(
             n_components=n_components, covariance_type=covariance_type
         )
-
-    def __call__(self, input_data_ground_truth, input_data_tested):
-        """
-        Predict classes and probabilities of the tested data. See predict() method.
-
-        It is a wrapper for the predict method for consistency with other (PyTorch) classifiers.
-        """
-        return self.predict(input_data_ground_truth, input_data_tested)
 
     def fit(self, bonafide_features, spoof_features):
         """

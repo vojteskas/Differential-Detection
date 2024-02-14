@@ -3,9 +3,11 @@ import joblib
 from sklearn.metrics import roc_curve
 import numpy as np
 
+
 class BaseTrainer:
-    def __init__(self, model):
+    def __init__(self, model, device="cuda" if torch.cuda.is_available() else "cpu"):
         self.model = model
+        self.device = device
 
     def train(self):
         raise NotImplementedError("Child classes need to implement train method")
@@ -29,7 +31,9 @@ class BaseTrainer:
         if isinstance(self.model, torch.nn.Module):
             torch.save(self.model.state_dict(), path)
         else:
-            joblib.dump(self.model, path)
+            raise NotImplementedError(
+                "Child classes for non-PyTorch models need to implement save_model method"
+            )
 
     def load_model(self, path: str):
         """
@@ -46,7 +50,9 @@ class BaseTrainer:
         except FileNotFoundError:
             raise
         except:  # Path correct, but not a PyTorch model
-            self.model = joblib.load(path)
+            raise NotImplementedError(
+                "Child classes for non-PyTorch models need to implement load_model method"
+            )
 
     def calculate_EER(self, labels, predictions) -> float:
         """

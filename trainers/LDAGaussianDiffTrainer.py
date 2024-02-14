@@ -5,6 +5,7 @@ from tqdm import tqdm
 from typing import Literal
 
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
+from trainers.BaseSklearnTrainer import SklearnSaver
 from trainers.BaseTrainer import BaseTrainer
 
 
@@ -117,7 +118,7 @@ class LDAGaussianDiffTrainer(BaseTrainer):
             isinstance(self.model.extractor, torch.nn.Module)
             or isinstance(self.model.feature_processor, torch.nn.Module)
         ):
-            serialized_model = LDAGaussianDiffSaver(deepcopy(self.model))
+            serialized_model = SklearnSaver(deepcopy(self.model))
             torch.save(serialized_model, path)
         else:
             super().save_model(path)
@@ -130,7 +131,7 @@ class LDAGaussianDiffTrainer(BaseTrainer):
         param path: Path to load the model from
         """
         serialized_model = torch.load(path)
-        if isinstance(serialized_model, LDAGaussianDiffSaver):  # If saved using custom method
+        if isinstance(serialized_model, SklearnSaver):  # If saved using custom method
             self.model = serialized_model.model
             if isinstance(self.model.extractor, torch.nn.Module):
                 self.model.extractor.load_state_dict(serialized_model.extractor_state_dict)
@@ -138,24 +139,3 @@ class LDAGaussianDiffTrainer(BaseTrainer):
                 self.model.feature_processor.load_state_dict(serialized_model.feature_processor_state_dict)
         else:
             super().load_model(path)
-
-
-class LDAGaussianDiffSaver:
-    """
-    Class to save the LDAGaussianDiff model to a file
-    Needs to be custom because the non-PyTorch model can contain a PyTorch component (extractor, feature_processor)
-    PyTorch models can only be saved as a state_dicts, which is exactly what this class does - extract the state_dicts
-    and save them along with the rest of the model
-
-    param model: LDAGaussianDiff model to save
-    """
-
-    def __init__(self, model: LDAGaussianDiff):
-        self.model = model
-
-        if isinstance(self.model.extractor, torch.nn.Module):
-            self.extractor_state_dict = self.model.extractor.state_dict()
-            self.model.extractor = None
-        if isinstance(self.model.feature_processor, torch.nn.Module):
-            self.feature_processor_state_dict = self.model.feature_processor.state_dict()
-            self.model.feature_processor = None

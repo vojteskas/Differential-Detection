@@ -3,8 +3,10 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 import matplotlib.pyplot as plt
 
+from classifiers.differential.BaseSklearnModel import BaseSklearnModel
 
-class LDAGaussianDiff:
+
+class LDAGaussianDiff(BaseSklearnModel):
     def __init__(self, extractor, feature_processor):
         """
         LDA classifier using the difference between two embeddings.
@@ -22,15 +24,7 @@ class LDAGaussianDiff:
 
         self.classifier = GaussianNB()
 
-    def __call__(self, input_data_ground_truth, input_data_tested):
-        """
-        Predict classes and probabilities of the tested data. See predict() method.
-
-        It is a wrapper for the predict method for consistency with other (PyTorch) classifiers.
-        """
-        return self.predict(input_data_ground_truth, input_data_tested)
-
-    def fit(self, bonafide_features, spoof_features):
+    def fit(self, bonafide_features, spoof_features, plot=False):
         """
         Fit the LDA and Gaussian classifier to the given features.
 
@@ -50,13 +44,14 @@ class LDAGaussianDiff:
             np.hstack((np.zeros(len(bonafide_features)), np.ones(len(spoof_features)))),
         )
 
-        # Plot the gaussian distributions
-        plt.figure()
-        plt.hist(bonafide_features, bins=20, alpha=0.5, label="bonafide")
-        plt.hist(spoof_features, bins=20, alpha=0.5, label="spoof")
-        plt.legend(loc="upper right")
-        plt.title("Gaussian distributions of LDA features")
-        plt.savefig("lda_gaussian_distributions.png")
+        if plot:
+            # Plot the gaussian distributions
+            plt.figure()
+            plt.hist(bonafide_features, bins=20, alpha=0.5, label="bonafide")
+            plt.hist(spoof_features, bins=20, alpha=0.5, label="spoof")
+            plt.legend(loc="upper right")
+            plt.title("Gaussian distributions of LDA features")
+            plt.savefig("lda_gaussian_distributions.png")
 
     def predict(self, input_data_ground_truth, input_data_tested):
         """
