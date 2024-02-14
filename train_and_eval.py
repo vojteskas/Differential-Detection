@@ -6,12 +6,14 @@ from sys import argv
 from classifiers.differential.FFDiff import FFDiff
 from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
+from classifiers.differential.SVMDiff import SVMDiff
 from datasets.ASVspoof2019 import ASVspoof2019Dataset, custom_batch_create
 from embeddings.XLSR.XLSR_300M import XLSR_300M
 from feature_processors.MeanProcessor import MeanProcessor
 from trainers.FFDiffTrainer import FFDiffTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
 from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
+from trainers.SVMDiffTrainer import SVMDiffTrainer
 
 from config import local_config, metacentrum_config
 
@@ -55,7 +57,8 @@ if __name__ == "__main__":
         eval_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, shuffle=True
     )
 
-    model = LDAGaussianDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)))
-    trainer = LDAGaussianDiffTrainer(model)
-    trainer.train(train_dataloader, val_dataloader)
-    # trainer.eval(eval_dataloader)
+    for kernel in ["linear", "poly", "rbf", "sigmoid"]:
+        model = SVMDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)), kernel=kernel)
+        trainer = SVMDiffTrainer(model)
+        trainer.train(train_dataloader, val_dataloader)
+        # trainer.eval(eval_dataloader)

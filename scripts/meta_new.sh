@@ -1,9 +1,12 @@
 #!/bin/bash
-#PBS -N LDAGaussianDiff
+#PBS -N SVMDiff
 #PBS -q gpu@meta-pbs.metacentrum.cz
-#PBS -l select=1:ncpus=4:mem=64gb:ngpus=1:gpu_mem=15gb:scratch_ssd=100gb
+#PBS -l select=1:ncpus=8:mem=100gb:ngpus=1:gpu_mem=15gb:scratch_ssd=100gb
 #PBS -l walltime=24:00:00
 #PBS -m ae
+
+name="SVMDiff"
+archivename="$name"_Results.zip
 
 export OMP_NUM_THREADS=$PBS_NUM_PPN
 
@@ -38,11 +41,11 @@ echo "Running the script"
 
 echo "Copying the results"
 rm -rf ./*__pycache__*
-zip -r LDAGaussianDiff_Results.zip \
+zip -r $archivename \
     classifiers datasets embeddings feature_processors trainers \
     config.py train_and_eval.py requirements.txt \
     ./*.png ./*.pt \
     >/dev/null 2>&1
-cp LDAGaussianDiff_Results.zip $DATADIR/DP/LDAGaussianDiff_Results.zip
+cp $archivename $DATADIR/DP/$archivename
 
 clean_scratch
