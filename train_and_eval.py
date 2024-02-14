@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from matplotlib.pylab import f
 import numpy as np
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from sys import argv

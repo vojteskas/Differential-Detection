@@ -51,12 +51,12 @@ class LDAGaussianDiff:
         )
 
         # Plot the gaussian distributions
-        # plt.figure()
-        # plt.hist(bonafide_features, bins=20, alpha=0.5, label="bonafide")
-        # plt.hist(spoof_features, bins=20, alpha=0.5, label="spoof")
-        # plt.legend(loc="upper right")
-        # plt.title("Gaussian distributions of LDA features")
-        # plt.savefig("lda_gaussian_distributions.png")
+        plt.figure()
+        plt.hist(bonafide_features, bins=20, alpha=0.5, label="bonafide")
+        plt.hist(spoof_features, bins=20, alpha=0.5, label="spoof")
+        plt.legend(loc="upper right")
+        plt.title("Gaussian distributions of LDA features")
+        plt.savefig("lda_gaussian_distributions.png")
 
     def predict(self, input_data_ground_truth, input_data_tested):
         """

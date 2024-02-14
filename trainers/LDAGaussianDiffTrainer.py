@@ -36,7 +36,7 @@ class LDAGaussianDiffTrainer(BaseTrainer):
         else:
             raise NotImplementedError(f"Training variant {variant} not implemented")
 
-        # self.save_model(f"./LDADiff_{variant}.pt")
+        self.save_model(f"./LDAGaussianDiff_{variant}.pt")
 
         print(f"LDAGuassianDiff model trained")
         print("Validating model")
@@ -68,8 +68,6 @@ class LDAGaussianDiffTrainer(BaseTrainer):
             bonafide_features.extend(diff[label == 0].tolist())
             spoof_features.extend(diff[label == 1].tolist())
 
-        # print(f"{len(bonafide_features)} bonafide and {len(spoof_features)} spoof features")
-
         self.model.fit(np.array(bonafide_features), np.array(spoof_features))
 
     def val(self, val_dataloader) -> tuple[float, float]:
@@ -91,10 +89,6 @@ class LDAGaussianDiffTrainer(BaseTrainer):
             scores.extend(probs[:, 0].tolist())
             labels.extend(label.tolist())
 
-        # print(f"Labels: {np.array(labels).astype(int)}")
-        # print(f"Predic: {np.array(class_predictions)}")
-        # print(f"Scores: {np.array(scores)}")
-
         val_accuracy = np.mean(np.array(labels) == np.array(class_predictions))
         eer = self.calculate_EER(labels, scores)
 
@@ -106,62 +100,62 @@ class LDAGaussianDiffTrainer(BaseTrainer):
 
         param eval_dataloader: Dataloader loading the evaluation/test data
         """
-        print("Evaluating LDADiff model")
+        print("Evaluating LDAGaussianDiff model")
         # Reuse code from val() to evaluate the model on the eval set
         eval_accuracy, eer = self.val(eval_dataloader)
         print(f"Eval accuracy: {eval_accuracy}")
         print(f"Eval EER: {eer}")
 
-#     def save_model(self, path: str):
-#         """
-#         Save the model to the given path
-#         Needs to be custom because the non-PyTorch model can contain a PyTorch component (extractor, feature_processor)
+    def save_model(self, path: str):
+        """
+        Save the model to the given path
+        Needs to be custom because the non-PyTorch model can contain a PyTorch component (extractor, feature_processor)
 
-#         param path: Path to save the model to
-#         """
-#         if (  # If the model contains a PyTorch component, it cannot be saved using inherited method
-#             isinstance(self.model.extractor, torch.nn.Module)
-#             or isinstance(self.model.feature_processor, torch.nn.Module)
-#         ):
-#             serialized_model = GMMDiffSaver(deepcopy(self.model))
-#             torch.save(serialized_model, path)
-#         else:
-#             super().save_model(path)
+        param path: Path to save the model to
+        """
+        if (  # If the model contains a PyTorch component, it cannot be saved using inherited method
+            isinstance(self.model.extractor, torch.nn.Module)
+            or isinstance(self.model.feature_processor, torch.nn.Module)
+        ):
+            serialized_model = LDAGaussianDiffSaver(deepcopy(self.model))
+            torch.save(serialized_model, path)
+        else:
+            super().save_model(path)
 
-#     def load_model(self, path: str):
-#         """
-#         Load the model from the given path
-#         Needs to be custom because the non-PyTorch model can contain a PyTorch component (extractor, feature_processor)
+    def load_model(self, path: str):
+        """
+        Load the model from the given path
+        Needs to be custom because the non-PyTorch model can contain a PyTorch component (extractor, feature_processor)
 
-#         param path: Path to load the model from
-#         """
-#         serialized_model = torch.load(path)
-#         if isinstance(serialized_model, GMMDiffSaver):  # If saved using custom method
-#             self.model = serialized_model.model
-#             if isinstance(self.model.extractor, torch.nn.Module):
-#                 self.model.extractor.load_state_dict(serialized_model.extractor_state_dict)
-#             if isinstance(self.model.feature_processor, torch.nn.Module):
-#                 self.model.feature_processor.load_state_dict(serialized_model.feature_processor_state_dict)
-#         else:
-#             super().load_model(path)
+        param path: Path to load the model from
+        """
+        serialized_model = torch.load(path)
+        if isinstance(serialized_model, LDAGaussianDiffSaver):  # If saved using custom method
+            self.model = serialized_model.model
+            if isinstance(self.model.extractor, torch.nn.Module):
+                self.model.extractor.load_state_dict(serialized_model.extractor_state_dict)
+            if isinstance(self.model.feature_processor, torch.nn.Module):
+                self.model.feature_processor.load_state_dict(serialized_model.feature_processor_state_dict)
+        else:
+            super().load_model(path)
 
 
-# class GMMDiffSaver:
-#     """
-#     Class to save the GMMDiff model to a file
-#     Needs to be custom because the non-PyTorch model can contain a PyTorch component (extractor, feature_processor)
-#     PyTorch models can only be saved as a state_dicts, which is exactly what this class does - extract the state_dicts
-#     and save them along with the rest of the model
+class LDAGaussianDiffSaver:
+    """
+    Class to save the LDAGaussianDiff model to a file
+    Needs to be custom because the non-PyTorch model can contain a PyTorch component (extractor, feature_processor)
+    PyTorch models can only be saved as a state_dicts, which is exactly what this class does - extract the state_dicts
+    and save them along with the rest of the model
 
-#     param model: GMMDiff model to save
-#     """
+    param model: LDAGaussianDiff model to save
+    """
 
-#     def __init__(self, model: GMMDiff):
-#         self.model = model
+    def __init__(self, model: LDAGaussianDiff):
+        self.model = model
 
-#         if isinstance(self.model.extractor, torch.nn.Module):
-#             self.extractor_state_dict = self.model.extractor.state_dict()
-#             self.model.extractor = None
-#         if isinstance(self.model.feature_processor, torch.nn.Module):
-#             self.feature_processor_state_dict = self.model.feature_processor.state_dict()
-#             self.model.feature_processor = None
+        if isinstance(self.model.extractor, torch.nn.Module):
+            self.extractor_state_dict = self.model.extractor.state_dict()
+            self.model.extractor = None
+        if isinstance(self.model.feature_processor, torch.nn.Module):
+            self.feature_processor_state_dict = self.model.feature_processor.state_dict()
+            self.model.feature_processor = None
