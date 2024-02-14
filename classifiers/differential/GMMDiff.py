@@ -22,8 +22,7 @@ class GMMDiff(BaseSklearnModel):
                                  Needs to provide method __call__(input_data)
         """
 
-        self.extractor = extractor
-        self.feature_processor = feature_processor
+        super().__init__(extractor, feature_processor)
 
         self.n_components = n_components
         self.covariance_type = covariance_type

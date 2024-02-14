@@ -17,8 +17,7 @@ class LDAGaussianDiff(BaseSklearnModel):
                                  Needs to provide method __call__(input_data)
         """
 
-        self.extractor = extractor
-        self.feature_processor = feature_processor
+        super().__init__(extractor, feature_processor)
 
         self.lda = LinearDiscriminantAnalysis()
 
