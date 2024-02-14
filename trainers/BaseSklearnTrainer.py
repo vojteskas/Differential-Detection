@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from BaseTrainer import BaseTrainer
+from trainers.BaseTrainer import BaseTrainer
 from classifiers.differential.BaseSklearnModel import BaseSklearnModel
 
 
@@ -20,8 +20,8 @@ class BaseSklearnTrainer(BaseTrainer):
 
         param path: Path to save the model to
         """
-        if (type(self.model.extractor) == type(torch.nn.Module) or 
-            type(self.model.feature_processor) == type(torch.nn.Module)
+        if isinstance(self.model.extractor, torch.nn.Module) or isinstance(
+            self.model.feature_processor, torch.nn.Module
         ):
             serialized_model = SklearnSaver(deepcopy(self.model))
             torch.save(serialized_model, path)
@@ -37,9 +37,9 @@ class BaseSklearnTrainer(BaseTrainer):
         serialized_model = torch.load(path)
         if isinstance(serialized_model, SklearnSaver):
             self.model = serialized_model.model
-            if type(self.model.extractor) == type(torch.nn.Module):
+            if isinstance(self.model.extractor, torch.nn.Module):
                 self.model.extractor.load_state_dict(serialized_model.extractor_state_dict)
-            if type(self.model.feature_processor) == type(torch.nn.Module):
+            if isinstance(self.model.feature_processor, torch.nn.Module):
                 self.model.feature_processor.load_state_dict(serialized_model.feature_processor_state_dict)
         else:
             self.model = joblib.load(path)
@@ -82,10 +82,10 @@ class BaseSklearnTrainer(BaseTrainer):
         class_predictions = []
 
         for gt, test, label in tqdm(val_dataloader):
-            batch_predictions, probs = self.model(gt.to(self.device), test.to(self.device))
+            batch_predictions, score = self.model(gt.to(self.device), test.to(self.device))
 
             class_predictions.extend(batch_predictions.tolist())
-            scores.extend(probs[:, 0].tolist())
+            scores.extend(score[:, 0].tolist())
             labels.extend(label.tolist())
 
         # print(f"Labels: {np.array(labels).astype(int)}")

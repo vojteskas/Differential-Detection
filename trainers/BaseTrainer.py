@@ -26,7 +26,7 @@ class BaseTrainer:
 
         param path: Path to save the model to
         """
-        if type(self.model) == type(torch.nn.Module):
+        if isinstance(self.model, torch.nn.Module):
             torch.save(self.model.state_dict(), path)
         else:
             raise NotImplementedError(
