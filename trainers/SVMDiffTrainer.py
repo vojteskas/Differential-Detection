@@ -1,7 +1,5 @@
-import numpy as np
 import torch
 from typing import Literal
-from tqdm import tqdm
 
 from classifiers.differential.SVMDiff import SVMDiff
 from trainers.BaseSklearnTrainer import BaseSklearnTrainer

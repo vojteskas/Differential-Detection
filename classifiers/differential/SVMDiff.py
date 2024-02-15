@@ -1,6 +1,6 @@
-from matplotlib.pylab import f
 import numpy as np
 from typing import Literal
+from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.svm import SVC
 from classifiers.differential.BaseSklearnModel import BaseSklearnModel
@@ -22,18 +22,20 @@ class SVMDiff(BaseSklearnModel):
         super().__init__(extractor, feature_processor)
 
         self.kernel = kernel
-        # TODO: SVM are not scale invariant, so we should standardize the data
-        # clf = make_pipeline(StandardScaler(), SVC())
 
         # PARAMETERS TO TUNE:
         # C parameter (regularization), default=1.0, higher values -> less regularization
         # gamma parameter (kernel coefficient), default=1/n_features,
         # # gamma relates to the influence single training example. Larger gamma -> the closer other examples must be to be affected.
-        self.classifier = SVC(
+        svm = SVC(
             kernel=kernel,
             cache_size=4069,
-            degree=7,
-        )  # degree=7 for poly kernel, otherwise ignored
+        )
+
+        # SVM are not scale invariant, so we should standardize the data
+        scaler = StandardScaler()
+
+        self.classifier = make_pipeline(scaler, svm)
 
     def fit(self, bonafide_features, spoof_features):
         """
