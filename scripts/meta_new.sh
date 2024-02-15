@@ -1,11 +1,11 @@
 #!/bin/bash
-#PBS -N GMMNCADiff
+#PBS -N FF_MHFA_Diff
 #PBS -q gpu@meta-pbs.metacentrum.cz
-#PBS -l select=1:ncpus=8:mem=100gb:ngpus=1:gpu_mem=15gb:scratch_ssd=100gb
+#PBS -l select=1:ncpus=4:mem=100gb:ngpus=1:gpu_mem=20gb:scratch_ssd=100gb
 #PBS -l walltime=24:00:00
 #PBS -m ae
 
-name="GMMNCADiff"
+name="FF_MHFA_Diff"
 archivename="$name"_Results.zip
 
 export OMP_NUM_THREADS=$PBS_NUM_PPN

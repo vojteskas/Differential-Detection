@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from re import X
 import numpy as np
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from sys import argv
@@ -9,6 +10,7 @@ from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
 from datasets.ASVspoof2019 import ASVspoof2019Dataset, custom_batch_create
 from embeddings.XLSR.XLSR_300M import XLSR_300M
+from feature_processors.MHFAProcessor import MHFAProcessor
 from feature_processors.MeanProcessor import MeanProcessor
 from trainers.FFDiffTrainer import FFDiffTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
@@ -57,7 +59,6 @@ if __name__ == "__main__":
         eval_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, shuffle=True
     )
 
-    model = GMMDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)))
-    trainer = GMMDiffTrainer(model)
-    trainer.train(train_dataloader, val_dataloader)
-    # trainer.eval(eval_dataloader)
+    model = FFDiff(XLSR_300M(), MHFAProcessor(), in_dim=1024)
+    trainer = FFDiffTrainer(model)
+    trainer.train(train_dataloader, val_dataloader, numepochs=config["num_epochs"])

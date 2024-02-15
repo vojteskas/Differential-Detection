@@ -3,39 +3,7 @@ import torch.nn as nn
 
 from feature_processors.BaseProcessor import BaseProcessor
 
-
-class MHFAProcessor(BaseProcessor):
-    """
-    Feature processor implementing Multi-head factorized attentive pooling.
-    """
-
-    def __init__(
-        self, head_nb=32, input_transformer_nb=24, inputs_dim=1024, compression_dim=128, outputs_dim=1024
-    ):
-        super().__init__()
-
-        # Initialize the MHFA layer
-        self.mhfa = MHFA(
-            head_nb=head_nb,
-            input_transformer_nb=input_transformer_nb,
-            inputs_dim=inputs_dim,
-            compression_dim=compression_dim,
-            outputs_dim=outputs_dim,
-        )
-
-    def __call__(self, features):
-        """
-        Process features extracted from audio data - Multi-head factorized attentive pooling.
-
-        param features: Features extracted from the audio data in the shape: [Nb_transformer_layers, Batch, Frame_len, Dim]
-
-        return: Processed features
-        """
-
-        return self.mhfa(features)
-
-
-class MHFA(nn.Module, BaseProcessor):
+class MHFAProcessor(nn.Module, BaseProcessor):
     """
     Multi-head factorized attentive pooling layer.
     Implemented by Junyi Peng, 2022, based on the paper: https://arxiv.org/abs/2210.01273
@@ -54,7 +22,7 @@ class MHFA(nn.Module, BaseProcessor):
         param compression_dim: Compressed features dim - each head will compress from inputs_dim to this dimension
         param outputs_dim: Dimension of the output features
         """
-        super(MHFA, self).__init__()
+        super(MHFAProcessor, self).__init__()
 
         # Define learnable weights for key and value computations across layers
         self.weights_k = nn.Parameter(data=torch.ones(input_transformer_nb), requires_grad=True)

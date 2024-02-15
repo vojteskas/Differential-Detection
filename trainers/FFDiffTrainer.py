@@ -55,11 +55,6 @@ class FFDiffTrainer(BaseTrainer):
                 test = test.to(self.device)
                 label = label.to(self.device)
 
-                # Check if dataloader balances the classes correctly
-                # bonafide += torch.count_nonzero(label).item()
-                # spoof += len(label) - torch.count_nonzero(label).item()
-                # print(f"Sampled {label}, count so far: {bonafide} bonafide, {spoof} spoof")
-
                 # Forward pass
                 self.optimizer.zero_grad()
                 logits, probs = self.model(gt, test)
@@ -148,7 +143,7 @@ class FFDiffTrainer(BaseTrainer):
                 labels.extend(label.tolist())
                 scores.extend(probs[:, 0].tolist())
 
-            val_loss = np.mean(losses)
+            val_loss = np.mean(losses).astype(float)
             val_accuracy = np.mean(np.array(labels) == np.array(predictions))
             eer = self.calculate_EER(labels, scores)
 
