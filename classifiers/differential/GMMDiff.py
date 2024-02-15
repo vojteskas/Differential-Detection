@@ -46,7 +46,10 @@ class GMMDiff(BaseSklearnModel):
         param bonafide_features: Features of the bonafide data of shape: (num_samples, num_features)
         param spoof_features: Features of the spoof data of shape: (num_samples, num_features)
         """
-        self.nca.fit(bonafide_features, spoof_features)
+        self.nca.fit(
+            np.vstack((bonafide_features, spoof_features)),
+            np.hstack((np.zeros(len(bonafide_features)), np.ones(len(spoof_features)))),
+        )
 
         self.bonafide_classifier.fit(bonafide_features)
         self.spoof_classifier.fit(spoof_features)
