@@ -10,7 +10,7 @@ class FFDiff(nn.Module):
     Linear classifier using the difference between two embeddings.
     """
 
-    def __init__(self, extractor, feature_processor):
+    def __init__(self, extractor, feature_processor, in_dim=1024):
         """
         Initialize the model.
 
@@ -18,6 +18,7 @@ class FFDiff(nn.Module):
                          Needs to provide method extract_features(input_data)
         param feature_processor: Model to process the extracted features.
                                  Needs to provide method __call__(input_data)
+        param in_dim: Dimension of the input data to the classifier, divisible by 4.
         """
 
         super().__init__()
@@ -25,14 +26,20 @@ class FFDiff(nn.Module):
         self.extractor = extractor
         self.feature_processor = feature_processor
 
+        # Allow variable input dimension, mainly for base (768 features) and large models (1024 features)
+        self.layer1_in_dim = in_dim
+        self.layer1_out_dim = in_dim // 2
+        self.layer2_in_dim = self.layer1_out_dim
+        self.layer2_out_dim = self.layer2_in_dim // 2
+
         self.classifier = nn.Sequential(
-            nn.Linear(1024, 512),
-            nn.BatchNorm1d(512),
+            nn.Linear(self.layer1_in_dim, self.layer1_out_dim),
+            nn.BatchNorm1d(self.layer1_out_dim),
             nn.ReLU(),
-            nn.Linear(512, 256),
-            nn.BatchNorm1d(256),
+            nn.Linear(self.layer2_in_dim, self.layer2_out_dim),
+            nn.BatchNorm1d(self.layer2_out_dim),
             nn.ReLU(),
-            nn.Linear(256, 2),
+            nn.Linear(self.layer2_out_dim, 2),  # output 2 classes
         )
 
     def forward(self, input_data_ground_truth, input_data_tested):
