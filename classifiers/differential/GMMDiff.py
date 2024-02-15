@@ -1,6 +1,7 @@
 from typing import Literal
 import numpy as np
 from sklearn.mixture import GaussianMixture
+from sklearn.neighbors import NeighborhoodComponentsAnalysis
 
 from classifiers.differential.BaseSklearnModel import BaseSklearnModel
 
@@ -10,7 +11,7 @@ class GMMDiff(BaseSklearnModel):
         extractor,
         feature_processor,
         # GMM parameters
-        n_components: int = 2,  # Should evaluate and estimate the optimal number https://towardsdatascience.com/gaussian-mixture-model-clusterization-how-to-select-the-number-of-components-clusters-553bef45f6e4
+        n_components: int = 64,  # Should evaluate and estimate the optimal number https://towardsdatascience.com/gaussian-mixture-model-clusterization-how-to-select-the-number-of-components-clusters-553bef45f6e4
         covariance_type: Literal["full", "tied", "diag", "spherical"] = "full",
     ):
         """
@@ -27,6 +28,10 @@ class GMMDiff(BaseSklearnModel):
         self.n_components = n_components
         self.covariance_type = covariance_type
 
+        # Use Neighbourhood Components Analysis (NCA) to learn the optimal linear transformation
+        # Optionally, use NCA for dimensionality reduction
+        self.nca = NeighborhoodComponentsAnalysis()
+
         self.bonafide_classifier = GaussianMixture(
             n_components=n_components, covariance_type=covariance_type
         )
@@ -41,6 +46,7 @@ class GMMDiff(BaseSklearnModel):
         param bonafide_features: Features of the bonafide data of shape: (num_samples, num_features)
         param spoof_features: Features of the spoof data of shape: (num_samples, num_features)
         """
+        self.nca.fit(bonafide_features, spoof_features)
 
         self.bonafide_classifier.fit(bonafide_features)
         self.spoof_classifier.fit(spoof_features)
@@ -65,6 +71,8 @@ class GMMDiff(BaseSklearnModel):
 
         diff = emb_gt - emb_test
         diff = diff.cpu()  # If extracting features on GPU, move the result back to cpu
+
+        diff = self.nca.transform(diff)
 
         bonafide_score = self.bonafide_classifier.score_samples(diff)
         spoof_score = self.spoof_classifier.score_samples(diff)

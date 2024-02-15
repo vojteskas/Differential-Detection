@@ -1,11 +1,11 @@
 #!/bin/bash
-#PBS -N SVMDiff
+#PBS -N GMMNCADiff
 #PBS -q gpu@meta-pbs.metacentrum.cz
 #PBS -l select=1:ncpus=8:mem=100gb:ngpus=1:gpu_mem=15gb:scratch_ssd=100gb
 #PBS -l walltime=24:00:00
 #PBS -m ae
 
-name="SVMDiff"
+name="GMMNCADiff"
 archivename="$name"_Results.zip
 
 export OMP_NUM_THREADS=$PBS_NUM_PPN

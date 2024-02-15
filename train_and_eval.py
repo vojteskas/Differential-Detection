@@ -57,8 +57,7 @@ if __name__ == "__main__":
         eval_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, shuffle=True
     )
 
-    for kernel in ["linear", "poly", "rbf", "sigmoid"]:
-        model = SVMDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)), kernel=kernel)
-        trainer = SVMDiffTrainer(model)
-        trainer.train(train_dataloader, val_dataloader)
-        # trainer.eval(eval_dataloader)
+    model = GMMDiff(XLSR_300M(), MeanProcessor(dim=(0, 2)))
+    trainer = GMMDiffTrainer(model)
+    trainer.train(train_dataloader, val_dataloader)
+    # trainer.eval(eval_dataloader)
