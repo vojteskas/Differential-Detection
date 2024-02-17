@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-from re import X
-import numpy as np
+#!/usr/bin/env python3
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from sys import argv
 
