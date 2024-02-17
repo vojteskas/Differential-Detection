@@ -30,7 +30,7 @@ class FFDiffTrainer(BaseTrainer):
             "val_eers": [],
         }
 
-    def train(self, train_dataloader, val_dataloader, numepochs=100):
+    def train(self, train_dataloader, val_dataloader, numepochs=100, start_epoch=1):
         """
         Train the model on the given dataloader for the given number of epochs
         Uses the optimizer and loss function defined in the constructor
@@ -38,8 +38,9 @@ class FFDiffTrainer(BaseTrainer):
         param train_dataloader: Dataloader loading the training data
         param val_dataloader: Dataloader loading the validation/dev data
         param numepochs: Number of epochs to train for
+        param start_epoch: Epoch to start from (1-indexed)
         """
-        for epoch in range(1, numepochs + 1):  # 1-indexed epochs
+        for epoch in range(start_epoch, start_epoch + numepochs):  # 1-indexed epochs
             print(f"Starting epoch {epoch} with {len(train_dataloader)} batches")
 
             self.model.train()  # Set model to training mode

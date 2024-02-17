@@ -32,6 +32,7 @@ class FFDiff(nn.Module):
         self.layer2_in_dim = self.layer1_out_dim
         self.layer2_out_dim = self.layer2_in_dim // 2
 
+        # Experiment with LayerNorm instead of BatchNorm
         self.classifier = nn.Sequential(
             nn.Linear(self.layer1_in_dim, self.layer1_out_dim),
             nn.BatchNorm1d(self.layer1_out_dim),
