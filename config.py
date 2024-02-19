@@ -16,6 +16,6 @@ metacentrum_config = {
     "train_protocol": "ASVspoof2019.LA.cm.train.trn.txt",
     "dev_protocol": "ASVspoof2019.LA.cm.dev.trl.txt",
     "eval_protocol": "ASVspoof2019.LA.cm.eval.trl.txt",
-    "batch_size": 32,  # 64 needs more then 16GB of GPU memory, 32 should be fine
+    "batch_size": 32,
     "num_epochs": 10,
 }
