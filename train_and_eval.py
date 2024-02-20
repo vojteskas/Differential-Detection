@@ -27,7 +27,9 @@ from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
 
 
-def get_dataloaders(dataset="ASVspoof2019LA") -> Tuple[DataLoader, DataLoader, DataLoader]:
+def get_dataloaders(
+    dataset="ASVspoof2019LA", config=metacentrum_config
+) -> Tuple[DataLoader, DataLoader, DataLoader]:
     if dataset != "ASVspoof2019LA":
         raise NotImplementedError("Only ASVspoof2019LA dataset is currently supported.")
 
@@ -64,6 +66,8 @@ def get_dataloaders(dataset="ASVspoof2019LA") -> Tuple[DataLoader, DataLoader, D
 
 
 def main():
+    config = metacentrum_config if "--metacentrum" in argv else local_config
+
     args = parse_args()
 
     extractor = EXTRACTORS[args.extractor]()  # map the argument to the class and instantiate it
@@ -77,7 +81,7 @@ def main():
             input_dim  # Output the same dimension as input - might want to play around with this
         )
         compression_dim = processor_output_dim // 8
-        head_nb = (
+        head_nb = round(
             input_transformer_nb * 4 / 3
         )  # Half random guess number, half based on the paper and testing
 
@@ -116,7 +120,9 @@ def main():
                 "Only FFDiff, GMMDiff, LDAGaussianDiff and SVMDiff classifiers are currently supported."
             )
 
-    train_dataloader, val_dataloader, eval_dataloader = get_dataloaders()
+    train_dataloader, val_dataloader, eval_dataloader = get_dataloaders(
+        dataset="ASVspoof2019LA", config=config
+    )
 
     # TODO: Implement training of MHFA with SkLearn models
     # skipping for now, focusing on FFDiff

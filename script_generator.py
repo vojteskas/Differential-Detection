@@ -92,7 +92,7 @@ class Job:
             # copy project files
             'echo "Copying project files"',
             f"cp $DATADIR/{self.project_archive_path}{self.project_archive_name} .",  # copy to scratchdir
-            f"unzip {self.project_archive_name} dp.zip >/dev/null 2>&1",
+            f"unzip {self.project_archive_name} >/dev/null 2>&1",
             "\n",
             # install project requirements
             'echo "Installing project requirements"',
@@ -104,7 +104,7 @@ class Job:
             # copy dataset
             # TODO: Allow for multiple datasets to be copied
             'echo "Copying dataset(s)"',
-            f"cp $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .",  # copy to scratchdir
+            f"cp -r $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .",  # copy to scratchdir
             f"unzip {self.dataset_archive_name} >/dev/null 2>&1",
             "\n",
         ]

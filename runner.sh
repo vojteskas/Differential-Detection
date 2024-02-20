@@ -6,9 +6,9 @@
 script_dir=$(dirname "$0")/scripts
 
 for script in "$script_dir"/*.sh; do
-    if [ "$script" = "$script_dir/runner.sh" ]; then
+    if [ "$script" = "$script_dir/runner.sh" ]; then  # Dont run yourself
         continue
     fi
     echo "Queueing $script"
-    # qsub $script
+    qsub "$script"
 done
