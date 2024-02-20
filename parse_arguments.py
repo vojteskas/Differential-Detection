@@ -11,10 +11,10 @@ from classifiers.differential.SVMDiff import SVMDiff
 from datasets.ASVspoof2019 import ASVspoof2019Dataset, custom_batch_create
 
 # extractors
-from embeddings.HuBERT import HuBERT_base, HuBERT_large, HuBERT_extralarge
-from embeddings.Wav2Vec2 import Wav2Vec2_base, Wav2Vec2_large, Wav2Vec2_LV60k
-from embeddings.WavLM import WavLM_base, WavLM_baseplus, WavLM_large
-from embeddings.XLSR import XLSR_300M, XLSR_1B, XLSR_2B
+from extractors.HuBERT import HuBERT_base, HuBERT_large, HuBERT_extralarge
+from extractors.Wav2Vec2 import Wav2Vec2_base, Wav2Vec2_large, Wav2Vec2_LV60k
+from extractors.WavLM import WavLM_base, WavLM_baseplus, WavLM_large
+from extractors.XLSR import XLSR_300M, XLSR_1B, XLSR_2B
 
 # trainers
 from trainers.FFDiffTrainer import FFDiffTrainer
@@ -23,7 +23,7 @@ from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
 
 # map of argument names to the classes
-EXTRACTORS = {
+EXTRACTORS: dict[str, type] = {
     "HuBERT_base": HuBERT_base,
     "HuBERT_large": HuBERT_large,
     "HuBERT_extralarge": HuBERT_extralarge,

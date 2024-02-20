@@ -6,8 +6,9 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 
 pack: clean
-	zip -r dp.zip classifiers datasets embeddings feature_processors trainers config.py train_and_eval.py requirements.txt
+	zip -r dp.zip classifiers datasets extractors feature_processors trainers config.py parse_arguments.py train_and_eval.py requirements.txt runner.sh
+	zip -r scripts.zip scripts
 
 upload: pack
 	scp dp.zip $(METAHOME)/DP/dp.zip
-	scp ./scripts/meta_new.sh $(METAHOME)/DP/meta_new.sh
+	scp scripts.zip $(METAHOME)/DP/scripts.zip

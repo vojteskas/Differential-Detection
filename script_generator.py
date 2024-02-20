@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+
+from sys import executable
+from parse_arguments import EXTRACTORS
+
+
 class PBSheaders:
     def __init__(
         self,
@@ -46,12 +52,12 @@ class Job:
     def __init__(
         self,
         jobname: str,  # name of the job
-        project_archive_path = "DP/",  # path to the project source archive from home (~) directory
-        project_archive_name = "dp.zip",  # name of the project source archive
-        dataset_archive_path = "deepfakes/datasets/",  # path to the dataset from home (~) directory
-        dataset_archive_name = "LA.zip",  # name of the dataset archive
-        executable_script = "train_and_eval.py",  # name of the script to be executed
-        executable_script_args = ["--metacentrum"],  # arguments for the script
+        project_archive_path="DP/",  # path to the project source archive from home (~) directory
+        project_archive_name="dp.zip",  # name of the project source archive
+        dataset_archive_path="deepfakes/datasets/",  # path to the dataset from home (~) directory
+        dataset_archive_name="LA.zip",  # name of the dataset archive
+        executable_script="train_and_eval.py",  # name of the script to be executed
+        executable_script_args=["--metacentrum"],  # arguments for the script
     ):
         self.jobname = jobname
         self.project_archive_path = project_archive_path
@@ -72,43 +78,43 @@ class Job:
             "\n",
             # create tmpdir in scratch for caching (pip) etc.
             'cd "$SCRATCHDIR" || exit 1',
-            'mkdir TMPDIR',
+            "mkdir TMPDIR",
             'export TMPDIR="$SCRATCHDIR/TMPDIR"',
-            '\n',
+            "\n",
             # environment setup
             'echo "Creating conda environment"',
-            'module add gcc',
-            'module add conda-modules-py37',
-            'conda create -n DP python=3.10 -y >/dev/null 2>&1',
-            'conda activate DP >/dev/null 2>&1',
-            'conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -y >/dev/null 2>&1',
-            '\n',
+            "module add gcc",
+            "module add conda-modules-py37",
+            "conda create -n DP python=3.10 -y >/dev/null 2>&1",
+            "conda activate DP >/dev/null 2>&1",
+            "conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -y >/dev/null 2>&1",
+            "\n",
             # copy project files
             'echo "Copying project files"',
-            f'cp $DATADIR/{self.project_archive_path}{self.project_archive_name} .',  # copy to scratchdir
-            f'unzip {self.project_archive_name} dp.zip >/dev/null 2>&1',
-            '\n',
+            f"cp $DATADIR/{self.project_archive_path}{self.project_archive_name} .",  # copy to scratchdir
+            f"unzip {self.project_archive_name} dp.zip >/dev/null 2>&1",
+            "\n",
             # install project requirements
             'echo "Installing project requirements"',
             'pip install -r requirements.txt --cache-dir "$TMPDIR" >/dev/null 2>&1',
-            '\n',
+            "\n",
         ]
 
         data_script = [
             # copy dataset
             # TODO: Allow for multiple datasets to be copied
             'echo "Copying dataset(s)"',
-            f'cp $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .',  # copy to scratchdir
-            f'unzip {self.dataset_archive_name} >/dev/null 2>&1',
-            '\n',
+            f"cp $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .",  # copy to scratchdir
+            f"unzip {self.dataset_archive_name} >/dev/null 2>&1",
+            "\n",
         ]
 
         exec_script = [
             # run the script
-            'chmod 755 ./*.py',
+            "chmod 755 ./*.py",
             'echo "Running the script"',
             f'./{self.executable_script} {" ".join(self.executable_script_args)} 2>&1',
-            '\n',
+            "\n",
         ]
 
         results_script = [
@@ -117,12 +123,12 @@ class Job:
             'find . -type d -name "__pycache__" -exec rm -rf {} +',  # remove __pycache__ directories
             'zip -r "$archivename" classifiers datasets embeddings feature_processors trainers ./*.py ./*.png ./*.pt >/dev/null 2>&1',
             f'cp "$archivename" $DATADIR/{self.project_archive_path}$archivename >/dev/null 2>&1',
-            '\n',
+            "\n",
         ]
 
         cleanup_script = [
             # cleanup
-            'clean_scratch'
+            "clean_scratch"
         ]
 
         return "\n".join(env_script + data_script + exec_script + results_script + cleanup_script)
@@ -136,15 +142,60 @@ class Job:
 
 def generate_job_script(
     jobname: str,  # name of the job
-    file_name = None,  # name of the file to save the script to, if None, the script is not saved
+    file_name=None,  # name of the file to save the script to, if None, the script is not saved
     **kwargs,  # keyword arguments for PBSheaders and Job
 ):
-    pbs = PBSheaders(jobname, **kwargs)
-    job = Job(jobname, **kwargs)
+    pbsheaders_kwargs = {
+        key: value
+        for key, value in kwargs.items()
+        if key
+        in [
+            "queue",
+            "walltime",
+            "nodes",
+            "cpus",
+            "mem",
+            "gpus",
+            "gpu_mem",
+            "scratch_size",
+            "email_notification_flags",
+        ]
+    }
+    job_kwargs = {
+        key: value
+        for key, value in kwargs.items()
+        if key
+        in [
+            "project_archive_path",
+            "project_archive_name",
+            "dataset_archive_path",
+            "dataset_archive_name",
+            "executable_script",
+            "executable_script_args",
+        ]
+    }
+    pbs = PBSheaders(jobname, **pbsheaders_kwargs)
+    job = Job(jobname, **job_kwargs)
     script = f"{pbs}\n\n{job}"
-    
+
     if file_name:
-        with open(file_name, "w") as file:
+        with open(file_name, "w", newline='\n') as file:
             file.write(script)
 
     return script
+
+
+if __name__ == "__main__":
+    # Modify parameters and arguments here
+    for extractor in EXTRACTORS:
+        name = f"DP_{extractor}_MHFA_FFDiff"
+        generate_job_script(
+            name,
+            file_name=f"./scripts/{name}.sh",
+            executable_script_args=[
+                "--metacentrum",
+                f"--extractor {extractor}",
+                "--processor MHFA",
+                "--classifier FFDiff",
+            ]
+        )

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-from multiprocessing import process
-from typing import Tuple, Union
+from typing import Tuple
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from sys import argv
 
@@ -19,6 +18,7 @@ from classifiers.differential.FFDiff import FFDiff
 from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
+from trainers.BaseSklearnTrainer import BaseSklearnTrainer
 
 # trainers
 from trainers.FFDiffTrainer import FFDiffTrainer
@@ -118,7 +118,30 @@ def main():
 
     train_dataloader, val_dataloader, eval_dataloader = get_dataloaders()
 
-    # TODO: Add the rest of the training and evaluation logic, MHFA with SkLearn models, etc.
+    # TODO: Implement training of MHFA with SkLearn models
+    # skipping for now, focusing on FFDiff
+
+    # Train the model
+    if isinstance(trainer, FFDiffTrainer):
+        # Default value of numepochs = 100
+        trainer.train(train_dataloader, val_dataloader, numepochs=args.num_epochs)
+        trainer.eval(eval_dataloader)  # Eval after training
+
+    elif isinstance(trainer, BaseSklearnTrainer):
+        if isinstance(processor, MHFAProcessor):
+            # SkLearn models with MHFAProcessor not yet implemented
+            raise NotImplementedError(
+                "Training of SkLearn models with MHFAProcessor is not yet implemented."
+            )
+        # Default value of variant = all
+        trainer.train(train_dataloader, val_dataloader, variant=args.variant)
+        trainer.eval(eval_dataloader)  # Eval after training
+
+    else:
+        # Should not happen, either FFDiffTrainer or should inherit from BaseSklearnTrainer
+        raise ValueError(
+            "Invalid trainer, should be either FFDiffTrainer or should inherit from BaseSklearnTrainer."
+        )
 
 
 if __name__ == "__main__":
