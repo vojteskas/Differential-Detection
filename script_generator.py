@@ -101,7 +101,7 @@ class Job:
             # TODO: Allow for multiple datasets to be copied
             'echo "Copying dataset(s)"',
             f"cp -r $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .",  # copy to scratchdir
-            f"unzip {self.dataset_archive_name} >/dev/null 2>&1",
+            f"tar -xvzf {self.dataset_archive_name} >/dev/null 2>&1",
             "\n",
         ]
 
@@ -183,11 +183,13 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
-    for c in ["FFConcat3"]:
-        name = f"DP_XLSR_300M_MHFA_" + c
+    for c in ["FFDiff", "FF", "FFConcat1", "FFConcat2", "FFConcat3"]:
+        dataset = "ASVspoof2021DFDataset_single" if c == "FF" else "ASVspoof2021DFDataset_pair"
+        name = f"DP_XLSR_300M_MHFA_{c}_DF21"
         generate_job_script(
             jobname=name,
             file_name=f"./scripts/{name}.sh",
+            dataset_archive_name="DF21.tar.gz",
             executable_script_args=[
                 "--metacentrum",
                 "--extractor",
@@ -197,8 +199,8 @@ if __name__ == "__main__":
                 "--classifier",
                 c,
                 "--num_epochs",
-                "10",
+                "20",
                 "--dataset",
-                f"ASVspoof2019LADataset_pair",
+                dataset,
             ],
         )

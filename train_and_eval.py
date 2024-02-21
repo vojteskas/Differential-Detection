@@ -51,31 +51,35 @@ DATASETS = {  # map the dataset name to the dataset class
 def get_dataloaders(
     dataset="ASVspoof2019LADataset_pair", config=metacentrum_config
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
-    
-    dataset_class = DATASETS[dataset]
-    dir = config["data_dir"]
 
     dataset_config = {}
     if "ASVspoof2019LA" in dataset:
+        train_dataset_class = DATASETS[dataset]
+        eval_dataset_class = DATASETS[dataset]
         dataset_config = config["asvspoof2019la"]
-    elif "ASVspoof2021LA" in dataset:
-        dataset_config = config["asvspoof2021la"]
-    elif "ASVspoof2021DF" in dataset:
-        dataset_config = config["asvspoof2021df"]
+    elif "ASVspoof2021" in dataset:
+        t = "pair" if "pair" in dataset else "single"
+        train_dataset_class = DATASETS[f"ASVspoof2019LADataset_{t}"]
+        eval_dataset_class = DATASETS[dataset]
+        dataset_config = config["asvspoof2021la"] if "LA" in dataset else config["asvspoof2021df"]
     else:
         raise ValueError("Invalid dataset name.")
-    
-    dir += dataset_config["subdir"]
 
     # Load the dataset
-    train_dataset = dataset_class(
-        root_dir=dir, protocol_file_name=dataset_config["train_protocol"], variant="train"
+    train_dataset = train_dataset_class(
+        root_dir=config["data_dir"] + dataset_config["train_subdir"],
+        protocol_file_name=dataset_config["train_protocol"],
+        variant="train",
     )
-    val_dataset = dataset_class(
-        root_dir=dir, protocol_file_name=dataset_config["dev_protocol"], variant="dev"
+    val_dataset = train_dataset_class(
+        root_dir=config["data_dir"] + dataset_config["dev_subdir"],
+        protocol_file_name=dataset_config["dev_protocol"],
+        variant="dev",
     )
-    eval_dataset = dataset_class(
-        root_dir=dir, protocol_file_name=dataset_config["eval_protocol"], variant="eval"
+    eval_dataset = eval_dataset_class(
+        root_dir=config["data_dir"] + dataset_config["eval_subdir"],
+        protocol_file_name=dataset_config["eval_protocol"],
+        variant="eval",
     )
 
     # there is about 90% of spoofed recordings in the dataset, balance with weighted random sampling
