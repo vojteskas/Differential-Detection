@@ -1,11 +1,13 @@
 import argparse
 from typing import Dict, Tuple
+from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3
 
 # classifiers
 from classifiers.differential.FFDiff import FFDiff
 from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
+from classifiers.single_input.FF import FF
 
 # extractors
 from extractors.HuBERT import HuBERT_base, HuBERT_large, HuBERT_extralarge
@@ -36,6 +38,10 @@ EXTRACTORS: dict[str, type] = {
 }
 CLASSIFIERS: Dict[str, Tuple[type, Dict[str, type]]] = {
     # Maps the classifier to tuples of the corresponding class and the initializable arguments
+    "FF": (FF, {}),
+    "FFConcat1": (FFConcat1, {}),
+    "FFConcat2": (FFConcat2, {}),
+    "FFConcat3": (FFConcat3, {}),
     "FFDiff": (FFDiff, {}),
     "GMMDiff": (GMMDiff, {"n_components": int, "covariance_type": str}),
     "LDAGaussianDiff": (LDAGaussianDiff, {}),
@@ -93,7 +99,7 @@ def parse_args():
     # TODO: Allow for passing parameters to the feature processor (mainly MHFA)
 
     # classifier
-    classifiers = ["FFDiff", "GMMDiff", "LDAGaussianDiff", "SVMDiff"]
+    classifiers = ["FF, FFConcat, FFDiff", "GMMDiff", "LDAGaussianDiff", "SVMDiff"]
     parser.add_argument(
         "-c",
         "--classifier",

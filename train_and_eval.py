@@ -24,7 +24,9 @@ from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
 from classifiers.single_input.FF import FF
+from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3
 from trainers.BaseSklearnTrainer import BaseSklearnTrainer
+from trainers.FFConcatTrainer import FFConcatTrainer
 
 # trainers
 from trainers.FFDiffTrainer import FFDiffTrainer
@@ -112,6 +114,15 @@ def main():
         case "FF":
             model = FF(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFTrainer(model)
+        case "FFConcat1":
+            model = FFConcat1(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFConcatTrainer(model)
+        case "FFConcat2":
+            model = FFConcat2(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFConcatTrainer(model)
+        case "FFConcat3":
+            model = FFConcat3(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFConcatTrainer(model)
         case "FFDiff":
             model = FFDiff(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFDiffTrainer(model)
@@ -132,17 +143,17 @@ def main():
                 "Only FFDiff, GMMDiff, LDAGaussianDiff and SVMDiff classifiers are currently supported."
             )
 
-    train_dataloader, val_dataloader, eval_dataloader = get_dataloaders(
-        dataset=args.dataset, config=config
-    )
+    train_dataloader, val_dataloader, eval_dataloader = get_dataloaders(dataset=args.dataset, config=config)
 
     # TODO: Implement training of MHFA with SkLearn models
     # skipping for now, focusing on FF(Diff)
 
-    print(f"Training {type(model)} model with {type(extractor)} extractor and {type(processor)} processor on {type(train_dataloader.dataset)} dataloader.")
+    print(
+        f"Training {type(model).__name__} model with {type(extractor).__name__} extractor and {type(processor).__name__} processor on {type(train_dataloader.dataset).__name__} dataloader."
+    )
 
     # Train the model
-    if isinstance(trainer, (FFDiffTrainer, FFTrainer)):
+    if isinstance(trainer, (FFDiffTrainer, FFTrainer, FFConcatTrainer)):
         # Default value of numepochs = 100
         trainer.train(train_dataloader, val_dataloader, numepochs=args.num_epochs)
         trainer.eval(eval_dataloader)  # Eval after training
