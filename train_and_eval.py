@@ -121,7 +121,8 @@ def main():
             model = FFConcat2(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFConcatTrainer(model)
         case "FFConcat3":
-            model = FFConcat3(extractor, processor, in_dim=extractor.feature_size)
+            # Concatenating the features from the two audio files results in twice the feature input size
+            model = FFConcat3(extractor, processor, in_dim=extractor.feature_size*2)
             trainer = FFConcatTrainer(model)
         case "FFDiff":
             model = FFDiff(extractor, processor, in_dim=extractor.feature_size)

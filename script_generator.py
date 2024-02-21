@@ -183,7 +183,7 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
-    for c in ["FFConcat1", "FFConcat2", "FFConcat3"]:
+    for c in ["FFConcat3"]:
         name = f"DP_XLSR_300M_MHFA_" + c
         generate_job_script(
             jobname=name,
