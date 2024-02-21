@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from math import e
 from typing import Tuple
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from sys import argv
@@ -7,11 +8,13 @@ from config import local_config, metacentrum_config
 from parse_arguments import parse_args, EXTRACTORS
 
 # datasets
-from datasets.ASVspoof2019 import (
-    ASVspoof2019LADataset_pair,
-    ASVspoof2019LADataset_single,
-    custom_pair_batch_create,
-    custom_single_batch_create,
+from datasets.utils import custom_pair_batch_create, custom_single_batch_create
+from datasets.ASVspoof2019 import ASVspoof2019LADataset_pair, ASVspoof2019LADataset_single
+from datasets.ASVspoof2021 import (
+    ASVspoof2021LADataset_single,
+    ASVspoof2021LADataset_pair,
+    ASVspoof2021DFDataset_single,
+    ASVspoof2021DFDataset_pair,
 )
 
 # feature_processors
@@ -35,23 +38,44 @@ from trainers.GMMDiffTrainer import GMMDiffTrainer
 from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
 
+DATASETS = {  # map the dataset name to the dataset class
+    "ASVspoof2019LADataset_single": ASVspoof2019LADataset_single,
+    "ASVspoof2019LADataset_pair": ASVspoof2019LADataset_pair,
+    "ASVspoof2021LADataset_single": ASVspoof2021LADataset_single,
+    "ASVspoof2021LADataset_pair": ASVspoof2021LADataset_pair,
+    "ASVspoof2021DFDataset_single": ASVspoof2021DFDataset_single,
+    "ASVspoof2021DFDataset_pair": ASVspoof2021DFDataset_pair,
+}
+
 
 def get_dataloaders(
     dataset="ASVspoof2019LADataset_pair", config=metacentrum_config
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
-    if "ASVspoof2019LA" not in dataset:
-        raise NotImplementedError("Only ASVspoof2019LA pair and single datasets are currently supported.")
+    
+    dataset_class = DATASETS[dataset]
+    dir = config["data_dir"]
 
-    dataset_class = ASVspoof2019LADataset_single if "single" in dataset else ASVspoof2019LADataset_pair
+    dataset_config = {}
+    if "ASVspoof2019LA" in dataset:
+        dataset_config = config["asvspoof2019la"]
+    elif "ASVspoof2021LA" in dataset:
+        dataset_config = config["asvspoof2021la"]
+    elif "ASVspoof2021DF" in dataset:
+        dataset_config = config["asvspoof2021df"]
+    else:
+        raise ValueError("Invalid dataset name.")
+    
+    dir += dataset_config["subdir"]
+
     # Load the dataset
     train_dataset = dataset_class(
-        root_dir=config["data_dir"], protocol_file_name=config["train_protocol"], variant="train"
+        root_dir=dir, protocol_file_name=dataset_config["train_protocol"], variant="train"
     )
     val_dataset = dataset_class(
-        root_dir=config["data_dir"], protocol_file_name=config["dev_protocol"], variant="dev"
+        root_dir=dir, protocol_file_name=dataset_config["dev_protocol"], variant="dev"
     )
     eval_dataset = dataset_class(
-        root_dir=config["data_dir"], protocol_file_name=config["eval_protocol"], variant="eval"
+        root_dir=dir, protocol_file_name=dataset_config["eval_protocol"], variant="eval"
     )
 
     # there is about 90% of spoofed recordings in the dataset, balance with weighted random sampling
@@ -122,7 +146,7 @@ def main():
             trainer = FFConcatTrainer(model)
         case "FFConcat3":
             # Concatenating the features from the two audio files results in twice the feature input size
-            model = FFConcat3(extractor, processor, in_dim=extractor.feature_size*2)
+            model = FFConcat3(extractor, processor, in_dim=extractor.feature_size * 2)
             trainer = FFConcatTrainer(model)
         case "FFDiff":
             model = FFDiff(extractor, processor, in_dim=extractor.feature_size)

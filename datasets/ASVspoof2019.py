@@ -7,71 +7,6 @@ import pandas as pd
 import numpy as np
 
 
-def custom_pair_batch_create(batch: list):
-    # Free unused memory before creating the new batch
-    # This is necessary because PyTorch has trouble with dataloader memory management
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-
-    # Get the lengths of all tensors in the batch
-    batch_size = len(batch)
-    lengths_gt = torch.tensor([item[0].size(1) for item in batch])
-    lengths_test = torch.tensor([item[1].size(1) for item in batch])
-
-    # Find the maximum length
-    max_length_gt = int(torch.max(lengths_gt))
-    max_length_test = int(torch.max(lengths_test))
-
-    # Pad the tensors to have the maximum length
-    padded_gts = torch.zeros(batch_size, max_length_gt)
-    padded_tests = torch.zeros(batch_size, max_length_test)
-    labels = torch.zeros(batch_size)
-    for i, item in enumerate(batch):
-        waveform_gt = item[0]
-        waveform_test = item[1]
-        padded_waveform_gt = torch.nn.functional.pad(
-            waveform_gt, (0, max_length_gt - waveform_gt.size(1))
-        ).squeeze(0)
-        padded_waveform_test = torch.nn.functional.pad(
-            waveform_test, (0, max_length_test - waveform_test.size(1))
-        ).squeeze(0)
-        label = torch.tensor(item[2])
-
-        padded_gts[i] = padded_waveform_gt
-        padded_tests[i] = padded_waveform_test
-        labels[i] = label
-
-    return padded_gts, padded_tests, labels
-
-def custom_single_batch_create(batch: list):
-    # Free unused memory before creating the new batch
-    # This is necessary because PyTorch has trouble with dataloader memory management
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-
-    # Get the lengths of all tensors in the batch
-    batch_size = len(batch)
-    lengths = torch.tensor([item[0].size(1) for item in batch])
-
-    # Find the maximum length
-    max_length = int(torch.max(lengths))
-
-    # Pad the tensors to have the maximum length
-    padded_waveforms = torch.zeros(batch_size, max_length)
-    labels = torch.zeros(batch_size)
-    for i, item in enumerate(batch):
-        waveform = item[0]
-        padded_waveform = torch.nn.functional.pad(
-            waveform, (0, max_length - waveform.size(1))
-        ).squeeze(0)
-        label = torch.tensor(item[1])
-
-        padded_waveforms[i] = padded_waveform
-        labels[i] = label
-
-    return padded_waveforms, labels
-
-
 # Consider doing own train/val split, now its 50/50, like 80/20 should suffice and give more training data
 class ASVspoof2019LADataset_base(Dataset):
     """
@@ -161,17 +96,3 @@ class ASVspoof2019LADataset_single(ASVspoof2019LADataset_base):
         label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
 
         return waveform, label
-
-    def get_labels(self) -> np.ndarray:
-        """
-        Returns an array of labels for the dataset, where 0 is genuine speech and 1 is spoofing speech
-        Used for computing class weights for the loss function and weighted random sampling (see train.py)
-        """
-        return self.protocol_df["KEY"].map({"bonafide": 0, "spoof": 1}).to_numpy()
-
-    def get_class_weights(self):
-        """Returns an array of class weights for the dataset, where 0 is genuine speech and 1 is spoofing speech"""
-        labels = self.get_labels()
-        class_counts = np.bincount(labels)
-        class_weights = 1.0 / class_counts
-        return torch.FloatTensor(class_weights)
