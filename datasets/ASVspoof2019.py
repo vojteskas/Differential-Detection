@@ -7,11 +7,12 @@ import pandas as pd
 import numpy as np
 
 
-def custom_batch_create(batch: list):
+def custom_pair_batch_create(batch: list):
     # Free unused memory before creating the new batch
+    # This is necessary because PyTorch has trouble with dataloader memory management
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-    
+
     # Get the lengths of all tensors in the batch
     batch_size = len(batch)
     lengths_gt = torch.tensor([item[0].size(1) for item in batch])
@@ -42,8 +43,48 @@ def custom_batch_create(batch: list):
 
     return padded_gts, padded_tests, labels
 
+def custom_single_batch_create(batch: list):
+    # Free unused memory before creating the new batch
+    # This is necessary because PyTorch has trouble with dataloader memory management
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
-class ASVspoof2019Dataset(Dataset):  # Consider doing own train/val split, now its 50/50, like 80/20 should suffice and give more training data
+    # Get the lengths of all tensors in the batch
+    batch_size = len(batch)
+    lengths = torch.tensor([item[0].size(1) for item in batch])
+
+    # Find the maximum length
+    max_length = int(torch.max(lengths))
+
+    # Pad the tensors to have the maximum length
+    padded_waveforms = torch.zeros(batch_size, max_length)
+    labels = torch.zeros(batch_size)
+    for i, item in enumerate(batch):
+        waveform = item[0]
+        padded_waveform = torch.nn.functional.pad(
+            waveform, (0, max_length - waveform.size(1))
+        ).squeeze(0)
+        label = torch.tensor(item[1])
+
+        padded_waveforms[i] = padded_waveform
+        labels[i] = label
+
+    return padded_waveforms, labels
+
+
+# Consider doing own train/val split, now its 50/50, like 80/20 should suffice and give more training data
+class ASVspoof2019LADataset_base(Dataset):
+    """
+    Base class for the ASVspoof2019LA dataset. This class should not be used directly, but rather subclassed.
+    The main subclasses are ASVspoof2019LADataset_pair and ASVspoof2019LADataset_single for providing pairs of
+    genuine and spoofing speech for differential-based detecion and single recordings for "normal" detection,
+    respectively.
+
+    param root_dir: Path to the ASVspoof2019LA folder
+    param protocol_file_name: Name of the protocol file to use
+    param variant: One of "train", "dev", "eval" to specify the dataset variant
+    """
+
     def __init__(self, root_dir, protocol_file_name, variant: Literal["train", "dev", "eval"] = "train"):
         self.root_dir = root_dir  # Path to the LA folder
 
@@ -55,6 +96,28 @@ class ASVspoof2019Dataset(Dataset):  # Consider doing own train/val split, now i
 
     def __len__(self):
         return len(self.protocol_df)
+
+    def __getitem__(self, idx):
+        raise NotImplementedError("This method should be implemented in a specific subclass")
+
+    def get_labels(self) -> np.ndarray:
+        """
+        Returns an array of labels for the dataset, where 0 is genuine speech and 1 is spoofing speech
+        Used for computing class weights for the loss function and weighted random sampling (see train.py)
+        """
+        return self.protocol_df["KEY"].map({"bonafide": 0, "spoof": 1}).to_numpy()
+
+    def get_class_weights(self):
+        """Returns an array of class weights for the dataset, where 0 is genuine speech and 1 is spoofing speech"""
+        labels = self.get_labels()
+        class_counts = np.bincount(labels)
+        class_weights = 1.0 / class_counts
+        return torch.FloatTensor(class_weights)
+
+
+class ASVspoof2019LADataset_pair(ASVspoof2019LADataset_base):
+    def __init__(self, root_dir, protocol_file_name, variant: Literal["train", "dev", "eval"] = "train"):
+        super().__init__(root_dir, protocol_file_name, variant)
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
@@ -80,6 +143,24 @@ class ASVspoof2019Dataset(Dataset):  # Consider doing own train/val split, now i
 
         # print(f"Loaded GT:{gt_audio_name} and TEST:{test_audio_name}")
         return gt_waveform, test_waveform, label
+
+
+class ASVspoof2019LADataset_single(ASVspoof2019LADataset_base):
+    def __init__(self, root_dir, protocol_file_name, variant: Literal["train", "dev", "eval"] = "train"):
+        super().__init__(root_dir, protocol_file_name, variant)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        audio_file_name = self.protocol_df.loc[idx, "AUDIO_FILE_NAME"]
+        audio_name = os.path.join(self.rec_dir, f"{audio_file_name}.flac")
+        waveform, _ = load(audio_name)
+
+        # 0 for genuine speech, 1 for spoofing speech
+        label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
+
+        return waveform, label
 
     def get_labels(self) -> np.ndarray:
         """

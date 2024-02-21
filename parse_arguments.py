@@ -7,9 +7,6 @@ from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
 
-# datasets
-from datasets.ASVspoof2019 import ASVspoof2019Dataset, custom_batch_create
-
 # extractors
 from extractors.HuBERT import HuBERT_base, HuBERT_large, HuBERT_extralarge
 from extractors.Wav2Vec2 import Wav2Vec2_base, Wav2Vec2_large, Wav2Vec2_LV60k
@@ -64,6 +61,14 @@ def parse_args():
     # TODO: Allow for different datasets
     # TODO: Allow for multiple datasets to be used
     # For now, implicitely use the ASVspoof2019 dataset
+    parser.add_argument(
+        "-d",
+        "--dataset",
+        type=str,
+        default="ASVspoof2019LADataset_pair",
+        help="Dataset to be used. One of: ASVspoof2019LADataset_pair, ASVspoof2019LADataset_single",
+        required=True,
+    )
 
     # extractor
     parser.add_argument(

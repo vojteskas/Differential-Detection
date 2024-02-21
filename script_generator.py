@@ -187,15 +187,22 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
-    for extractor in EXTRACTORS:
-        name = f"DP_{extractor}_MHFA_FFDiff"
+    for t in ["pair", "single"]:
+        name = f"DP_XLSR_300M_MHFA_" + ("FFDiff" if t == "pair" else "FF")
         generate_job_script(
-            name,
+            jobname=name,
             file_name=f"./scripts/{name}.sh",
             executable_script_args=[
-                "--metacentrum",
-                f"--extractor {extractor}",
-                "--processor MHFA",
-                "--classifier FFDiff",
-            ]
+                "--extractor",
+                "XLSR_300M",
+                "--processor",
+                "MHFA",
+                "--classifier",
+                "FFDiff" if t == "pair" else "FF",
+                "--num_epochs",
+                "20",
+                "--local",
+                "--dataset",
+                f"ASVspoof2019LADataset_{t}",
+            ],
         )

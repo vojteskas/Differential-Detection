@@ -7,7 +7,12 @@ from config import local_config, metacentrum_config
 from parse_arguments import parse_args, EXTRACTORS
 
 # datasets
-from datasets.ASVspoof2019 import ASVspoof2019Dataset, custom_batch_create
+from datasets.ASVspoof2019 import (
+    ASVspoof2019LADataset_pair,
+    ASVspoof2019LADataset_single,
+    custom_pair_batch_create,
+    custom_single_batch_create,
+)
 
 # feature_processors
 from feature_processors.MHFAProcessor import MHFAProcessor
@@ -18,29 +23,32 @@ from classifiers.differential.FFDiff import FFDiff
 from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
+from classifiers.single_input.FF import FF
 from trainers.BaseSklearnTrainer import BaseSklearnTrainer
 
 # trainers
 from trainers.FFDiffTrainer import FFDiffTrainer
+from trainers.FFTrainer import FFTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
 from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
 
 
 def get_dataloaders(
-    dataset="ASVspoof2019LA", config=metacentrum_config
+    dataset="ASVspoof2019LADataset_pair", config=metacentrum_config
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
-    if dataset != "ASVspoof2019LA":
-        raise NotImplementedError("Only ASVspoof2019LA dataset is currently supported.")
+    if "ASVspoof2019LA" not in dataset:
+        raise NotImplementedError("Only ASVspoof2019LA pair and single datasets are currently supported.")
 
+    dataset_class = ASVspoof2019LADataset_single if "single" in dataset else ASVspoof2019LADataset_pair
     # Load the dataset
-    train_dataset = ASVspoof2019Dataset(
+    train_dataset = dataset_class(
         root_dir=config["data_dir"], protocol_file_name=config["train_protocol"], variant="train"
     )
-    val_dataset = ASVspoof2019Dataset(
+    val_dataset = dataset_class(
         root_dir=config["data_dir"], protocol_file_name=config["dev_protocol"], variant="dev"
     )
-    eval_dataset = ASVspoof2019Dataset(
+    eval_dataset = dataset_class(
         root_dir=config["data_dir"], protocol_file_name=config["eval_protocol"], variant="eval"
     )
 
@@ -49,17 +57,18 @@ def get_dataloaders(
     weighted_sampler = WeightedRandomSampler(samples_weights, len(train_dataset))
 
     # create dataloader, use custom collate_fn to pad the data to the longest recording in batch
+    collate_func = custom_single_batch_create if "single" in dataset else custom_pair_batch_create
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=config["batch_size"],
-        collate_fn=custom_batch_create,
+        collate_fn=collate_func,
         sampler=weighted_sampler,
     )
     val_dataloader = DataLoader(
-        val_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, shuffle=True
+        val_dataset, batch_size=config["batch_size"], collate_fn=collate_func, shuffle=True
     )
     eval_dataloader = DataLoader(
-        eval_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, shuffle=True
+        eval_dataset, batch_size=config["batch_size"], collate_fn=collate_func, shuffle=True
     )
 
     return train_dataloader, val_dataloader, eval_dataloader
@@ -100,6 +109,9 @@ def main():
     model = None
     trainer = None
     match args.classifier:
+        case "FF":
+            model = FF(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFTrainer(model)
         case "FFDiff":
             model = FFDiff(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFDiffTrainer(model)
@@ -121,14 +133,16 @@ def main():
             )
 
     train_dataloader, val_dataloader, eval_dataloader = get_dataloaders(
-        dataset="ASVspoof2019LA", config=config
+        dataset=args.dataset, config=config
     )
 
     # TODO: Implement training of MHFA with SkLearn models
-    # skipping for now, focusing on FFDiff
+    # skipping for now, focusing on FF(Diff)
+
+    print(f"Training {type(model)} model with {type(extractor)} extractor and {type(processor)} processor on {type(train_dataloader.dataset)} dataloader.")
 
     # Train the model
-    if isinstance(trainer, FFDiffTrainer):
+    if isinstance(trainer, (FFDiffTrainer, FFTrainer)):
         # Default value of numepochs = 100
         trainer.train(train_dataloader, val_dataloader, numepochs=args.num_epochs)
         trainer.eval(eval_dataloader)  # Eval after training
@@ -146,52 +160,9 @@ def main():
     else:
         # Should not happen, either FFDiffTrainer or should inherit from BaseSklearnTrainer
         raise ValueError(
-            "Invalid trainer, should be either FFDiffTrainer or should inherit from BaseSklearnTrainer."
+            "Invalid trainer, should be either FF(Diff)Trainer or should inherit from BaseSklearnTrainer."
         )
 
 
 if __name__ == "__main__":
     main()
-    exit(0)
-
-    if "--metacentrum" in argv:
-        config = metacentrum_config
-    elif "--local" in argv:
-        config = local_config
-    else:
-        raise Exception(
-            "You need to specify the configuration.\nUse --metacentrum for running on metacentrum or --local for running locally."
-        )
-
-    # Load the dataset
-    train_dataset = ASVspoof2019Dataset(
-        root_dir=config["data_dir"], protocol_file_name=config["train_protocol"], variant="train"
-    )
-    val_dataset = ASVspoof2019Dataset(
-        root_dir=config["data_dir"], protocol_file_name=config["dev_protocol"], variant="dev"
-    )
-    eval_dataset = ASVspoof2019Dataset(
-        root_dir=config["data_dir"], protocol_file_name=config["eval_protocol"], variant="eval"
-    )
-
-    # there is about 90% of spoofed recordings in the dataset, balance with weighted random sampling
-    samples_weights = [train_dataset.get_class_weights()[i] for i in train_dataset.get_labels()]
-    weighted_sampler = WeightedRandomSampler(samples_weights, len(train_dataset))
-
-    # create dataloader, use custom collate_fn to pad the data to the longest recording in batch
-    train_dataloader = DataLoader(
-        train_dataset,
-        batch_size=config["batch_size"],
-        collate_fn=custom_batch_create,
-        sampler=weighted_sampler,
-    )
-    val_dataloader = DataLoader(
-        val_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, shuffle=True
-    )
-    eval_dataloader = DataLoader(
-        eval_dataset, batch_size=config["batch_size"], collate_fn=custom_batch_create, shuffle=True
-    )
-
-    model = FFDiff(XLSR_300M(), MHFAProcessor(), in_dim=1024)
-    trainer = FFDiffTrainer(model)
-    trainer.train(train_dataloader, val_dataloader, numepochs=config["num_epochs"])
