@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-from sys import executable
-from parse_arguments import EXTRACTORS
-
-
 class PBSheaders:
     def __init__(
         self,
@@ -85,8 +81,8 @@ class Job:
             'echo "Creating conda environment"',
             "module add gcc",
             "module add conda-modules-py37",
-            "conda create -n DP python=3.10 -y >/dev/null 2>&1",
-            "conda activate DP >/dev/null 2>&1",
+            'conda create --prefix "$TMPDIR/condaenv" python=3.10 -y >/dev/null 2>&1',
+            'conda activate "$TMPDIR/condaenv" >/dev/null 2>&1',
             "conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -y >/dev/null 2>&1",
             "\n",
             # copy project files
@@ -187,22 +183,22 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
-    for t in ["pair", "single"]:
-        name = f"DP_XLSR_300M_MHFA_" + ("FFDiff" if t == "pair" else "FF")
+    for c in ["FFConcat1", "FFConcat2", "FFConcat3"]:
+        name = f"DP_XLSR_300M_MHFA_" + c
         generate_job_script(
             jobname=name,
             file_name=f"./scripts/{name}.sh",
             executable_script_args=[
+                "--metacentrum",
                 "--extractor",
                 "XLSR_300M",
                 "--processor",
                 "MHFA",
                 "--classifier",
-                "FFDiff" if t == "pair" else "FF",
+                c,
                 "--num_epochs",
-                "20",
-                "--local",
+                "10",
                 "--dataset",
-                f"ASVspoof2019LADataset_{t}",
+                f"ASVspoof2019LADataset_pair",
             ],
         )
