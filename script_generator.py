@@ -8,7 +8,7 @@ class PBSheaders:
         walltime="24:00:00",  # maximum time the job can run
         nodes=1,  # number of nodes
         cpus=4,  # number of cpus on a node
-        mem=100,  # memory per node in GB
+        mem=128,  # memory per node in GB
         gpus=1,  # number of gpus
         gpu_mem=20,  # minimum gpu memory in GB
         scratch_size=100,  # minimum scratch_dir size in GB, implicit type is scratch_ssd
@@ -104,6 +104,14 @@ class Job:
             f"tar -xvzf {self.dataset_archive_name} >/dev/null 2>&1",
             "\n",
         ]
+        # copy 2019 dataset (training data) aswell if 2021 dataset is used
+        if "21" in self.dataset_archive_name:
+            data_script.extend([
+                # copy 2019 dataset
+                f"cp -r $DATADIR/{self.dataset_archive_path}LA19.tar.gz .",  # copy to scratchdir
+                f"tar -xvzf LA19.tar.gz >/dev/null 2>&1",
+                "\n",
+            ])
 
         exec_script = [
             # run the script
