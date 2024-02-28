@@ -4,8 +4,10 @@ from sys import argv
 
 from matplotlib.pylab import f
 
+from torch.utils.data import DataLoader
+
 from config import local_config, metacentrum_config
-from common import EXTRACTORS, get_dataloaders
+from common import DATASETS, EXTRACTORS, get_dataloaders
 from feature_processors.MHFAProcessor import MHFAProcessor
 from feature_processors.MeanProcessor import MeanProcessor
 from parse_arguments import parse_args
@@ -25,6 +27,8 @@ from trainers.GMMDiffTrainer import GMMDiffTrainer
 from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
 from trainers.FFConcatTrainer import FFConcatTrainer
+
+from datasets.utils import custom_pair_batch_create, custom_single_batch_create
 
 
 def main():
@@ -73,7 +77,33 @@ def main():
     else:
         raise ValueError("Checkpoint must be specified when only evaluating.")
 
-    _, _, eval_dataloader = get_dataloaders(dataset=args.dataset, config=config)
+    dataset = args.dataset
+    eval_dataset_class = DATASETS[dataset]
+    dataset_config = {}
+    if "ASVspoof2019LA" in dataset:
+        dataset_config = config["asvspoof2019la"]
+    elif "ASVspoof2021" in dataset:
+        dataset_config = config["asvspoof2021la"] if "LA" in dataset else config["asvspoof2021df"]
+    else:
+        raise ValueError("Invalid dataset name.")
+
+    if "2021DF" in args.dataset:
+        eval_dataset = eval_dataset_class(
+            root_dir=config["data_dir"] + dataset_config["eval_subdir"],
+            protocol_file_name=dataset_config["eval_protocol"],
+            variant="eval",
+            local=True if "--local" in config["argv"] else False,
+        )
+    else:
+        eval_dataset = eval_dataset_class(
+            root_dir=config["data_dir"] + dataset_config["eval_subdir"],
+            protocol_file_name=dataset_config["eval_protocol"],
+            variant="eval",
+        )
+    collate_func = custom_single_batch_create if "single" in dataset else custom_pair_batch_create
+    eval_dataloader = DataLoader(
+        eval_dataset, batch_size=config["batch_size"], collate_fn=collate_func, shuffle=True
+    )
 
     print(
         f"Evaluating {args.checkpoint} {type(model).__name__} {type(eval_dataloader.dataset).__name__} dataloader."
