@@ -14,7 +14,7 @@ scripts:
 	python script_generator.py
 
 pack: scripts clean
-	zip -r dp.zip classifiers datasets extractors feature_processors trainers config.py parse_arguments.py train_and_eval.py eval.py requirements.txt
+	zip -r dp.zip classifiers datasets extractors feature_processors trainers config.py common.py parse_arguments.py train_and_eval.py eval.py requirements.txt
 	zip -r scripts.zip scripts
 
 upload: pack
