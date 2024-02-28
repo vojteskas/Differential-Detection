@@ -76,11 +76,19 @@ def get_dataloaders(
         protocol_file_name=dataset_config["dev_protocol"],
         variant="dev",
     )
-    eval_dataset = eval_dataset_class(
-        root_dir=config["data_dir"] + dataset_config["eval_subdir"],
-        protocol_file_name=dataset_config["eval_protocol"],
-        variant="eval",
-    )
+    if "2021DF" in dataset:
+        eval_dataset = eval_dataset_class(
+            root_dir=config["data_dir"] + dataset_config["eval_subdir"],
+            protocol_file_name=dataset_config["eval_protocol"],
+            variant="eval",
+            local = True if "--local" in argv else False,
+        )
+    else:
+        eval_dataset = eval_dataset_class(
+            root_dir=config["data_dir"] + dataset_config["eval_subdir"],
+            protocol_file_name=dataset_config["eval_protocol"],
+            variant="eval",
+        )
 
     # there is about 90% of spoofed recordings in the dataset, balance with weighted random sampling
     samples_weights = [train_dataset.get_class_weights()[i] for i in train_dataset.get_labels()]
@@ -169,7 +177,7 @@ def main():
             trainer = SVMDiffTrainer(model)
         case _:
             raise ValueError(
-                "Only FFDiff, GMMDiff, LDAGaussianDiff and SVMDiff classifiers are currently supported."
+                "Only FF, FFConcat{1,2,3}, FFDiff, GMMDiff, LDAGaussianDiff and SVMDiff classifiers are currently supported."
             )
 
     train_dataloader, val_dataloader, eval_dataloader = get_dataloaders(dataset=args.dataset, config=config)

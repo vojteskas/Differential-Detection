@@ -104,7 +104,7 @@ class ASVspoof2021LADataset_single(ASVspoof2021_base):
 
 
 class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval"):
+    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
         super().__init__(root_dir, protocol_file_name, variant)
 
         headers = [
@@ -124,6 +124,22 @@ class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
         ]
         self.protocol_df.columns = headers
         self.protocol_df = self.protocol_df[self.protocol_df["VARIANT"] == "eval"]
+
+        if local:  # Needed because locally there is only a subset of the eval set
+            # Keep recordings that are only present in the flac directory
+            # get the list of files in the flac directory
+            print("Loading the list of files in the flac directory")
+            present_files = os.listdir(self.rec_dir)
+            # remove the .flac extension
+            present_files = [f.split(".")[0] for f in present_files]
+
+            self.protocol_df = self.protocol_df[
+                self.protocol_df["AUDIO_FILE_NAME"].isin(present_files)
+            ]
+
+            print(f"Using {len(self.protocol_df)} recordings from DF21 eval set.")
+
+        self.protocol_df.reset_index(drop=True, inplace=True)
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
@@ -152,7 +168,7 @@ class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
 
 
 class ASVspoof2021DFDataset_single(ASVspoof2021_base):
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval"):
+    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
         super().__init__(root_dir, protocol_file_name, variant)
 
         headers = [
@@ -172,6 +188,22 @@ class ASVspoof2021DFDataset_single(ASVspoof2021_base):
         ]
         self.protocol_df.columns = headers
         self.protocol_df = self.protocol_df[self.protocol_df["VARIANT"] == "eval"]
+
+        if local:  # Needed because locally there is only a subset of the eval set
+            # Keep recordings that are only present in the flac directory
+            # get the list of files in the flac directory
+            print("Loading the list of files in the flac directory")
+            present_files = os.listdir(self.rec_dir)
+            # remove the .flac extension
+            present_files = [f.split(".")[0] for f in present_files]
+
+            self.protocol_df = self.protocol_df[
+                self.protocol_df["AUDIO_FILE_NAME"].isin(present_files)
+            ]
+
+            print(f"Using {len(self.protocol_df)} recordings from DF21 eval set.")
+
+        self.protocol_df.reset_index(drop=True, inplace=True)
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
