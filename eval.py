@@ -1,92 +1,86 @@
 #!/usr/bin/env python3
 
-import torch
-from torch.utils.data import DataLoader
-from datasets import ASVspoof2019Dataset, custom_batch_create
-from diff_model import DiffModel
 from sys import argv
-from w2v_model import SSLModel
-from sklearn.metrics import roc_curve
-import numpy as np
+
+from matplotlib.pylab import f
+
+from config import local_config, metacentrum_config
+from common import EXTRACTORS, get_dataloaders
+from feature_processors.MHFAProcessor import MHFAProcessor
+from feature_processors.MeanProcessor import MeanProcessor
+from parse_arguments import parse_args
+
+# classifiers
+from classifiers.differential.FFDiff import FFDiff
+from classifiers.differential.GMMDiff import GMMDiff
+from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
+from classifiers.differential.SVMDiff import SVMDiff
+from classifiers.single_input.FF import FF
+from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3
+
+# trainers
+from trainers.FFDiffTrainer import FFDiffTrainer
+from trainers.FFTrainer import FFTrainer
+from trainers.GMMDiffTrainer import GMMDiffTrainer
+from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
+from trainers.SVMDiffTrainer import SVMDiffTrainer
+from trainers.FFConcatTrainer import FFConcatTrainer
 
 
-def evaluate(model, dataloader, device):
-    wav2vec = SSLModel(device=device)
-    model.to(device)
-    model.eval()  # set the model to evaluation mode
+def main():
+    config = metacentrum_config if "--metacentrum" in argv else local_config
 
-    # For Accuracy computation
-    total = 0
-    correct = 0
-    # For EER computation
-    labels = []
-    predictions = []
+    args = parse_args()
 
-    with torch.no_grad():
-        for i, (gt, test, label) in enumerate(dataloader):
-            gt = gt.transpose(1, 2).to(device)
-            test = test.transpose(1, 2).to(device)
-            label = label.to(device)
+    extractor = EXTRACTORS[args.extractor]()  # map the argument to the class and instantiate it
+    processor = MHFAProcessor() if args.processor == "MHFA" else MeanProcessor()
 
-            gt = wav2vec.extract_feat(gt)
-            test = wav2vec.extract_feat(test)
-            gt = torch.mean(gt, dim=1)
-            test = torch.mean(test, dim=1)
+    match args.classifier:
+        case "FF":
+            model = FF(extractor, processor, in_dim=extractor.feature_size)  # FF model does not use processor
+            trainer = FFTrainer(model)
+        case "FFConcat1":
+            model = FFConcat1(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFConcatTrainer(model)
+        case "FFConcat2":
+            model = FFConcat2(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFConcatTrainer(model)
+        case "FFConcat3":
+            model = FFConcat3(extractor, processor, in_dim=extractor.feature_size * 2)
+            trainer = FFConcatTrainer(model)
+        case "FFDiff":
+            model = FFDiff(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFDiffTrainer(model)
+        case "GMMDiff":
+            model = GMMDiff(None, None)  # pass as kwargs
+            trainer = GMMDiffTrainer(model)
+        case "LDAGaussianDiff":
+            model = LDAGaussianDiff(None, None)
+            trainer = LDAGaussianDiffTrainer(model)
+        case "SVMDiff":
+            model = SVMDiff(None, None)
+            trainer = SVMDiffTrainer(model)
+        case _:
+            raise ValueError(
+                "Only FF, FFConcat{1,2,3}, FFDiff, GMMDiff, LDAGaussianDiff and SVMDiff classifiers are currently supported."
+            )
 
-            vals, probs = model(gt, test)
-            # print(f"output: {probs}")
-            predicted = torch.argmax(probs, dim=1)
-            labels.extend(label.tolist())
-            predictions.extend(probs[:, 0].tolist())
-            # print(f"probs: {probs},\npredicted:\n{predicted}\n, label:\n{label}\n")
-            total += label.size(0)
-            correct += (predicted == label).sum().item()
+    print(f"Trainer: {type(trainer).__name__}")
 
-            if i % 10 == 0:
-                print(f"[{i}/{len(dataloader)}: correct {correct} / {total}]")
+    # Load the model from the checkpoint
+    if args.checkpoint:
+        trainer.load_model(args.checkpoint)
+    else:
+        raise ValueError("Checkpoint must be specified when only evaluating.")
 
-            if "--local" in argv and i == 100:
-                break
+    _, _, eval_dataloader = get_dataloaders(dataset=args.dataset, config=config)
 
-    accuracy = correct / total
-    print(f"Accuracy of the model on the {total} test images: {accuracy * 100}%")
+    print(
+        f"Evaluating {args.checkpoint} {type(model).__name__} {type(eval_dataloader.dataset).__name__} dataloader."
+    )
 
-    # Compute EER
-    fpr, tpr, threshold = roc_curve(labels, predictions, pos_label=0)
-    fnr = 1 - tpr
-
-    # eer from fpr and fnr can differ a bit (its a approximation), so we compute both and take the average
-    eer_1 = fpr[np.nanargmin(np.absolute((fnr - fpr)))]
-    eer_2 = fnr[np.nanargmin(np.absolute((fnr - fpr)))]
-    eer = (eer_1 + eer_2) / 2
-    print(f"EER: {eer * 100}%")
+    trainer.eval(eval_dataloader)
 
 
 if __name__ == "__main__":
-    # TODO: Better path handling
-    data_dir = "/mnt/e/VUT/Deepfakes/Datasets/LA" if "--local" in argv else "./LA"
-
-    d = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Using device: {d}")
-
-    variant = "eval"
-    print(f"Using variant: {variant}")
-    # Create a DataLoader for the validation dataset
-    validation_dataset = ASVspoof2019Dataset(
-        root_dir=data_dir, protocol_file_name="ASVspoof2019.LA.cm."+variant+".trl.txt", variant=variant
-    )
-
-    samples_weights = [validation_dataset.get_class_weights()[i] for i in validation_dataset.get_labels()]
-    sampler = torch.utils.data.WeightedRandomSampler(samples_weights, len(validation_dataset))
-    validation_dataloader = DataLoader(validation_dataset, batch_size=32, collate_fn=custom_batch_create, sampler=sampler)
-
-    # validation_dataloader = DataLoader(validation_dataset, batch_size=32, shuffle=True, collate_fn=custom_batch_create)
-
-    # Evaluate the model
-    # numepochs = 1 if "--local" in argv else 11
-    # for epoch in range(numepochs):
-    model = DiffModel(device=d)
-    model.load_state_dict(torch.load(f"./diffmodel_30.pt"))
-    # print(f"Loaded model from epoch {epoch}")
-    evaluate(model, validation_dataloader, d)
-    # print(f"^^^ Evaluated model diffmodel_{epoch}.pt ^^^")
+    main()

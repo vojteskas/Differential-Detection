@@ -8,7 +8,7 @@ class PBSheaders:
         walltime="24:00:00",  # maximum time the job can run
         nodes=1,  # number of nodes
         cpus=4,  # number of cpus on a node
-        mem=128,  # memory per node in GB
+        mem=200,  # memory per node in GB
         gpus=1,  # number of gpus
         gpu_mem=20,  # minimum gpu memory in GB
         scratch_size=100,  # minimum scratch_dir size in GB, implicit type is scratch_ssd
@@ -191,24 +191,23 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
-    for c in ["FFDiff", "FF", "FFConcat1", "FFConcat2", "FFConcat3"]:
-        dataset = "ASVspoof2021DFDataset_single" if c == "FF" else "ASVspoof2021DFDataset_pair"
-        name = f"DP_XLSR_300M_MHFA_{c}_DF21"
-        generate_job_script(
-            jobname=name,
-            file_name=f"./scripts/{name}.sh",
-            dataset_archive_name="DF21.tar.gz",
-            executable_script_args=[
-                "--metacentrum",
-                "--extractor",
-                "XLSR_300M",
-                "--processor",
-                "MHFA",
-                "--classifier",
-                c,
-                "--num_epochs",
-                "20",
-                "--dataset",
-                dataset,
-            ],
-        )
+    generate_job_script(
+        jobname="DP_XLSR_300M_MHFA_FF_DF21_Eval",
+        file_name="scripts/FFDF21_eval.sh",
+        project_archive_name="dp.zip",
+        dataset_archive_name="DF21.tar.gz",
+        executable_script="eval.py",
+        executable_script_args=[
+            "--local",
+            "--checkpoint",
+            "FF_20.pt",
+            "--dataset",
+            "ASVspoof2021DFDataset_single",
+            "--extractor",
+            "XLSR_300M",
+            "--processor",
+            "MHFA",
+            "--classifier",
+            "FF"
+        ],
+    )

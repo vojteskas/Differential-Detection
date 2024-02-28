@@ -1,21 +1,9 @@
 #!/usr/bin/env python3
-from math import e
-from typing import Tuple
-from torch.utils.data import DataLoader, WeightedRandomSampler
 from sys import argv
 
 from config import local_config, metacentrum_config
-from parse_arguments import parse_args, EXTRACTORS
-
-# datasets
-from datasets.utils import custom_pair_batch_create, custom_single_batch_create
-from datasets.ASVspoof2019 import ASVspoof2019LADataset_pair, ASVspoof2019LADataset_single
-from datasets.ASVspoof2021 import (
-    ASVspoof2021LADataset_single,
-    ASVspoof2021LADataset_pair,
-    ASVspoof2021DFDataset_single,
-    ASVspoof2021DFDataset_pair,
-)
+from common import EXTRACTORS, get_dataloaders
+from parse_arguments import parse_args
 
 # feature_processors
 from feature_processors.MHFAProcessor import MHFAProcessor
@@ -28,8 +16,6 @@ from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
 from classifiers.single_input.FF import FF
 from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3
-from trainers.BaseSklearnTrainer import BaseSklearnTrainer
-from trainers.FFConcatTrainer import FFConcatTrainer
 
 # trainers
 from trainers.FFDiffTrainer import FFDiffTrainer
@@ -37,79 +23,8 @@ from trainers.FFTrainer import FFTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
 from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
-
-DATASETS = {  # map the dataset name to the dataset class
-    "ASVspoof2019LADataset_single": ASVspoof2019LADataset_single,
-    "ASVspoof2019LADataset_pair": ASVspoof2019LADataset_pair,
-    "ASVspoof2021LADataset_single": ASVspoof2021LADataset_single,
-    "ASVspoof2021LADataset_pair": ASVspoof2021LADataset_pair,
-    "ASVspoof2021DFDataset_single": ASVspoof2021DFDataset_single,
-    "ASVspoof2021DFDataset_pair": ASVspoof2021DFDataset_pair,
-}
-
-
-def get_dataloaders(
-    dataset="ASVspoof2019LADataset_pair", config=metacentrum_config
-) -> Tuple[DataLoader, DataLoader, DataLoader]:
-
-    dataset_config = {}
-    if "ASVspoof2019LA" in dataset:
-        train_dataset_class = DATASETS[dataset]
-        eval_dataset_class = DATASETS[dataset]
-        dataset_config = config["asvspoof2019la"]
-    elif "ASVspoof2021" in dataset:
-        t = "pair" if "pair" in dataset else "single"
-        train_dataset_class = DATASETS[f"ASVspoof2019LADataset_{t}"]
-        eval_dataset_class = DATASETS[dataset]
-        dataset_config = config["asvspoof2021la"] if "LA" in dataset else config["asvspoof2021df"]
-    else:
-        raise ValueError("Invalid dataset name.")
-
-    # Load the dataset
-    train_dataset = train_dataset_class(
-        root_dir=config["data_dir"] + dataset_config["train_subdir"],
-        protocol_file_name=dataset_config["train_protocol"],
-        variant="train",
-    )
-    val_dataset = train_dataset_class(
-        root_dir=config["data_dir"] + dataset_config["dev_subdir"],
-        protocol_file_name=dataset_config["dev_protocol"],
-        variant="dev",
-    )
-    if "2021DF" in dataset:
-        eval_dataset = eval_dataset_class(
-            root_dir=config["data_dir"] + dataset_config["eval_subdir"],
-            protocol_file_name=dataset_config["eval_protocol"],
-            variant="eval",
-            local = True if "--local" in argv else False,
-        )
-    else:
-        eval_dataset = eval_dataset_class(
-            root_dir=config["data_dir"] + dataset_config["eval_subdir"],
-            protocol_file_name=dataset_config["eval_protocol"],
-            variant="eval",
-        )
-
-    # there is about 90% of spoofed recordings in the dataset, balance with weighted random sampling
-    samples_weights = [train_dataset.get_class_weights()[i] for i in train_dataset.get_labels()]
-    weighted_sampler = WeightedRandomSampler(samples_weights, len(train_dataset))
-
-    # create dataloader, use custom collate_fn to pad the data to the longest recording in batch
-    collate_func = custom_single_batch_create if "single" in dataset else custom_pair_batch_create
-    train_dataloader = DataLoader(
-        train_dataset,
-        batch_size=config["batch_size"],
-        collate_fn=collate_func,
-        sampler=weighted_sampler,
-    )
-    val_dataloader = DataLoader(
-        val_dataset, batch_size=config["batch_size"], collate_fn=collate_func, shuffle=True
-    )
-    eval_dataloader = DataLoader(
-        eval_dataset, batch_size=config["batch_size"], collate_fn=collate_func, shuffle=True
-    )
-
-    return train_dataloader, val_dataloader, eval_dataloader
+from trainers.BaseSklearnTrainer import BaseSklearnTrainer
+from trainers.FFConcatTrainer import FFConcatTrainer
 
 
 def main():

@@ -1,58 +1,6 @@
 import argparse
-from typing import Dict, Tuple
-from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3
 
-# classifiers
-from classifiers.differential.FFDiff import FFDiff
-from classifiers.differential.GMMDiff import GMMDiff
-from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
-from classifiers.differential.SVMDiff import SVMDiff
-from classifiers.single_input.FF import FF
-
-# extractors
-from extractors.HuBERT import HuBERT_base, HuBERT_large, HuBERT_extralarge
-from extractors.Wav2Vec2 import Wav2Vec2_base, Wav2Vec2_large, Wav2Vec2_LV60k
-from extractors.WavLM import WavLM_base, WavLM_baseplus, WavLM_large
-from extractors.XLSR import XLSR_300M, XLSR_1B, XLSR_2B
-
-# trainers
-from trainers.FFDiffTrainer import FFDiffTrainer
-from trainers.GMMDiffTrainer import GMMDiffTrainer
-from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
-from trainers.SVMDiffTrainer import SVMDiffTrainer
-
-# map of argument names to the classes
-EXTRACTORS: dict[str, type] = {
-    "HuBERT_base": HuBERT_base,
-    "HuBERT_large": HuBERT_large,
-    "HuBERT_extralarge": HuBERT_extralarge,
-    "Wav2Vec2_base": Wav2Vec2_base,
-    "Wav2Vec2_large": Wav2Vec2_large,
-    "Wav2Vec2_LV60k": Wav2Vec2_LV60k,
-    "WavLM_base": WavLM_base,
-    "WavLM_baseplus": WavLM_baseplus,
-    "WavLM_large": WavLM_large,
-    "XLSR_300M": XLSR_300M,
-    "XLSR_1B": XLSR_1B,
-    "XLSR_2B": XLSR_2B,
-}
-CLASSIFIERS: Dict[str, Tuple[type, Dict[str, type]]] = {
-    # Maps the classifier to tuples of the corresponding class and the initializable arguments
-    "FF": (FF, {}),
-    "FFConcat1": (FFConcat1, {}),
-    "FFConcat2": (FFConcat2, {}),
-    "FFConcat3": (FFConcat3, {}),
-    "FFDiff": (FFDiff, {}),
-    "GMMDiff": (GMMDiff, {"n_components": int, "covariance_type": str}),
-    "LDAGaussianDiff": (LDAGaussianDiff, {}),
-    "SVMDiff": (SVMDiff, {"kernel": str}),
-}
-TRAINERS = {  # Maps the classifier to the trainer
-    "FFDiff": FFDiffTrainer,
-    "GMMDiff": GMMDiffTrainer,
-    "LDAGaussianDiff": LDAGaussianDiffTrainer,
-    "SVMDiff": SVMDiffTrainer,
-}
+from common import EXTRACTORS, CLASSIFIERS
 
 
 def parse_args():
@@ -62,6 +10,13 @@ def parse_args():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--metacentrum", action="store_true", help="Flag for running on metacentrum.")
     group.add_argument("--local", action="store_true", help="Flag for running locally.")
+
+    # Add argument for loading a checkpoint
+    parser.add_argument(
+        "--checkpoint",
+        type=str,
+        help="Path to a checkpoint to be loaded. If not specified, the model will be trained from scratch.",
+    )
 
     # dataset
     # TODO: Allow for different datasets
