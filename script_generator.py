@@ -191,23 +191,22 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
+    c = "FFConcat4"
     generate_job_script(
-        jobname="DP_XLSR_300M_MHFA_FF_DF21_Eval",
-        file_name="scripts/FFDF21_eval.sh",
+        jobname=f"DP_XLSR_300M_MHFA_{c}_DF21",
+        file_name=f"scripts/{c}_DF21.sh",
         project_archive_name="dp.zip",
         dataset_archive_name="DF21.tar.gz",
-        executable_script="eval.py",
+        executable_script="train_and_eval.py",
         executable_script_args=[
-            "--local",
-            "--checkpoint",
-            "FF_20.pt",
+            "--metacentrum",
             "--dataset",
-            "ASVspoof2021DFDataset_single",
+            "ASVspoof2021DFDataset_pair",
             "--extractor",
             "XLSR_300M",
             "--processor",
             "MHFA",
             "--classifier",
-            "FF"
+            f"{c}"
         ],
     )

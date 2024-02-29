@@ -15,7 +15,7 @@ from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
 from classifiers.single_input.FF import FF
-from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3
+from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3, FFConcat4
 
 # trainers
 from trainers.FFDiffTrainer import FFDiffTrainer
@@ -75,6 +75,10 @@ def main():
             # Concatenating the features from the two audio files results in twice the feature input size
             model = FFConcat3(extractor, processor, in_dim=extractor.feature_size * 2)
             trainer = FFConcatTrainer(model)
+        case "FFConcat4":
+            # Using transformer instead of concatenation
+            model = FFConcat4(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFConcatTrainer(model)
         case "FFDiff":
             model = FFDiff(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFDiffTrainer(model)
@@ -92,7 +96,7 @@ def main():
             trainer = SVMDiffTrainer(model)
         case _:
             raise ValueError(
-                "Only FF, FFConcat{1,2,3}, FFDiff, GMMDiff, LDAGaussianDiff and SVMDiff classifiers are currently supported."
+                "Only FF, FFConcat{1,2,3,4}, FFDiff, GMMDiff, LDAGaussianDiff and SVMDiff classifiers are currently supported."
             )
 
     train_dataloader, val_dataloader, eval_dataloader = get_dataloaders(dataset=args.dataset, config=config)
