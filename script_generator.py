@@ -52,6 +52,7 @@ class Job:
         project_archive_name="dp.zip",  # name of the project source archive
         dataset_archive_path="deepfakes/datasets/",  # path to the dataset from home (~) directory
         dataset_archive_name="LA.zip",  # name of the dataset archive
+        checkpoint_archive_name=None,  # name of the checkpoint archive
         executable_script="train_and_eval.py",  # name of the script to be executed
         executable_script_args=["--metacentrum"],  # arguments for the script
     ):
@@ -60,6 +61,7 @@ class Job:
         self.project_archive_name = project_archive_name
         self.dataset_archive_path = dataset_archive_path
         self.dataset_archive_name = dataset_archive_name
+        self.checkpoint_archive_name = checkpoint_archive_name
         self.executable_script = executable_script
         self.executable_script_args = executable_script_args
 
@@ -104,14 +106,26 @@ class Job:
             f"tar -xvzf {self.dataset_archive_name} >/dev/null 2>&1",
             "\n",
         ]
-        # copy 2019 dataset (training data) aswell if 2021 dataset is used
-        if "21" in self.dataset_archive_name:
-            data_script.extend([
-                # copy 2019 dataset
-                f"cp -r $DATADIR/{self.dataset_archive_path}LA19.tar.gz .",  # copy to scratchdir
-                f"tar -xvzf LA19.tar.gz >/dev/null 2>&1",
+        # copy 2019 dataset (training data) aswell if 2021 or InTheWild datasets are used
+        # if "21" in self.dataset_archive_name or "InTheWild" in self.dataset_archive_name:
+        #     data_script.extend(
+        #         [
+        #             # copy 2019 dataset
+        #             f"cp -r $DATADIR/{self.dataset_archive_path}LA19.tar.gz .",  # copy to scratchdir
+        #             f"tar -xvzf LA19.tar.gz >/dev/null 2>&1",
+        #             "\n",
+        #         ]
+        #     )
+
+        checkpoint_script = []
+        if self.checkpoint_archive_name:
+            checkpoint_script = [
+                # copy checkpoint
+                'echo "Copying checkpoint archive"',
+                f"cp $DATADIR/{self.checkpoint_archive_name} .",  # copy to scratchdir
+                f'unzip {self.checkpoint_archive_name} "*_20.pt" >/dev/null 2>&1',
                 "\n",
-            ])
+            ]
 
         exec_script = [
             # run the script
@@ -135,7 +149,9 @@ class Job:
             "clean_scratch"
         ]
 
-        return "\n".join(env_script + data_script + exec_script + results_script + cleanup_script)
+        return "\n".join(
+            env_script + data_script + checkpoint_script + exec_script + results_script + cleanup_script
+        )
 
     def __repr__(self):
         return self.__str__()
@@ -174,6 +190,7 @@ def generate_job_script(
             "project_archive_name",
             "dataset_archive_path",
             "dataset_archive_name",
+            "checkpoint_archive_name",
             "executable_script",
             "executable_script_args",
         ]
@@ -183,7 +200,7 @@ def generate_job_script(
     script = f"{pbs}\n\n{job}"
 
     if file_name:
-        with open(file_name, "w", newline='\n') as file:
+        with open(file_name, "w", newline="\n") as file:
             file.write(script)
 
     return script
@@ -191,22 +208,26 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
-    c = "FFConcat4"
-    generate_job_script(
-        jobname=f"DP_XLSR_300M_MHFA_{c}_DF21",
-        file_name=f"scripts/{c}_DF21.sh",
-        project_archive_name="dp.zip",
-        dataset_archive_name="DF21.tar.gz",
-        executable_script="train_and_eval.py",
-        executable_script_args=[
-            "--metacentrum",
-            "--dataset",
-            "ASVspoof2021DFDataset_pair",
-            "--extractor",
-            "XLSR_300M",
-            "--processor",
-            "MHFA",
-            "--classifier",
-            f"{c}"
-        ],
-    )
+    for c in ["FF", "FFConcat1", "FFConcat3", "FFDiff"]:
+        dataset = "InTheWildDataset_single" if c == "FF" else "InTheWildDataset_pair"
+        generate_job_script(
+            jobname=f"DP_XLSR_300M_MHFA_{c}_InTheWild",
+            file_name=f"scripts/{c}_InTheWild.sh",
+            project_archive_name="dp.zip",
+            dataset_archive_name="InTheWild.tar.gz",
+            checkpoint_archive_name=f"DP_XLSR_300M_MHFA_{c}_DF21_Results.zip",
+            executable_script="eval.py",
+            executable_script_args=[
+                "--metacentrum",
+                "--checkpoint",
+                f"{c}_20.pt",
+                "--dataset",
+                dataset,
+                "--extractor",
+                "XLSR_300M",
+                "--processor",
+                "MHFA",
+                "--classifier",
+                f"{c}",
+            ],
+        )

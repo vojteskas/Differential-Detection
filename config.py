@@ -27,6 +27,14 @@ local_config = {
         "dev_protocol": "ASVspoof2019.LA.cm.dev.trl.txt",
         "eval_protocol": "trial_metadata.txt",
     },
+    "inthewild": {
+        "train_subdir": "LA",
+        "dev_subdir": "LA",
+        "eval_subdir": "InTheWild",
+        "train_protocol": "ASVspoof2019.LA.cm.train.trn.txt",
+        "dev_protocol": "ASVspoof2019.LA.cm.dev.trl.txt",
+        "eval_protocol": "meta.csv",
+    },
     "batch_size": 16,
     "num_epochs": 1,
 }
@@ -60,6 +68,14 @@ metacentrum_config = {
         "dev_protocol": "ASVspoof2019.LA.cm.dev.trl.txt",
         "eval_protocol": "trial_metadata.txt",
     },
+    "inthewild": {
+        "train_subdir": "LA19",
+        "dev_subdir": "LA19",
+        "eval_subdir": "InTheWild",
+        "train_protocol": "ASVspoof2019.LA.cm.train.trn.txt",
+        "dev_protocol": "ASVspoof2019.LA.cm.dev.trl.txt",
+        "eval_protocol": "meta.csv",
+    },
     "batch_size": 32,
-    "num_epochs": 10,
+    "num_epochs": 20,
 }

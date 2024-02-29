@@ -30,6 +30,7 @@ from datasets.ASVspoof2021 import (
     ASVspoof2021DFDataset_single,
     ASVspoof2021DFDataset_pair,
 )
+from datasets.InTheWild import InTheWildDataset_pair, InTheWildDataset_single
 
 from config import local_config, metacentrum_config
 
@@ -72,6 +73,8 @@ DATASETS = {  # map the dataset name to the dataset class
     "ASVspoof2021LADataset_pair": ASVspoof2021LADataset_pair,
     "ASVspoof2021DFDataset_single": ASVspoof2021DFDataset_single,
     "ASVspoof2021DFDataset_pair": ASVspoof2021DFDataset_pair,
+    "InTheWildDataset_single": InTheWildDataset_single,
+    "InTheWildDataset_pair": InTheWildDataset_pair,
 }
 
 
@@ -89,6 +92,10 @@ def get_dataloaders(
         train_dataset_class = DATASETS[f"ASVspoof2019LADataset_{t}"]
         eval_dataset_class = DATASETS[dataset]
         dataset_config = config["asvspoof2021la"] if "LA" in dataset else config["asvspoof2021df"]
+    elif "InTheWild" in dataset:
+        train_dataset_class = DATASETS[dataset]
+        eval_dataset_class = DATASETS[dataset]
+        dataset_config = config["inthewild"]
     else:
         raise ValueError("Invalid dataset name.")
 

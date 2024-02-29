@@ -2,12 +2,10 @@
 
 from sys import argv
 
-from matplotlib.pylab import f
-
 from torch.utils.data import DataLoader
 
 from config import local_config, metacentrum_config
-from common import DATASETS, EXTRACTORS, get_dataloaders
+from common import DATASETS, EXTRACTORS
 from feature_processors.MHFAProcessor import MHFAProcessor
 from feature_processors.MeanProcessor import MeanProcessor
 from parse_arguments import parse_args
@@ -18,7 +16,7 @@ from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
 from classifiers.single_input.FF import FF
-from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3
+from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3, FFConcat4
 
 # trainers
 from trainers.FFDiffTrainer import FFDiffTrainer
@@ -52,6 +50,9 @@ def main():
         case "FFConcat3":
             model = FFConcat3(extractor, processor, in_dim=extractor.feature_size * 2)
             trainer = FFConcatTrainer(model)
+        case "FFConcat4":
+            model = FFConcat4(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFConcatTrainer(model)
         case "FFDiff":
             model = FFDiff(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFDiffTrainer(model)
@@ -84,10 +85,12 @@ def main():
         dataset_config = config["asvspoof2019la"]
     elif "ASVspoof2021" in dataset:
         dataset_config = config["asvspoof2021la"] if "LA" in dataset else config["asvspoof2021df"]
+    elif "InTheWild" in dataset:
+        dataset_config = config["inthewild"]
     else:
         raise ValueError("Invalid dataset name.")
 
-    if "2021DF" in args.dataset:
+    if "2021DF" in args.dataset:  # locally there is only a part of 2021DF dataset
         eval_dataset = eval_dataset_class(
             root_dir=config["data_dir"] + dataset_config["eval_subdir"],
             protocol_file_name=dataset_config["eval_protocol"],
