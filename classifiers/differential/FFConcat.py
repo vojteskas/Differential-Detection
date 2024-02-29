@@ -227,6 +227,9 @@ class FFConcat4(FFConcatBase):
         emb_gt = self.feature_processor(emb_gt)
         emb_test = self.feature_processor(emb_test)
 
+        # Add sequence length dimension
+        emb_gt = emb_gt.unsqueeze(1)
+        emb_test = emb_test.unsqueeze(1)
         # Transformer attention
         emb = self.transformer(src=emb_test, tgt=emb_gt)
 
