@@ -107,15 +107,15 @@ class Job:
             "\n",
         ]
         # copy 2019 dataset (training data) aswell if 2021 or InTheWild datasets are used
-        # if "21" in self.dataset_archive_name or "InTheWild" in self.dataset_archive_name:
-        #     data_script.extend(
-        #         [
-        #             # copy 2019 dataset
-        #             f"cp -r $DATADIR/{self.dataset_archive_path}LA19.tar.gz .",  # copy to scratchdir
-        #             f"tar -xvzf LA19.tar.gz >/dev/null 2>&1",
-        #             "\n",
-        #         ]
-        #     )
+        if "21" in self.dataset_archive_name or "InTheWild" in self.dataset_archive_name:
+            data_script.extend(
+                [
+                    # copy 2019 dataset
+                    f"cp -r $DATADIR/{self.dataset_archive_path}LA19.tar.gz .",  # copy to scratchdir
+                    f"tar -xvzf LA19.tar.gz >/dev/null 2>&1",
+                    "\n",
+                ]
+            )
 
         checkpoint_script = []
         if self.checkpoint_archive_name:
@@ -208,19 +208,16 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
-    for c in ["FF", "FFConcat1", "FFConcat3", "FFDiff"]:
-        dataset = "InTheWildDataset_single" if c == "FF" else "InTheWildDataset_pair"
+    for c in ["FFConcat4"]:
+        dataset = "InTheWildDataset_pair"
         generate_job_script(
-            jobname=f"DP_XLSR_300M_MHFA_{c}_InTheWild",
-            file_name=f"scripts/{c}_InTheWild.sh",
+            jobname=f"DP_XLSR_300M_MHFA_{c}_InTheWild_DF21",
+            file_name=f"scripts/{c}_InTheWild_DF21.sh",
             project_archive_name="dp.zip",
             dataset_archive_name="InTheWild.tar.gz",
-            checkpoint_archive_name=f"DP_XLSR_300M_MHFA_{c}_DF21_Results.zip",
-            executable_script="eval.py",
+            executable_script="train_and_eval.py",
             executable_script_args=[
                 "--metacentrum",
-                "--checkpoint",
-                f"{c}_20.pt",
                 "--dataset",
                 dataset,
                 "--extractor",

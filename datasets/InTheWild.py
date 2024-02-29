@@ -18,7 +18,7 @@ class InTheWildDataset_base(Dataset):
     param variant: One of "train", "dev", "eval" to specify the dataset variant
     """
 
-    def __init__(self, root_dir, protocol_file_name="meta.csv"):
+    def __init__(self, root_dir, protocol_file_name="meta.csv", variant="eval"):
         self.root_dir = root_dir  # Path to the InTheWild folder
 
         # Headers from csv: file, speaker, label
@@ -46,7 +46,7 @@ class InTheWildDataset_base(Dataset):
 
 
 class InTheWildDataset_pair(InTheWildDataset_base):
-    def __init__(self, root_dir, protocol_file_name="meta.csv"):
+    def __init__(self, root_dir, protocol_file_name="meta.csv", variant="eval"):
         super().__init__(root_dir, protocol_file_name)
 
     def __getitem__(self, idx):
@@ -73,7 +73,7 @@ class InTheWildDataset_pair(InTheWildDataset_base):
 
 
 class InTheWildDataset_single(InTheWildDataset_base):
-    def __init__(self, root_dir, protocol_file_name="meta.csv"):
+    def __init__(self, root_dir, protocol_file_name="meta.csv", variant="eval"):
         super().__init__(root_dir, protocol_file_name)
 
     def __getitem__(self, idx):
