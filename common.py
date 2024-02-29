@@ -93,7 +93,8 @@ def get_dataloaders(
         eval_dataset_class = DATASETS[dataset]
         dataset_config = config["asvspoof2021la"] if "LA" in dataset else config["asvspoof2021df"]
     elif "InTheWild" in dataset:
-        train_dataset_class = DATASETS[dataset]
+        t = "pair" if "pair" in dataset else "single"
+        train_dataset_class = DATASETS[f"ASVspoof2019LADataset_{t}"]
         eval_dataset_class = DATASETS[dataset]
         dataset_config = config["inthewild"]
     else:
