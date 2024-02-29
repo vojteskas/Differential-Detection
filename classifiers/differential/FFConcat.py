@@ -228,7 +228,7 @@ class FFConcat4(FFConcatBase):
         emb_test = self.feature_processor(emb_test)
 
         # Transformer attention
-        emb = self.transformer(emb_gt, emb_test)
+        emb = self.transformer(src=emb_test, tgt=emb_gt)
 
         out = self.classifier(emb)
         prob = F.softmax(out, dim=1)
