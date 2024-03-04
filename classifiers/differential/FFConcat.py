@@ -186,119 +186,30 @@ class FFConcat3(FFConcatBase):
         return out, prob
 
 
-class FFConcat4(FFConcatBase):
-    """
-    Linear classifier which concatenates tested and ground truth recording for classification.
-
-    Instead of actual concatenation, features are fed into a transformer which tries to learn the differences
-    between the two recordings. The output of the transformer is then passed through the classifier.
-    """
-
-    def __init__(self, extractor, feature_processor, in_dim=1024):  # TODO: Add transformer parameters
-        """
-        Initialize the model.
-
-        param extractor: Model to extract features from audio data.
-                         Needs to provide method extract_features(input_data)
-        param feature_processor: Model to process the extracted features.
-                                 Needs to provide method __call__(input_data)
-        param in_dim: Dimension of the input data to the classifier, divisible by 4.
-        """
-
+class FFLSTM(FFConcatBase):
+    def __init__(self, extractor, feature_processor, in_dim=1024):
         super().__init__(extractor, feature_processor, in_dim)
 
-        # Shape to the feature size and have batch as a first dimension
-        self.transformer = nn.Transformer(d_model=in_dim, batch_first=True)
+        self.lstm = nn.LSTM(
+            input_size=in_dim,
+            hidden_size=in_dim,
+            num_layers=2,
+            batch_first=True,
+        )
 
     def forward(self, input_data_ground_truth, input_data_tested):
-        """
-        Forward pass through the model.
-
-        Extract features from the audio data, process them and pass them through the classifier.
-
-        param input_data_ground_truth: Audio data of the ground truth of shape: (batch_size, seq_len)
-        param input_data_tested: Audio data of the tested data of shape: (batch_size, seq_len)
-
-        return: Output of the model (logits) and the class probabilities (softmax output of the logits).
-        """
-
         emb_gt = self.extractor.extract_features(input_data_ground_truth)
         emb_test = self.extractor.extract_features(input_data_tested)
 
-        emb_gt = torch.mean(emb_gt, dim=0)
-        emb_test = torch.mean(emb_test, dim=0)
+        emb_gt = torch.mean(emb_gt, 0)
+        emb_test = torch.mean(emb_test, 0)
 
-        # Transformer attention
-        emb = self.transformer(src=emb_test, tgt=emb_gt)
-
-        emb = torch.mean(emb, dim=1)
-
-        out = self.classifier(emb)
-        prob = F.softmax(out, dim=1)
-
-        return out, prob
-
-
-class FFConcat5(FFConcatBase):
-    """
-    Linear classifier which concatenates tested and ground truth recording for classification.
-
-    Instead of actual concatenation, features are fed into a transformer which tries to learn the differences
-    between the two recordings. The output of the transformer is then passed through the classifier.
-    """
-
-    def __init__(self, extractor, feature_processor, in_dim=1024):  # TODO: Add transformer parameters
-        """
-        Initialize the model.
-
-        param extractor: Model to extract features from audio data.
-                         Needs to provide method extract_features(input_data)
-        param feature_processor: Model to process the extracted features.
-                                 Needs to provide method __call__(input_data)
-        param in_dim: Dimension of the input data to the classifier, divisible by 4.
-        """
-
-        super().__init__(extractor, feature_processor, in_dim)
-
-        # Shape to the feature size and have batch as a first dimension
-        self.transformer = nn.Transformer(
-            d_model=in_dim,
-            batch_first=True,
-            nhead=2,
-            num_encoder_layers=2,
-            num_decoder_layers=2,
-            dim_feedforward=in_dim,
-        )
-
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    def forward(self, input_data_ground_truth, input_data_tested):
-        """
-        Forward pass through the model.
-
-        Extract features from the audio data, process them and pass them through the classifier.
-
-        param input_data_ground_truth: Audio data of the ground truth of shape: (batch_size, seq_len)
-        param input_data_tested: Audio data of the tested data of shape: (batch_size, seq_len)
-
-        return: Output of the model (logits) and the class probabilities (softmax output of the logits).
-        """
-
-        emb_gt = self.extractor.extract_features(input_data_ground_truth).to(self.device)
-        emb_test = self.extractor.extract_features(input_data_tested).to(self.device)
-
-        # Concat across the transformer layers along the batch dimension
-        emb_gt_tl, emb_gt_batch, emb_gt_seq, emb_gt_feat = emb_gt.shape
-        emb_test_tl, emb_test_batch, emb_test_seq, emb_test_feat = emb_test.shape
-
-        emb_gt = emb_gt.view(emb_gt_tl * emb_gt_batch, emb_gt_seq, emb_gt_feat)
-        emb_test = emb_test.view(emb_test_tl * emb_test_batch, emb_test_seq, emb_test_feat)
-
-        # Transformer attention
-        emb = self.transformer(src=emb_test, tgt=emb_gt)
-        emb = emb.view(emb_gt_tl, emb_gt_batch, emb_gt_seq, emb_gt_feat)
-
-        emb = self.feature_processor(emb)
+        # emb in shape (batch, seq_len, feature_size)
+        # LSTM to find the differences between emb_gt and emb_test
+        emb = cat((emb_gt, emb_test), 1)
+        emb, _ = self.lstm(emb)
+        
+        emb = emb[:, -1, :]  # Take the last hidden state
 
         out = self.classifier(emb)
         prob = F.softmax(out, dim=1)

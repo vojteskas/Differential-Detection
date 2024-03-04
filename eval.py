@@ -16,7 +16,7 @@ from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
 from classifiers.single_input.FF import FF
-from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3, FFConcat4, FFConcat5
+from classifiers.differential.FFConcat import FFLSTM, FFConcat1, FFConcat2, FFConcat3
 
 # trainers
 from trainers.FFDiffTrainer import FFDiffTrainer
@@ -50,13 +50,9 @@ def main():
         case "FFConcat3":
             model = FFConcat3(extractor, processor, in_dim=extractor.feature_size * 2)
             trainer = FFConcatTrainer(model)
-        case "FFConcat4":
-            model = FFConcat4(extractor, processor, in_dim=extractor.feature_size)
+        case "FFLSTM":
+            model = FFLSTM(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFConcatTrainer(model)
-        case "FFConcat5":
-            model = FFConcat5(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFConcatTrainer(model)
-            config["batch_size"] //= 2  # Half the batch size for FFConcat5
         case "FFDiff":
             model = FFDiff(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFDiffTrainer(model)
@@ -71,7 +67,7 @@ def main():
             trainer = SVMDiffTrainer(model)
         case _:
             raise ValueError(
-                "Only FF, FFConcat{1,2,3,4,5}, FFDiff, GMMDiff, LDAGaussianDiff and SVMDiff classifiers are currently supported."
+                "Only FF, FFConcat{1,2,3}, FFLSTM, FFDiff, GMMDiff, LDAGaussianDiff and SVMDiff classifiers are currently supported."
             )
 
     print(f"Trainer: {type(trainer).__name__}")
