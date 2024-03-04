@@ -129,6 +129,8 @@ def get_dataloaders(
     samples_weights = [train_dataset.get_class_weights()[i] for i in train_dataset.get_labels()]
     weighted_sampler = WeightedRandomSampler(samples_weights, len(train_dataset))
 
+    print(f"Using batch size: {config['batch_size']}")
+
     # create dataloader, use custom collate_fn to pad the data to the longest recording in batch
     collate_func = custom_single_batch_create if "single" in dataset else custom_pair_batch_create
     train_dataloader = DataLoader(

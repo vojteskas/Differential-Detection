@@ -3,6 +3,7 @@ import torch
 from torch.nn import CrossEntropyLoss
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from classifiers.differential.FFConcat import FFConcat5
 
 from trainers.BaseTrainer import BaseTrainer
 
@@ -19,6 +20,9 @@ class FFConcatTrainer(BaseTrainer):
         self.device = device
 
         self.model = model.to(device)
+        if isinstance(model, FFConcat5):
+            # FFConcat5 is too big, so the extractor (which is not trained) is moved to the CPU
+            self.model.extractor = self.model.extractor.to("cpu")
 
         # A statistics tracker dict for the training and validation losses, accuracies and EERs
         self.statistics = {
@@ -51,8 +55,11 @@ class FFConcatTrainer(BaseTrainer):
             # Training loop
             for gt, test, label in tqdm(train_dataloader):
                 
-                gt = gt.to(self.device)
-                test = test.to(self.device)
+                if not isinstance(self.model, FFConcat5):
+                    # Move to GPU if not FFConcat5
+                    gt = gt.to(self.device)
+                    test = test.to(self.device)
+                
                 label = label.to(self.device)
 
                 # Forward pass

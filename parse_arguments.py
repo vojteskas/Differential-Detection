@@ -90,7 +90,7 @@ def parse_args():
         "--num_epochs",
         type=int,
         help="Number of epochs to train for. Will only be used together with FFDiff classifier or MHFA pooling.",
-        default=100,
+        default=20,
     )
 
     classifier_args.add_argument(
