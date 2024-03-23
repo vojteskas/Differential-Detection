@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 class PBSheaders:
     def __init__(
         self,
@@ -208,23 +209,26 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
-    for c in ["FFConcat4"]:
-        dataset = "InTheWildDataset_pair"
-        generate_job_script(
-            jobname=f"DP_XLSR_300M_MHFA_{c}_InTheWild_DF21",
-            file_name=f"scripts/{c}_InTheWild_DF21.sh",
-            project_archive_name="dp.zip",
-            dataset_archive_name="InTheWild.tar.gz",
-            executable_script="train_and_eval.py",
-            executable_script_args=[
-                "--metacentrum",
-                "--dataset",
-                dataset,
-                "--extractor",
-                "XLSR_300M",
-                "--processor",
-                "MHFA",
-                "--classifier",
-                f"{c}",
-            ],
-        )
+    for c in ["FF"]:
+        for dataset in ["ASVspoof2021DFDataset_VC_single", "ASVspoof2021DFDataset_nonVC_single"]:
+            dname = "DF21nonVC" if "nonVC" in dataset else "DF21VC"
+            generate_job_script(
+                jobname=f"DP_{c}_{dname}",
+                file_name=f"scripts/{c}_{dname}.sh",
+                project_archive_name="dp.zip",
+                dataset_archive_name="DF21.tar.gz",
+                executable_script="train_and_eval.py",
+                executable_script_args=[
+                    "--metacentrum",
+                    "--dataset",
+                    dataset,
+                    "--extractor",
+                    "XLSR_300M",
+                    "--processor",
+                    "MHFA",
+                    "--classifier",
+                    f"{c}",
+                    "--num_epochs",
+                    "20",
+                ],
+            )

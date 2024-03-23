@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N DP_XLSR_300M_MHFA_FFConcat4_InTheWild_DF21
+#PBS -N DP_FFDiff2_DF21VC
 #PBS -q gpu@meta-pbs.metacentrum.cz
 #PBS -l walltime=24:00:00
 #PBS -l select=1:ncpus=4:mem=200gb:ngpus=1:gpu_mem=20gb:scratch_ssd=100gb
@@ -8,7 +8,7 @@
 export OMP_NUM_THREADS=$PBS_NUM_PPN
 
 
-name=DP_XLSR_300M_MHFA_FFConcat4_InTheWild_DF21
+name=DP_FFDiff2_DF21VC
 archivename="$name"_Results.zip
 DATADIR=/storage/brno2/home/vojteskas
 
@@ -36,8 +36,8 @@ pip install -r requirements.txt --cache-dir "$TMPDIR" >/dev/null 2>&1
 
 
 echo "Copying dataset(s)"
-cp -r $DATADIR/deepfakes/datasets/InTheWild.tar.gz .
-tar -xvzf InTheWild.tar.gz >/dev/null 2>&1
+cp -r $DATADIR/deepfakes/datasets/DF21.tar.gz .
+tar -xvzf DF21.tar.gz >/dev/null 2>&1
 
 
 cp -r $DATADIR/deepfakes/datasets/LA19.tar.gz .
@@ -46,7 +46,7 @@ tar -xvzf LA19.tar.gz >/dev/null 2>&1
 
 chmod 755 ./*.py
 echo "Running the script"
-./train_and_eval.py --metacentrum --dataset InTheWildDataset_pair --extractor XLSR_300M --processor MHFA --classifier FFConcat4 2>&1
+./train_and_eval.py --metacentrum --dataset ASVspoof2021DFDataset_VC_pair --extractor XLSR_300M --processor MHFA --classifier FFDiff2 --num_epochs 20 2>&1
 
 
 echo "Copying results"
