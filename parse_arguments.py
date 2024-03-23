@@ -54,12 +54,12 @@ def parse_args():
     # TODO: Allow for passing parameters to the feature processor (mainly MHFA)
 
     # classifier
-    classifiers = ["FF, FFConcat, FFDiff", "GMMDiff", "LDAGaussianDiff", "SVMDiff"]
+    # classifiers = ["FF, FFConcat, FFDiff", "GMMDiff", "LDAGaussianDiff", "SVMDiff"]
     parser.add_argument(
         "-c",
         "--classifier",
         type=str,
-        help=f"Classifier to be used. One of: {', '.join(classifiers)}",
+        help=f"Classifier to be used",#. One of: {', '.join(classifiers)}",
         required=True,
     )
 

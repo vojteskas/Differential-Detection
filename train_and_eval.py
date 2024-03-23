@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from sys import argv
 
+from classifiers.differential.FFDot import FFDot
 from config import local_config, metacentrum_config
 from common import EXTRACTORS, get_dataloaders
 from parse_arguments import parse_args
@@ -10,7 +11,7 @@ from feature_processors.MHFAProcessor import MHFAProcessor
 from feature_processors.MeanProcessor import MeanProcessor
 
 # classifiers
-from classifiers.differential.FFDiff import FFDiff
+from classifiers.differential.FFDiff import FFDiff, FFDiff2, FFDiffAbs, FFDiffAbs2, FFDiffQuadratic, FFDiffQuadratic2
 from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
@@ -19,6 +20,7 @@ from classifiers.differential.FFConcat import FFLSTM, FFLSTM2, FFConcat1, FFConc
 
 # trainers
 from trainers.FFDiffTrainer import FFDiffTrainer
+from trainers.FFDotTrainer import FFDotTrainer
 from trainers.FFTrainer import FFTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
 from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
@@ -85,6 +87,24 @@ def main():
         case "FFDiff":
             model = FFDiff(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFDiffTrainer(model)
+        case "FFDiff2":
+            model = FFDiff2(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFDiffTrainer(model)
+        case "FFDiffAbs":
+            model = FFDiffAbs(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFDiffTrainer(model)
+        case "FFDiffAbs2":
+            model = FFDiffAbs2(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFDiffTrainer(model)
+        case "FFDiffQuadratic":
+            model = FFDiffQuadratic(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFDiffTrainer(model)
+        case "FFDiffQuadratic2":
+            model = FFDiffQuadratic2(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFDiffTrainer(model)
+        case "FFDot":
+            model = FFDot(extractor, processor)
+            trainer = FFDotTrainer(model)
         case "GMMDiff":
             gmm_params = {  # Dict comprehension, get gmm parameters from args and remove None values
                 k: v for k, v in args.items() if (k in ["n_components", "covariance_type"] and k is not None)

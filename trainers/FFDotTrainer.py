@@ -1,19 +1,19 @@
+from matplotlib.pylab import f
 import numpy as np
 import torch
-from torch.nn import CrossEntropyLoss
+from torch.nn import BCELoss
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from classifiers.differential.FFDiff import FFDiffBase
+from classifiers.differential.FFDot import FFDot
 from trainers.BaseTrainer import BaseTrainer
 
 
-class FFDiffTrainer(BaseTrainer):
-    def __init__(self, model: FFDiffBase, device="cuda" if torch.cuda.is_available() else "cpu"):
+class FFDotTrainer(BaseTrainer):
+    def __init__(self, model: FFDot, device="cuda" if torch.cuda.is_available() else "cpu"):
         super().__init__(model)
 
-        # Mabye TODO??? Add class weights for the loss function - maybe not necessary since we have weighted sampler
-        self.lossfn = CrossEntropyLoss()  # Should also try with BCELoss
+        self.lossfn = BCELoss()
         self.optimizer = torch.optim.Adam(
             model.parameters()
         )  # Can play with lr and weight_decay for regularization
@@ -51,49 +51,39 @@ class FFDiffTrainer(BaseTrainer):
 
             # Training loop
             for gt, test, label in tqdm(train_dataloader):
-                
+
                 gt = gt.to(self.device)
                 test = test.to(self.device)
                 label = label.to(self.device)
 
                 # Forward pass
                 self.optimizer.zero_grad()
-                logits, probs = self.model(gt, test)
+                prob = self.model(gt, test)
 
-                # Loss and backpropagation
-                loss = self.lossfn(logits, label.long())
+                # Compute loss
+                loss = self.lossfn(prob, label.long())
                 loss.backward()
                 self.optimizer.step()
 
                 # Compute accuracy
-                predicted = torch.argmax(probs, 1)
-                correct = (predicted == label).sum().item()
-                accuracy = correct / len(label)
+                acc = (prob.round() == label).float().mean()
 
                 losses.append(loss.item())
-                accuracies.append(accuracy)
+                accuracies.append(acc.item())
 
             # Save epoch statistics
             epoch_accuracy = np.mean(accuracies)
             epoch_loss = np.mean(losses)
             print(
                 f"Epoch {epoch} finished,", 
-                f"training loss: {np.mean(losses)},", 
-                f"training accuracy: {np.mean(accuracies)}"
+                f"training loss: {epoch_loss},", 
+                f"training accuracy: {epoch_accuracy}"
             )
 
             self.statistics["train_losses"].append(epoch_loss)
             self.statistics["train_accuracies"].append(epoch_accuracy)
 
-            # Every epoch
-            # plot losses and accuracy and save the model
-            # validate on the validation set (incl. computing EER)
-            self._plot_loss_accuracy(
-                self.statistics["train_losses"],
-                self.statistics["train_accuracies"],
-                f"Training epoch {epoch}",
-            )
-            self.save_model(f"./FFDiff_{epoch}.pt")
+            self.save_model(f"./FFDot_{epoch}.pt")
 
             # Validation
             val_loss, val_accuracy, eer = self.val(val_dataloader)
@@ -103,14 +93,7 @@ class FFDiffTrainer(BaseTrainer):
             self.statistics["val_accuracies"].append(val_accuracy)
             self.statistics["val_eers"].append(eer)
 
-            # TODO: Enable early stopping based on validation accuracy/loss/EER
-
-        self._plot_loss_accuracy(
-            self.statistics["val_losses"], self.statistics["val_accuracies"], "Validation"
-        )
-        self._plot_eer(self.statistics["val_eers"], "Validation")
-
-    def val(self, val_dataloader) -> tuple[float, float, float]:
+    def val(self, val_dataloader):
         """
         Validate the model on the given dataloader and return the loss, accuracy and EER
 
@@ -133,14 +116,13 @@ class FFDiffTrainer(BaseTrainer):
                 test = test.to(self.device)
                 label = label.to(self.device)
 
-                logits, probs = self.model(gt, test)
-                loss = self.lossfn(logits, label.long())
+                prob = self.model(gt, test)
+                loss = self.lossfn(prob, label.long())
 
-                predictions.extend(torch.argmax(probs, 1).tolist())
-
+                predictions.extend(prob.round().tolist())
                 losses.append(loss.item())
                 labels.extend(label.tolist())
-                scores.extend(probs[:, 0].tolist())
+                scores.extend(prob.tolist())
 
             val_loss = np.mean(losses).astype(float)
             val_accuracy = np.mean(np.array(labels) == np.array(predictions))
@@ -159,28 +141,3 @@ class FFDiffTrainer(BaseTrainer):
         eval_loss, eval_accuracy, eer = self.val(eval_dataloader)
         print(f"Eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
         print(f"Eval EER: {eer*100}%")
-
-    def _plot_loss_accuracy(self, losses, accuracies, subtitle: str = ""):
-        """
-        Plot the loss and accuracy and save the graph to a file
-        """
-        plt.figure(figsize=(12, 6))
-        plt.plot(losses, label="Loss")
-        plt.plot(accuracies, label="Accuracy")
-        plt.legend()
-        plt.title("FFDiff Loss and Accuracy" + f" - {subtitle}" if subtitle else "")
-        plt.xlabel("Epoch")
-        plt.ylabel("Loss/Accuracy")
-        plt.savefig(f"./FFDiff_loss_acc_{subtitle}.png")
-
-    def _plot_eer(self, eers, subtitle: str = ""):
-        """
-        Plot the EER and save the graph to a file
-        """
-        plt.figure(figsize=(12, 6))
-        plt.plot(eers, label="EER")
-        plt.legend()
-        plt.title("FFDiff EER" + f" - {subtitle}" if subtitle else "")
-        plt.xlabel("Epoch")
-        plt.ylabel("EER")
-        plt.savefig(f"./FFDiff_EER_{subtitle}.png")
