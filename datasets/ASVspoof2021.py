@@ -111,7 +111,7 @@ class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
             "SPEAKER_ID",
             "AUDIO_FILE_NAME",
             "-",
-            "-",
+            "SOURCE",
             "MODIF",
             "KEY",
             "-",
@@ -175,7 +175,7 @@ class ASVspoof2021DFDataset_single(ASVspoof2021_base):
             "SPEAKER_ID",
             "AUDIO_FILE_NAME",
             "-",
-            "-",
+            "SOURCE",
             "MODIF",
             "KEY",
             "-",
@@ -217,3 +217,37 @@ class ASVspoof2021DFDataset_single(ASVspoof2021_base):
         label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
 
         return waveform, label
+
+
+class ASVspoof2021DFDataset_VC_pair(ASVspoof2021DFDataset_pair):
+    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
+        super().__init__(root_dir, protocol_file_name, variant, local)
+
+        self.protocol_df = self.protocol_df[self.protocol_df["SOURCE"].isin(("vcc2018", "vcc2020"))]
+        self.protocol_df.reset_index(drop=True, inplace=True)
+
+
+class ASVspoof2021DFDataset_VC_single(ASVspoof2021DFDataset_single):
+    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
+        super().__init__(root_dir, protocol_file_name, variant, local)
+
+        self.protocol_df = self.protocol_df[self.protocol_df["SOURCE"].isin(("vcc2018", "vcc2020"))]
+        self.protocol_df.reset_index(drop=True, inplace=True)
+        print(f"Using {len(self.protocol_df)} VC recordings.")
+
+
+class ASVspoof2021DFDataset_nonVC_pair(ASVspoof2021DFDataset_pair):
+    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
+        super().__init__(root_dir, protocol_file_name, variant, local)
+
+        self.protocol_df = self.protocol_df[self.protocol_df["SOURCE"] == "asvspoof"]
+        self.protocol_df.reset_index(drop=True, inplace=True)
+
+
+class ASVspoof2021DFDataset_nonVC_single(ASVspoof2021DFDataset_single):
+    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
+        super().__init__(root_dir, protocol_file_name, variant, local)
+
+        self.protocol_df = self.protocol_df[self.protocol_df["SOURCE"] == "asvspoof"]
+        self.protocol_df.reset_index(drop=True, inplace=True)
+        print(f"Using {len(self.protocol_df)} non-VC recordings.")

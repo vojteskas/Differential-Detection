@@ -29,6 +29,10 @@ from datasets.ASVspoof2021 import (
     ASVspoof2021LADataset_pair,
     ASVspoof2021DFDataset_single,
     ASVspoof2021DFDataset_pair,
+    ASVspoof2021DFDataset_VC_single,
+    ASVspoof2021DFDataset_VC_pair,
+    ASVspoof2021DFDataset_nonVC_single,
+    ASVspoof2021DFDataset_nonVC_pair,
 )
 from datasets.InTheWild import InTheWildDataset_pair, InTheWildDataset_single
 
@@ -73,6 +77,10 @@ DATASETS = {  # map the dataset name to the dataset class
     "ASVspoof2021LADataset_pair": ASVspoof2021LADataset_pair,
     "ASVspoof2021DFDataset_single": ASVspoof2021DFDataset_single,
     "ASVspoof2021DFDataset_pair": ASVspoof2021DFDataset_pair,
+    "ASVspoof2021DFDataset_VC_single": ASVspoof2021DFDataset_VC_single,
+    "ASVspoof2021DFDataset_VC_pair": ASVspoof2021DFDataset_VC_pair,
+    "ASVspoof2021DFDataset_nonVC_single": ASVspoof2021DFDataset_nonVC_single,
+    "ASVspoof2021DFDataset_nonVC_pair": ASVspoof2021DFDataset_nonVC_pair,
     "InTheWildDataset_single": InTheWildDataset_single,
     "InTheWildDataset_pair": InTheWildDataset_pair,
 }
