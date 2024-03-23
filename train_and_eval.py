@@ -15,7 +15,7 @@ from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
 from classifiers.single_input.FF import FF
-from classifiers.differential.FFConcat import FFLSTM, FFConcat1, FFConcat2, FFConcat3
+from classifiers.differential.FFConcat import FFLSTM, FFLSTM2, FFConcat1, FFConcat2, FFConcat3
 
 # trainers
 from trainers.FFDiffTrainer import FFDiffTrainer
@@ -78,6 +78,9 @@ def main():
         case "FFLSTM":
             # Does not actually use the processor, but the processor is still required - #TODO: fix this
             model = FFLSTM(extractor, processor, in_dim=extractor.feature_size)
+            trainer = FFConcatTrainer(model)
+        case "FFLSTM2":
+            model = FFLSTM2(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFConcatTrainer(model)
         case "FFDiff":
             model = FFDiff(extractor, processor, in_dim=extractor.feature_size)

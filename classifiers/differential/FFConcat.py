@@ -215,3 +215,35 @@ class FFLSTM(FFConcatBase):
         prob = F.softmax(out, dim=1)
 
         return out, prob
+
+class FFLSTM2(FFConcatBase):
+    def __init__(self, extractor, feature_processor, in_dim=1024):
+        super().__init__(extractor, feature_processor, in_dim)
+
+        self.lstm = nn.LSTM(
+            input_size=in_dim,
+            hidden_size=in_dim,
+            num_layers=2,
+            batch_first=True,
+        )
+
+    def forward(self, input_data_ground_truth, input_data_tested):
+        emb_gt = self.extractor.extract_features(input_data_ground_truth)
+        emb_test = self.extractor.extract_features(input_data_tested)
+
+        emb = cat((emb_gt, emb_test), 2)
+        translayers, _, totalframes, _ = emb.size()
+        emb = emb.transpose(0, 1).flatten(1, 2)
+
+        # LSTM attention
+        emb, _ = self.lstm(emb)
+
+        # transform back to original shape (translayers, batch, totalframes, feature_size)
+        emb = emb.unflatten(1, (translayers, totalframes)).transpose(0, 1)
+
+        emb = self.feature_processor(emb)
+
+        out = self.classifier(emb)
+        prob = F.softmax(out, dim=1)
+
+        return out, prob
