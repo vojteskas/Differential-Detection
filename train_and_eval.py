@@ -132,7 +132,7 @@ def main():
     )
 
     # Train the model
-    if isinstance(trainer, (FFDiffTrainer, FFTrainer, FFConcatTrainer)):
+    if isinstance(trainer, (FFDiffTrainer, FFTrainer, FFConcatTrainer, FFDotTrainer)):
         # Default value of numepochs = 100
         trainer.train(train_dataloader, val_dataloader, numepochs=args.num_epochs)
         trainer.eval(eval_dataloader)  # Eval after training

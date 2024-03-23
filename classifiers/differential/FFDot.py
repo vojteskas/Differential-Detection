@@ -39,7 +39,12 @@ class FFDot(nn.Module):
         emb_gt = self.feature_processor(emb_gt)
         emb_test = self.feature_processor(emb_test)
 
-        score = torch.dot(emb_gt, emb_test)  # dot product
+        # Calculate the dot product
+        # The following batch matrix multiplication (bmm) is equivalent to the vector-wise dot product
+        # Faster equivalent to
+        # for v1, v2 in zip(emb_gt, emb_test):
+        #     torch.dot(v1, v2)
+        score = torch.bmm(emb_gt.unsqueeze(1), emb_test.unsqueeze(2)).squeeze()
 
         prob = F.sigmoid(score)
 

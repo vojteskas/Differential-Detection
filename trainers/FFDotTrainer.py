@@ -61,7 +61,7 @@ class FFDotTrainer(BaseTrainer):
                 prob = self.model(gt, test)
 
                 # Compute loss
-                loss = self.lossfn(prob, label.long())
+                loss = self.lossfn(prob, label)
                 loss.backward()
                 self.optimizer.step()
 
@@ -117,7 +117,7 @@ class FFDotTrainer(BaseTrainer):
                 label = label.to(self.device)
 
                 prob = self.model(gt, test)
-                loss = self.lossfn(prob, label.long())
+                loss = self.lossfn(prob, label)
 
                 predictions.extend(prob.round().tolist())
                 losses.append(loss.item())
