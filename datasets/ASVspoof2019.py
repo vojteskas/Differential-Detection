@@ -77,7 +77,7 @@ class ASVspoof2019LADataset_pair(ASVspoof2019LADataset_base):
         gt_waveform, _ = load(gt_audio_name)  # Load the genuine speech
 
         # print(f"Loaded GT:{gt_audio_name} and TEST:{test_audio_name}")
-        return gt_waveform, test_waveform, label
+        return test_audio_file_name, gt_waveform, test_waveform, label
 
 
 class ASVspoof2019LADataset_single(ASVspoof2019LADataset_base):
@@ -95,4 +95,4 @@ class ASVspoof2019LADataset_single(ASVspoof2019LADataset_base):
         # 0 for genuine speech, 1 for spoofing speech
         label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
 
-        return waveform, label
+        return audio_file_name, waveform, label

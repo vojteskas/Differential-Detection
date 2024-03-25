@@ -69,7 +69,7 @@ class InTheWildDataset_pair(InTheWildDataset_base):
         gt_audio_file_name = speaker_recordings_df.sample(n=1).iloc[0]["file"]
         gt_waveform, _ = load(os.path.join(self.root_dir, gt_audio_file_name))
 
-        return gt_waveform, test_waveform, label
+        return test_audio_file_name, gt_waveform, test_waveform, label
 
 
 class InTheWildDataset_single(InTheWildDataset_base):
@@ -86,4 +86,4 @@ class InTheWildDataset_single(InTheWildDataset_base):
         # 0 for genuine speech, 1 for spoofing speech
         label = 0 if self.protocol_df.loc[idx, "label"] == "bona-fide" else 1
 
-        return waveform, label
+        return audio_file_name, waveform, label

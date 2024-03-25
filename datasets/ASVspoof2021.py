@@ -78,7 +78,7 @@ class ASVspoof2021LADataset_pair(ASVspoof2021_base):
         gt_waveform, _ = load(gt_audio_name)  # Load the genuine speech
 
         # print(f"Loaded GT:{gt_audio_name} and TEST:{test_audio_name}")
-        return gt_waveform, test_waveform, label
+        return test_audio_file_name, gt_waveform, test_waveform, label
 
 
 class ASVspoof2021LADataset_single(ASVspoof2021_base):
@@ -100,7 +100,7 @@ class ASVspoof2021LADataset_single(ASVspoof2021_base):
         # 0 for genuine speech, 1 for spoofing speech
         label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
 
-        return waveform, label
+        return audio_file_name, waveform, label
 
 
 class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
@@ -164,7 +164,7 @@ class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
         gt_waveform, _ = load(gt_audio_name)  # Load the genuine speech
 
         # print(f"Loaded GT:{gt_audio_name} and TEST:{test_audio_name}")
-        return gt_waveform, test_waveform, label
+        return test_audio_file_name, gt_waveform, test_waveform, label
 
 
 class ASVspoof2021DFDataset_single(ASVspoof2021_base):
@@ -216,7 +216,7 @@ class ASVspoof2021DFDataset_single(ASVspoof2021_base):
         # 0 for genuine speech, 1 for spoofing speech
         label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
 
-        return waveform, label
+        return audio_file_name, waveform, label
 
 
 class ASVspoof2021DFDataset_VC_pair(ASVspoof2021DFDataset_pair):
