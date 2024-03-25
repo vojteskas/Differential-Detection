@@ -39,7 +39,7 @@ def main():
 
     match args.classifier:
         case "FF":
-            model = FF(extractor, processor, in_dim=extractor.feature_size)  # FF model does not use processor
+            model = FF(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFTrainer(model)
         case "FFConcat1":
             model = FFConcat1(extractor, processor, in_dim=extractor.feature_size)

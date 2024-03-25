@@ -10,25 +10,7 @@ from trainers.BaseTrainer import BaseTrainer
 
 class FFDiffTrainer(BaseTrainer):
     def __init__(self, model: FFDiffBase, device="cuda" if torch.cuda.is_available() else "cpu"):
-        super().__init__(model)
-
-        # Mabye TODO??? Add class weights for the loss function - maybe not necessary since we have weighted sampler
-        self.lossfn = CrossEntropyLoss()  # Should also try with BCELoss
-        self.optimizer = torch.optim.Adam(
-            model.parameters()
-        )  # Can play with lr and weight_decay for regularization
-        self.device = device
-
-        self.model = model.to(device)
-
-        # A statistics tracker dict for the training and validation losses, accuracies and EERs
-        self.statistics = {
-            "train_losses": [],
-            "train_accuracies": [],
-            "val_losses": [],
-            "val_accuracies": [],
-            "val_eers": [],
-        }
+        super().__init__(model, device)
 
     def train(self, train_dataloader, val_dataloader, numepochs=20, start_epoch=1):
         """

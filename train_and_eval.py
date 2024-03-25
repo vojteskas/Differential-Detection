@@ -11,7 +11,7 @@ from feature_processors.MHFAProcessor import MHFAProcessor
 from feature_processors.MeanProcessor import MeanProcessor
 
 # classifiers
-from classifiers.differential.FFDiff import FFDiff, FFDiff2, FFDiffAbs, FFDiffAbs2, FFDiffQuadratic, FFDiffQuadratic2
+from classifiers.differential.FFDiff import FFDiff, FFDiffAbs, FFDiffQuadratic
 from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
@@ -87,20 +87,11 @@ def main():
         case "FFDiff":
             model = FFDiff(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFDiffTrainer(model)
-        case "FFDiff2":
-            model = FFDiff2(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFDiffTrainer(model)
         case "FFDiffAbs":
             model = FFDiffAbs(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFDiffTrainer(model)
-        case "FFDiffAbs2":
-            model = FFDiffAbs2(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFDiffTrainer(model)
         case "FFDiffQuadratic":
             model = FFDiffQuadratic(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFDiffTrainer(model)
-        case "FFDiffQuadratic2":
-            model = FFDiffQuadratic2(extractor, processor, in_dim=extractor.feature_size)
             trainer = FFDiffTrainer(model)
         case "FFDot":
             model = FFDot(extractor, processor)

@@ -11,24 +11,9 @@ from trainers.BaseTrainer import BaseTrainer
 
 class FFDotTrainer(BaseTrainer):
     def __init__(self, model: FFDot, device="cuda" if torch.cuda.is_available() else "cpu"):
-        super().__init__(model)
+        super().__init__(model, device)
 
         self.lossfn = BCELoss()
-        self.optimizer = torch.optim.Adam(
-            model.parameters()
-        )  # Can play with lr and weight_decay for regularization
-        self.device = device
-
-        self.model = model.to(device)
-
-        # A statistics tracker dict for the training and validation losses, accuracies and EERs
-        self.statistics = {
-            "train_losses": [],
-            "train_accuracies": [],
-            "val_losses": [],
-            "val_accuracies": [],
-            "val_eers": [],
-        }
 
     def train(self, train_dataloader, val_dataloader, numepochs=20, start_epoch=1):
         """

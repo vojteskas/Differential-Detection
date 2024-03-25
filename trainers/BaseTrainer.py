@@ -1,4 +1,5 @@
 import torch
+from torch.nn import CrossEntropyLoss
 from sklearn.metrics import roc_curve
 import numpy as np
 
@@ -7,6 +8,24 @@ class BaseTrainer:
     def __init__(self, model, device="cuda" if torch.cuda.is_available() else "cpu"):
         self.model = model
         self.device = device
+
+        # Mabye TODO??? Add class weights for the loss function - maybe not necessary since we have weighted sampler
+        self.lossfn = CrossEntropyLoss()  # Should also try with BCELoss
+        self.optimizer = torch.optim.Adam(
+            model.parameters()
+        )  # Can play with lr and weight_decay for regularization
+        self.device = device
+
+        self.model = model.to(device)
+
+        # A statistics tracker dict for the training and validation losses, accuracies and EERs
+        self.statistics = {
+            "train_losses": [],
+            "train_accuracies": [],
+            "val_losses": [],
+            "val_accuracies": [],
+            "val_eers": [],
+        }
 
     def train(self):
         raise NotImplementedError("Child classes need to implement train method")

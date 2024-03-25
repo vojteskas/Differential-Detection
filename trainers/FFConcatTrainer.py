@@ -1,33 +1,15 @@
 import numpy as np
 import torch
-from torch.nn import CrossEntropyLoss
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
+from classifiers.differential.FFConcat import FFConcatBase
 from trainers.BaseTrainer import BaseTrainer
 
 
 class FFConcatTrainer(BaseTrainer):
-    def __init__(self, model, device="cuda" if torch.cuda.is_available() else "cpu"):
-        super().__init__(model)
-
-        # Mabye TODO??? Add class weights for the loss function - maybe not necessary since we have weighted sampler
-        self.lossfn = CrossEntropyLoss()  # Should also try with BCELoss
-        self.optimizer = torch.optim.Adam(
-            model.parameters()
-        )  # Can play with lr and weight_decay for regularization
-        self.device = device
-
-        self.model = model.to(device)
-
-        # A statistics tracker dict for the training and validation losses, accuracies and EERs
-        self.statistics = {
-            "train_losses": [],
-            "train_accuracies": [],
-            "val_losses": [],
-            "val_accuracies": [],
-            "val_eers": [],
-        }
+    def __init__(self, model: FFConcatBase, device="cuda" if torch.cuda.is_available() else "cpu"):
+        super().__init__(model, device)
 
     def train(self, train_dataloader, val_dataloader, numepochs=100, start_epoch=1):
         """
@@ -108,7 +90,7 @@ class FFConcatTrainer(BaseTrainer):
         )
         self._plot_eer(self.statistics["val_eers"], "Validation")
 
-    def val(self, val_dataloader) -> tuple[float, float, float]:
+    def val(self, val_dataloader, save_scores = True) -> tuple[float, float, float]:
         """
         Validate the model on the given dataloader and return the loss, accuracy and EER
 
