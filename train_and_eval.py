@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 from sys import argv
 
-from classifiers.differential.FFDot import FFDot
 from config import local_config, metacentrum_config
-from common import EXTRACTORS, get_dataloaders
+from common import CLASSIFIERS, EXTRACTORS, TRAINERS, get_dataloaders
 from parse_arguments import parse_args
 
 # feature_processors
@@ -11,22 +10,14 @@ from feature_processors.MHFAProcessor import MHFAProcessor
 from feature_processors.MeanProcessor import MeanProcessor
 
 # classifiers
-from classifiers.differential.FFDiff import FFDiff, FFDiffAbs, FFDiffQuadratic
 from classifiers.differential.GMMDiff import GMMDiff
-from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
-from classifiers.single_input.FF import FF
-from classifiers.differential.FFConcat import FFLSTM, FFLSTM2, FFConcat1, FFConcat2, FFConcat3
 
 # trainers
-from trainers.FFDiffTrainer import FFDiffTrainer
-from trainers.FFDotTrainer import FFDotTrainer
-from trainers.FFTrainer import FFTrainer
+from trainers.BaseFFTrainer import BaseFFTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
-from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
 from trainers.BaseSklearnTrainer import BaseSklearnTrainer
-from trainers.FFConcatTrainer import FFConcatTrainer
 
 
 def main():
@@ -64,55 +55,24 @@ def main():
     model = None
     trainer = None
     match args.classifier:
-        case "FF":
-            model = FF(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFTrainer(model)
-        case "FFConcat1":
-            model = FFConcat1(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFConcatTrainer(model)
-        case "FFConcat2":
-            model = FFConcat2(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFConcatTrainer(model)
-        case "FFConcat3":
-            # Concatenating the features from the two audio files results in twice the feature input size
-            model = FFConcat3(extractor, processor, in_dim=extractor.feature_size * 2)
-            trainer = FFConcatTrainer(model)
-        case "FFLSTM":
-            # Does not actually use the processor, but the processor is still required - #TODO: fix this
-            model = FFLSTM(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFConcatTrainer(model)
-        case "FFLSTM2":
-            model = FFLSTM2(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFConcatTrainer(model)
-        case "FFDiff":
-            model = FFDiff(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFDiffTrainer(model)
-        case "FFDiffAbs":
-            model = FFDiffAbs(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFDiffTrainer(model)
-        case "FFDiffQuadratic":
-            model = FFDiffQuadratic(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFDiffTrainer(model)
-        case "FFDot":
-            model = FFDot(extractor, processor)
-            trainer = FFDotTrainer(model)
         case "GMMDiff":
             gmm_params = {  # Dict comprehension, get gmm parameters from args and remove None values
                 k: v for k, v in args.items() if (k in ["n_components", "covariance_type"] and k is not None)
             }
             model = GMMDiff(extractor, processor, **gmm_params if gmm_params else {})  # pass as kwargs
             trainer = GMMDiffTrainer(model)
-        case "LDAGaussianDiff":
-            model = LDAGaussianDiff(extractor, processor)
-            trainer = LDAGaussianDiffTrainer(model)
         case "SVMDiff":
             model = SVMDiff(extractor, processor, kernel=args.kernel if args.kernel else "rbf")
             trainer = SVMDiffTrainer(model)
         case _:
-            raise ValueError(
-                "Only FF, FFConcat{1,2,3}, FFLSTM, FFDiff, GMMDiff, LDAGaussianDiff and SVMDiff classifiers are currently supported."
-            )
-
+            try:
+                model = CLASSIFIERS[str(args.classifier)][0](extractor, processor, in_dim=extractor.feature_size)
+                trainer = TRAINERS[str(args.classifier)](model)
+            except KeyError:
+                raise ValueError(
+                    f"Invalid classifier, should be one of: {list(CLASSIFIERS.keys())}"
+                )
+    
     train_dataloader, val_dataloader, eval_dataloader = get_dataloaders(dataset=args.dataset, config=config)
 
     # TODO: Implement training of MHFA with SkLearn models
@@ -123,8 +83,8 @@ def main():
     )
 
     # Train the model
-    if isinstance(trainer, (FFDiffTrainer, FFTrainer, FFConcatTrainer, FFDotTrainer)):
-        # Default value of numepochs = 100
+    if isinstance(trainer, BaseFFTrainer):
+        # Default value of numepochs = 20
         trainer.train(train_dataloader, val_dataloader, numepochs=args.num_epochs)
         trainer.eval(eval_dataloader)  # Eval after training
 
@@ -139,9 +99,9 @@ def main():
         trainer.eval(eval_dataloader)  # Eval after training
 
     else:
-        # Should not happen, either FFDiffTrainer or should inherit from BaseSklearnTrainer
+        # Should not happen, should inherit from BaseSklearnTrainer or BaseFFTrainer
         raise ValueError(
-            "Invalid trainer, should be either FF(Diff)Trainer or should inherit from BaseSklearnTrainer."
+            "Invalid trainer, should inherit from BaseSklearnTrainer or BaseFFTrainer."
         )
 
 

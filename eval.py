@@ -5,26 +5,18 @@ from sys import argv
 from torch.utils.data import DataLoader
 
 from config import local_config, metacentrum_config
-from common import DATASETS, EXTRACTORS
+from common import CLASSIFIERS, DATASETS, EXTRACTORS, TRAINERS
 from feature_processors.MHFAProcessor import MHFAProcessor
 from feature_processors.MeanProcessor import MeanProcessor
 from parse_arguments import parse_args
 
 # classifiers
-from classifiers.differential.FFDiff import FFDiff
 from classifiers.differential.GMMDiff import GMMDiff
-from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
-from classifiers.single_input.FF import FF
-from classifiers.differential.FFConcat import FFLSTM, FFLSTM2, FFConcat1, FFConcat2, FFConcat3
 
 # trainers
-from trainers.FFDiffTrainer import FFDiffTrainer
-from trainers.FFTrainer import FFTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
-from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
-from trainers.FFConcatTrainer import FFConcatTrainer
 
 from datasets.utils import custom_pair_batch_create, custom_single_batch_create
 
@@ -37,41 +29,26 @@ def main():
     extractor = EXTRACTORS[args.extractor]()  # map the argument to the class and instantiate it
     processor = MHFAProcessor() if args.processor == "MHFA" else MeanProcessor()
 
+    model = None
+    trainer = None
     match args.classifier:
-        case "FF":
-            model = FF(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFTrainer(model)
-        case "FFConcat1":
-            model = FFConcat1(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFConcatTrainer(model)
-        case "FFConcat2":
-            model = FFConcat2(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFConcatTrainer(model)
-        case "FFConcat3":
-            model = FFConcat3(extractor, processor, in_dim=extractor.feature_size * 2)
-            trainer = FFConcatTrainer(model)
-        case "FFLSTM":
-            model = FFLSTM(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFConcatTrainer(model)
-        case "FFLSTM2":
-            model = FFLSTM2(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFConcatTrainer(model)
-        case "FFDiff":
-            model = FFDiff(extractor, processor, in_dim=extractor.feature_size)
-            trainer = FFDiffTrainer(model)
         case "GMMDiff":
-            model = GMMDiff(None, None)  # pass as kwargs
+            gmm_params = {  # Dict comprehension, get gmm parameters from args and remove None values
+                k: v for k, v in args.items() if (k in ["n_components", "covariance_type"] and k is not None)
+            }
+            model = GMMDiff(extractor, processor, **gmm_params if gmm_params else {})  # pass as kwargs
             trainer = GMMDiffTrainer(model)
-        case "LDAGaussianDiff":
-            model = LDAGaussianDiff(None, None)
-            trainer = LDAGaussianDiffTrainer(model)
         case "SVMDiff":
-            model = SVMDiff(None, None)
+            model = SVMDiff(extractor, processor, kernel=args.kernel if args.kernel else "rbf")
             trainer = SVMDiffTrainer(model)
         case _:
-            raise ValueError(
-                "Only FF, FFConcat{1,2,3}, FFLSTM, FFDiff, GMMDiff, LDAGaussianDiff and SVMDiff classifiers are currently supported."
-            )
+            try:
+                model = CLASSIFIERS[str(args.classifier)][0](extractor, processor, in_dim=extractor.feature_size)
+                trainer = TRAINERS[str(args.classifier)](model)
+            except KeyError:
+                raise ValueError(
+                    f"Invalid classifier, should be one of: {list(CLASSIFIERS.keys())}"
+                )
 
     print(f"Trainer: {type(trainer).__name__}")
 

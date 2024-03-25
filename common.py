@@ -2,12 +2,13 @@ from typing import Dict, Tuple
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
 # classifiers
-from classifiers.differential.FFDiff import FFDiff
+from classifiers.differential.FFDiff import FFDiff, FFDiffAbs, FFDiffQuadratic
+from classifiers.differential.FFDot import FFDot
 from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.LDAGaussianDiff import LDAGaussianDiff
 from classifiers.differential.SVMDiff import SVMDiff
 from classifiers.single_input.FF import FF
-from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3
+from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3, FFLSTM, FFLSTM2
 
 # extractors
 from extractors.HuBERT import HuBERT_base, HuBERT_large, HuBERT_extralarge
@@ -16,7 +17,8 @@ from extractors.WavLM import WavLM_base, WavLM_baseplus, WavLM_large
 from extractors.XLSR import XLSR_300M, XLSR_1B, XLSR_2B
 
 # trainers
-from trainers.FFDiffTrainer import FFDiffTrainer
+from trainers.BaseFFPairTrainer import BaseFFPairTrainer
+from trainers.FFTrainer import FFTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
 from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
@@ -60,12 +62,26 @@ CLASSIFIERS: Dict[str, Tuple[type, Dict[str, type]]] = {
     "FFConcat2": (FFConcat2, {}),
     "FFConcat3": (FFConcat3, {}),
     "FFDiff": (FFDiff, {}),
+    "FFDiffAbs": (FFDiffAbs, {}),
+    "FFDiffQuadratic": (FFDiffQuadratic, {}),
+    "FFDot": (FFDot, {}),
+    "FFLSTM": (FFLSTM, {}),
+    "FFLSTM2": (FFLSTM2, {}),
     "GMMDiff": (GMMDiff, {"n_components": int, "covariance_type": str}),
     "LDAGaussianDiff": (LDAGaussianDiff, {}),
     "SVMDiff": (SVMDiff, {"kernel": str}),
 }
 TRAINERS = {  # Maps the classifier to the trainer
-    "FFDiff": FFDiffTrainer,
+    "FF": FFTrainer,
+    "FFConcat1": BaseFFPairTrainer,
+    "FFConcat2": BaseFFPairTrainer,
+    "FFConcat3": BaseFFPairTrainer,
+    "FFDiff": BaseFFPairTrainer,
+    "FFDiffAbs": BaseFFPairTrainer,
+    "FFDiffQuadratic": BaseFFPairTrainer,
+    "FFDot": BaseFFPairTrainer,
+    "FFLSTM": BaseFFPairTrainer,
+    "FFLSTM2": BaseFFPairTrainer,
     "GMMDiff": GMMDiffTrainer,
     "LDAGaussianDiff": LDAGaussianDiffTrainer,
     "SVMDiff": SVMDiffTrainer,
