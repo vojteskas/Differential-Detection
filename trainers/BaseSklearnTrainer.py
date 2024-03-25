@@ -4,13 +4,14 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from trainers.BaseTrainer import BaseTrainer
 from classifiers.differential.BaseSklearnModel import BaseSklearnModel
+from trainers.BaseTrainer import BaseTrainer
 
 
 class BaseSklearnTrainer(BaseTrainer):
     def __init__(self, model: BaseSklearnModel, device="cuda" if torch.cuda.is_available() else "cpu"):
-        super().__init__(model, device)
+        self.model = model
+        self.device = device
 
     def save_model(self, path: str):
         """
@@ -44,6 +45,9 @@ class BaseSklearnTrainer(BaseTrainer):
         else:
             self.model = joblib.load(path)
 
+    def train(self, train_dataloader, val_dataloader = None):
+        raise NotImplementedError("Child classes should implement the train method")
+
     def _train_all(self, train_dataloader):
         """
         Train the model on all the data in the given dataloader
@@ -69,6 +73,9 @@ class BaseSklearnTrainer(BaseTrainer):
 
         self.model.fit(np.array(bonafide_features), np.array(spoof_features))
 
+    def val(self, val_dataloader) -> tuple[float, float]:
+        raise NotImplementedError("Child classes should implement the val method")
+
     def _val(self, val_dataloader) -> tuple[float, float]:
         """
         Validate the model on the given dataloader
@@ -93,7 +100,7 @@ class BaseSklearnTrainer(BaseTrainer):
         # print(f"Scores: {np.array(scores)}")
 
         val_accuracy = np.mean(np.array(labels) == np.array(class_predictions))
-        eer = self.calculate_EER(labels, scores)
+        eer = self.calculate_EER(labels, scores, plot_det=False)
 
         return val_accuracy, eer
 

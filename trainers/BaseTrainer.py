@@ -1,40 +1,14 @@
 import torch
-from torch.nn import CrossEntropyLoss
-from sklearn.metrics import roc_curve
+from scipy.stats import norm
+from sklearn.metrics import det_curve, DetCurveDisplay
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class BaseTrainer:
     def __init__(self, model, device="cuda" if torch.cuda.is_available() else "cpu"):
         self.model = model
         self.device = device
-
-        # Mabye TODO??? Add class weights for the loss function - maybe not necessary since we have weighted sampler
-        self.lossfn = CrossEntropyLoss()  # Should also try with BCELoss
-        self.optimizer = torch.optim.Adam(
-            model.parameters()
-        )  # Can play with lr and weight_decay for regularization
-        self.device = device
-
-        self.model = model.to(device)
-
-        # A statistics tracker dict for the training and validation losses, accuracies and EERs
-        self.statistics = {
-            "train_losses": [],
-            "train_accuracies": [],
-            "val_losses": [],
-            "val_accuracies": [],
-            "val_eers": [],
-        }
-
-    def train(self):
-        raise NotImplementedError("Child classes need to implement train method")
-
-    def val(self):
-        raise NotImplementedError("Child classes need to implement val method")
-
-    def eval(self):
-        raise NotImplementedError("Child classes need to implement eval method")
 
     def save_model(self, path: str):
         """
@@ -69,15 +43,43 @@ class BaseTrainer:
                 "Child classes for non-PyTorch models need to implement load_model method"
             )
 
-    def calculate_EER(self, labels, predictions) -> float:
+    def calculate_EER(self, labels, predictions, plot_det) -> float:
         """
         Calculate the Equal Error Rate (EER) from the labels and predictions
         """
-        fpr, tpr, threshold = roc_curve(labels, predictions, pos_label=0)
-        fnr = 1 - tpr
+        fpr, fnr, _ = det_curve(labels, predictions, pos_label=0)
 
-        # eer from fpr and fnr can differ a bit (its a approximation), so we compute both and take the average
-        eer_1 = fpr[np.nanargmin(np.absolute((fnr - fpr)))]
-        eer_2 = fnr[np.nanargmin(np.absolute((fnr - fpr)))]
-        eer = (eer_1 + eer_2) / 2
+        # eer from fpr and fnr can differ a bit (its an approximation), so we compute both and take the average
+        eer_fpr = fpr[np.nanargmin(np.absolute((fnr - fpr)))]
+        eer_fnr = fnr[np.nanargmin(np.absolute((fnr - fpr)))]
+        eer = (eer_fpr + eer_fnr) / 2
+
+        # Display the DET curve
+        if plot_det:
+            eer_fpr_probit = norm.ppf(eer_fpr)
+            eer_fnr_probit = norm.ppf(eer_fnr)
+            eer_probit = (eer_fpr_probit + eer_fnr_probit) / 2
+
+            DetCurveDisplay(fpr=fpr, fnr=fnr, pos_label=0).plot()
+            plt.plot(
+                eer_fpr_probit,
+                eer_fpr_probit,
+                marker="o",
+                markersize=5,
+                label=f"EER from FPR: {eer:.2f}",
+                color="blue",
+            )
+            plt.plot(
+                eer_fnr_probit,
+                eer_fnr_probit,
+                marker="o",
+                markersize=5,
+                label=f"EER from FNR: {eer:.2f}",
+                color="green",
+            )
+            plt.plot(eer_probit, eer_probit, marker="o", markersize=5, label=f"EER: {eer:.2f}", color="red")
+            plt.legend()
+            plt.title(f"DET Curve {type(self.model).__name__}")
+            plt.savefig(f"./{type(self.model).__name__}_DET.png")
+
         return eer
