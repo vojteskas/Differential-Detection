@@ -220,7 +220,7 @@ def generate_job_script(
 if __name__ == "__main__":
     # Modify parameters and arguments here
     for c in [
-        "FFdiff",
+        "FFDiff",
         "FFDiffAbs",
         "FFDiffQuadratic",
         "FFConcat1",

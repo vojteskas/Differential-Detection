@@ -41,7 +41,6 @@ class BaseFFPairTrainer(BaseFFTrainer):
 
             losses.append(loss.item())
             accuracies.append(accuracy)
-            break
 
         return accuracies, losses
 
