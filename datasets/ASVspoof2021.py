@@ -137,7 +137,7 @@ class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
                 self.protocol_df["AUDIO_FILE_NAME"].isin(present_files)
             ]
 
-            print(f"Using {len(self.protocol_df)} recordings from DF21 eval set.")
+            print(f"Using {len(self.protocol_df)} local recordings from DF21 eval set.")
 
         self.protocol_df.reset_index(drop=True, inplace=True)
 
@@ -201,7 +201,7 @@ class ASVspoof2021DFDataset_single(ASVspoof2021_base):
                 self.protocol_df["AUDIO_FILE_NAME"].isin(present_files)
             ]
 
-            print(f"Using {len(self.protocol_df)} recordings from DF21 eval set.")
+            print(f"Using {len(self.protocol_df)} local recordings from DF21 eval set.")
 
         self.protocol_df.reset_index(drop=True, inplace=True)
 
@@ -233,7 +233,6 @@ class ASVspoof2021DFDataset_VC_single(ASVspoof2021DFDataset_single):
 
         self.protocol_df = self.protocol_df[self.protocol_df["SOURCE"].isin(("vcc2018", "vcc2020"))]
         self.protocol_df.reset_index(drop=True, inplace=True)
-        print(f"Using {len(self.protocol_df)} VC recordings.")
 
 
 class ASVspoof2021DFDataset_nonVC_pair(ASVspoof2021DFDataset_pair):
@@ -250,4 +249,3 @@ class ASVspoof2021DFDataset_nonVC_single(ASVspoof2021DFDataset_single):
 
         self.protocol_df = self.protocol_df[self.protocol_df["SOURCE"] == "asvspoof"]
         self.protocol_df.reset_index(drop=True, inplace=True)
-        print(f"Using {len(self.protocol_df)} non-VC recordings.")

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# This script generates a bash script for submitting a job to the MetaCentrum PBS system.
 
 
 class PBSheaders:
@@ -53,6 +54,7 @@ class Job:
         project_archive_name="dp.zip",  # name of the project source archive
         dataset_archive_path="deepfakes/datasets/",  # path to the dataset from home (~) directory
         dataset_archive_name="LA.zip",  # name of the dataset archive
+        checkpoint_file_path=None,  # path to the checkpoint file from
         checkpoint_archive_name=None,  # name of the checkpoint archive
         executable_script="train_and_eval.py",  # name of the script to be executed
         executable_script_args=["--metacentrum"],  # arguments for the script
@@ -62,6 +64,7 @@ class Job:
         self.project_archive_name = project_archive_name
         self.dataset_archive_path = dataset_archive_path
         self.dataset_archive_name = dataset_archive_name
+        self.checkpoint_file_path = checkpoint_file_path
         self.checkpoint_archive_name = checkpoint_archive_name
         self.executable_script = executable_script
         self.executable_script_args = executable_script_args
@@ -127,6 +130,13 @@ class Job:
                 f'unzip {self.checkpoint_archive_name} "*_20.pt" >/dev/null 2>&1',
                 "\n",
             ]
+        if self.checkpoint_file_path:
+            checkpoint_script = [
+                # copy checkpoint
+                'echo "Copying checkpoint file"',
+                f"cp $DATADIR/{self.checkpoint_file_path} .",  # copy to scratchdir
+                "\n",
+            ]
 
         exec_script = [
             # run the script
@@ -140,7 +150,7 @@ class Job:
             # copy results
             'echo "Copying results"',
             'find . -type d -name "__pycache__" -exec rm -rf {} +',  # remove __pycache__ directories
-            'zip -r "$archivename" classifiers datasets embeddings feature_processors trainers ./*.py ./*.png ./*.pt >/dev/null 2>&1',
+            'zip -r "$archivename" ./*.png ./*.pt *.txt >/dev/null 2>&1',
             f'cp "$archivename" $DATADIR/{self.project_archive_path}$archivename >/dev/null 2>&1',
             "\n",
         ]
@@ -209,17 +219,19 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
-    for c in ["FF"]:
-        for dataset in ["ASVspoof2021DFDataset_VC_single", "ASVspoof2021DFDataset_nonVC_single"]:
-            dname = "DF21nonVC" if "nonVC" in dataset else "DF21VC"
+    for c in ["FFDiffAbs", "FFDiffQuadratic"]:
+        for dataset in ["ASVspoof2019LADataset_pair", "InTheWildDataset_pair"]:
             generate_job_script(
-                jobname=f"DP_{c}_{dname}",
-                file_name=f"scripts/{c}_{dname}.sh",
+                jobname=f"DP_{c}_{dataset}",
+                file_name=f"scripts/{c}_{dataset}.sh",
                 project_archive_name="dp.zip",
-                dataset_archive_name="DF21.tar.gz",
-                executable_script="train_and_eval.py",
+                dataset_archive_name=f"{'LA19' if 'LA' in dataset else 'InTheWild'}.tar.gz",
+                checkpoint_file_path=f"DP/trainer_models/{c}_20.pt",
+                executable_script="eval.py",
                 executable_script_args=[
                     "--metacentrum",
+                    "--checkpoint",
+                    f"{c}_20.pt",
                     "--dataset",
                     dataset,
                     "--extractor",
@@ -228,7 +240,5 @@ if __name__ == "__main__":
                     "MHFA",
                     "--classifier",
                     f"{c}",
-                    "--num_epochs",
-                    "20",
                 ],
             )

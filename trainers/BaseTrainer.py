@@ -56,28 +56,28 @@ class BaseTrainer:
 
         # Display the DET curve
         if plot_det:
-            eer_fpr_probit = norm.ppf(eer_fpr)
-            eer_fnr_probit = norm.ppf(eer_fnr)
-            eer_probit = (eer_fpr_probit + eer_fnr_probit) / 2
+            # eer_fpr_probit = norm.ppf(eer_fpr)
+            # eer_fnr_probit = norm.ppf(eer_fnr)
+            eer_probit = norm.ppf(eer)
 
             DetCurveDisplay(fpr=fpr, fnr=fnr, pos_label=0).plot()
-            plt.plot(
-                eer_fpr_probit,
-                eer_fpr_probit,
-                marker="o",
-                markersize=5,
-                label=f"EER from FPR: {eer:.2f}",
-                color="blue",
-            )
-            plt.plot(
-                eer_fnr_probit,
-                eer_fnr_probit,
-                marker="o",
-                markersize=5,
-                label=f"EER from FNR: {eer:.2f}",
-                color="green",
-            )
-            plt.plot(eer_probit, eer_probit, marker="o", markersize=5, label=f"EER: {eer:.2f}", color="red")
+            # plt.plot(
+            #     eer_fpr_probit,
+            #     eer_fpr_probit,
+            #     marker="o",
+            #     markersize=5,
+            #     label=f"EER from FPR: {eer:.2f}",
+            #     color="blue",
+            # )
+            # plt.plot(
+            #     eer_fnr_probit,
+            #     eer_fnr_probit,
+            #     marker="o",
+            #     markersize=5,
+            #     label=f"EER from FNR: {eer:.2f}",
+            #     color="green",
+            # )
+            plt.plot(eer_probit, eer_probit, marker="o", markersize=4, label=f"EER: {eer:.2f}", color="red")
             plt.legend()
             plt.title(f"DET Curve {type(self.model).__name__}")
             plt.savefig(f"./{type(self.model).__name__}_DET.png")
