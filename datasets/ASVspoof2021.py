@@ -69,7 +69,9 @@ class ASVspoof2021LADataset_pair(ASVspoof2021_base):
         label = 0 if label == "bonafide" else 1  # 0 for genuine speech, 1 for spoofing speech
 
         # Get the genuine speech of the same speaker for differentiation
-        speaker_recordings_df = self.protocol_df[self.protocol_df["SPEAKER_ID"] == speaker_id]
+        speaker_recordings_df = self.protocol_df[
+            (self.protocol_df["SPEAKER_ID"] == speaker_id) & (self.protocol_df["KEY"] == "bonafide")
+        ]
         if speaker_recordings_df.empty:
             raise Exception(f"Speaker {speaker_id} genuine speech not found in protocol file")
         # Get a random genuine speech of the speaker using sample()
@@ -155,7 +157,9 @@ class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
         label = 0 if label == "bonafide" else 1  # 0 for genuine speech, 1 for spoofing speech
 
         # Get the genuine speech of the same speaker for differentiation
-        speaker_recordings_df = self.protocol_df[self.protocol_df["SPEAKER_ID"] == speaker_id]
+        speaker_recordings_df = self.protocol_df[
+            (self.protocol_df["SPEAKER_ID"] == speaker_id) & (self.protocol_df["KEY"] == "bonafide")
+        ]
         if speaker_recordings_df.empty:
             raise Exception(f"Speaker {speaker_id} genuine speech not found in protocol file")
         # Get a random genuine speech of the speaker using sample()
