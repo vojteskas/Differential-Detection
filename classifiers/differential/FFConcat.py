@@ -157,7 +157,7 @@ class FFConcat3(FFConcatBase):
         param in_dim: Dimension of the input data to the classifier, divisible by 4.
         """
 
-        super().__init__(extractor, feature_processor, in_dim)
+        super().__init__(extractor, feature_processor, in_dim*2)  # Double the input dimension because concat
 
     def forward(self, input_data_ground_truth, input_data_tested):
         """

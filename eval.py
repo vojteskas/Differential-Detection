@@ -2,7 +2,7 @@
 
 from sys import argv
 
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, IterableDataset
 
 from config import local_config, metacentrum_config
 from common import CLASSIFIERS, DATASETS, EXTRACTORS, TRAINERS
@@ -67,6 +67,8 @@ def main():
         dataset_config = config["asvspoof2021la"] if "LA" in dataset else config["asvspoof2021df"]
     elif "InTheWild" in dataset:
         dataset_config = config["inthewild"]
+    elif "Morphing" in dataset:
+        dataset_config = config["morphing"]
     else:
         raise ValueError("Invalid dataset name.")
 
@@ -84,8 +86,9 @@ def main():
             variant="eval",
         )
     collate_func = custom_single_batch_create if "single" in dataset else custom_pair_batch_create
+    shuffle = False if isinstance(eval_dataset, IterableDataset) else True
     eval_dataloader = DataLoader(
-        eval_dataset, batch_size=config["batch_size"], collate_fn=collate_func, shuffle=True
+        eval_dataset, batch_size=config["batch_size"], collate_fn=collate_func, shuffle=shuffle
     )
 
     print(

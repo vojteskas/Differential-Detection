@@ -72,4 +72,7 @@ class BaseFFPairTrainer(BaseFFTrainer):
             labels.extend(label.tolist())
             scores.extend(probs[:, 0].tolist())
 
+        # for name, label, score, prediction in zip(file_names, labels, scores, predictions):
+        #     print(f"File: {name}, Score: {score}, Label: {label}, Prediction: {prediction}")
+
         return losses, labels, scores, predictions, file_names

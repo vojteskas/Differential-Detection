@@ -163,6 +163,8 @@ class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
         gt_audio_name = os.path.join(self.rec_dir, f"{gt_audio_file_name}.flac")
         gt_waveform, _ = load(gt_audio_name)  # Load the genuine speech
 
+        print(f"Loaded GT:{gt_audio_name} and TEST:{test_audio_name}")
+
         # print(f"Loaded GT:{gt_audio_name} and TEST:{test_audio_name}")
         return test_audio_file_name, gt_waveform, test_waveform, label
 

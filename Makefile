@@ -1,6 +1,6 @@
 # Variables
 METAHOME = vojteskas@skirit.ics.muni.cz:~
-METAPATH = /DP#/FF/bulk_test
+METAPATH = /DP
 
 .PHONY: clean clean_scripts scripts pack upload
 
@@ -21,3 +21,6 @@ upload: pack
 	scp dp.zip $(METAHOME)$(METAPATH)/dp.zip
 	scp scripts.zip $(METAHOME)$(METAPATH)/scripts.zip
 	scp runner.sh $(METAHOME)$(METAPATH)/runner.sh
+
+make download:
+	scp -r $(METAHOME)$(METAPATH)/trained_models ./trained_models
