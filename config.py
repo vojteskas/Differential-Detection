@@ -44,6 +44,7 @@ local_config = {
         "eval_protocol": "protocol.txt",
     },
     "batch_size": 16,
+    "lstm_batch_size": 8,
     "num_epochs": 1,
 }
 
@@ -93,5 +94,6 @@ metacentrum_config = {
         "eval_protocol": "protocol.txt",
     },
     "batch_size": 32,
+    "lstm_batch_size": 16,
     "num_epochs": 20,
 }

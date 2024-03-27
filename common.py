@@ -106,7 +106,7 @@ DATASETS = {  # map the dataset name to the dataset class
 
 
 def get_dataloaders(
-    dataset="ASVspoof2019LADataset_pair", config=metacentrum_config
+    dataset="ASVspoof2019LADataset_pair", config=metacentrum_config, lstm=False
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
 
     dataset_config = {}
@@ -161,21 +161,21 @@ def get_dataloaders(
     samples_weights = [train_dataset.get_class_weights()[i] for i in train_dataset.get_labels()]
     weighted_sampler = WeightedRandomSampler(samples_weights, len(train_dataset))
 
-    print(f"Using batch size: {config['batch_size']}")
+    bs = config["batch_size"] if not lstm else config["lstm_batch_size"]
 
     # create dataloader, use custom collate_fn to pad the data to the longest recording in batch
     collate_func = custom_single_batch_create if "single" in dataset else custom_pair_batch_create
     train_dataloader = DataLoader(
         train_dataset,
-        batch_size=config["batch_size"],
+        batch_size=bs,
         collate_fn=collate_func,
         sampler=weighted_sampler,
     )
     val_dataloader = DataLoader(
-        val_dataset, batch_size=config["batch_size"], collate_fn=collate_func, shuffle=True
+        val_dataset, batch_size=bs, collate_fn=collate_func, shuffle=True
     )
     eval_dataloader = DataLoader(
-        eval_dataset, batch_size=config["batch_size"], collate_fn=collate_func, shuffle=True
+        eval_dataset, batch_size=bs, collate_fn=collate_func, shuffle=True
     )
 
     return train_dataloader, val_dataloader, eval_dataloader

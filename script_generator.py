@@ -150,7 +150,7 @@ class Job:
             # copy results
             'echo "Copying results"',
             'find . -type d -name "__pycache__" -exec rm -rf {} +',  # remove __pycache__ directories
-            'zip -r "$archivename" ./*.png ./*.pt *.txt >/dev/null 2>&1',
+            'zip -r "$archivename" ./*.png ./*.pt ./*.txt >/dev/null 2>&1',
             f'cp "$archivename" $DATADIR/{self.project_archive_path}$archivename >/dev/null 2>&1',
             "\n",
         ]
@@ -219,26 +219,33 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
-    for c in ["FFDiffAbs", "FFDiffQuadratic"]:
-        for dataset in ["ASVspoof2019LADataset_pair", "InTheWildDataset_pair"]:
-            generate_job_script(
-                jobname=f"DP_{c}_{dataset}",
-                file_name=f"scripts/{c}_{dataset}.sh",
-                project_archive_name="dp.zip",
-                dataset_archive_name=f"{'LA19' if 'LA' in dataset else 'InTheWild'}.tar.gz",
-                checkpoint_file_path=f"DP/trainer_models/{c}_20.pt",
-                executable_script="eval.py",
-                executable_script_args=[
-                    "--metacentrum",
-                    "--checkpoint",
-                    f"{c}_20.pt",
-                    "--dataset",
-                    dataset,
-                    "--extractor",
-                    "XLSR_300M",
-                    "--processor",
-                    "MHFA",
-                    "--classifier",
-                    f"{c}",
-                ],
-            )
+    for c in [
+        "FFdiff",
+        "FFDiffAbs",
+        "FFDiffQuadratic",
+        "FFConcat1",
+        "FFConcat2",
+        "FFConcat3",
+        "FFLSTM",
+        "FFLSTM2",
+        "FFDot",
+    ]:
+        dataset = "ASVspoof2019LADataset_pair"
+        generate_job_script(
+            jobname=f"NEW_{c}_LA19",
+            file_name=f"scripts/{c}_LA19.sh",
+            project_archive_name="dp.zip",
+            dataset_archive_name="LA19.tar.gz",
+            executable_script="train_and_eval.py",
+            executable_script_args=[
+                "--metacentrum",
+                "--dataset",
+                dataset,
+                "--extractor",
+                "XLSR_300M",
+                "--processor",
+                "MHFA",
+                "--classifier",
+                f"{c}",
+            ],
+        )

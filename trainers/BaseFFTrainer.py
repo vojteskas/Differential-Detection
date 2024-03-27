@@ -71,12 +71,13 @@ class BaseFFTrainer(BaseTrainer):
             self.save_model(f"./{type(self.model).__name__}_{epoch}.pt")
 
             # Validation
-            val_loss, val_accuracy, eer = self.val(val_dataloader)
-            print(f"Validation loss: {val_loss}, validation accuracy: {val_accuracy}")
-            print(f"Validation EER: {eer*100}%")
-            self.statistics["val_losses"].append(val_loss)
-            self.statistics["val_accuracies"].append(val_accuracy)
-            self.statistics["val_eers"].append(eer)
+            if epoch % 5 == 0:
+                val_loss, val_accuracy, eer = self.val(val_dataloader)
+                print(f"Validation loss: {val_loss}, validation accuracy: {val_accuracy}")
+                print(f"Validation EER: {eer*100}%")
+                self.statistics["val_losses"].append(val_loss)
+                self.statistics["val_accuracies"].append(val_accuracy)
+                self.statistics["val_eers"].append(eer)
 
             # TODO: Enable early stopping based on validation accuracy/loss/EER
 

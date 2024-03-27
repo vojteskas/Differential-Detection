@@ -66,14 +66,16 @@ def main():
             trainer = SVMDiffTrainer(model)
         case _:
             try:
-                model = CLASSIFIERS[str(args.classifier)][0](extractor, processor, in_dim=extractor.feature_size)
+                model = CLASSIFIERS[str(args.classifier)][0](
+                    extractor, processor, in_dim=extractor.feature_size
+                )
                 trainer = TRAINERS[str(args.classifier)](model)
             except KeyError:
-                raise ValueError(
-                    f"Invalid classifier, should be one of: {list(CLASSIFIERS.keys())}"
-                )
-    
-    train_dataloader, val_dataloader, eval_dataloader = get_dataloaders(dataset=args.dataset, config=config)
+                raise ValueError(f"Invalid classifier, should be one of: {list(CLASSIFIERS.keys())}")
+
+    train_dataloader, val_dataloader, eval_dataloader = get_dataloaders(
+        dataset=args.dataset, config=config, lstm=True if "LSTM" in args.classifier else False
+    )
 
     # TODO: Implement training of MHFA with SkLearn models
     # skipping for now, focusing on FF(Diff)
@@ -100,9 +102,7 @@ def main():
 
     else:
         # Should not happen, should inherit from BaseSklearnTrainer or BaseFFTrainer
-        raise ValueError(
-            "Invalid trainer, should inherit from BaseSklearnTrainer or BaseFFTrainer."
-        )
+        raise ValueError("Invalid trainer, should inherit from BaseSklearnTrainer or BaseFFTrainer.")
 
 
 if __name__ == "__main__":
