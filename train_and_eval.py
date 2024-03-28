@@ -17,6 +17,7 @@ from classifiers.differential.SVMDiff import SVMDiff
 # trainers
 from trainers.BaseFFPairTrainer import BaseFFPairTrainer
 from trainers.BaseFFTrainer import BaseFFTrainer
+from trainers.FFDotTrainer import FFDotTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
 from trainers.BaseSklearnTrainer import BaseSklearnTrainer
@@ -68,7 +69,7 @@ def main():
             trainer = SVMDiffTrainer(model)
         case "FFDot":
             model = FFDot(extractor, processor)
-            trainer = BaseFFPairTrainer(model)
+            trainer = FFDotTrainer(model)
         case _:
             try:
                 model = CLASSIFIERS[str(args.classifier)][0](

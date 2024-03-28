@@ -130,7 +130,7 @@ class Job:
             checkpoint_script = [
                 # copy checkpoint
                 'echo "Copying checkpoint archive"',
-                f"cp $DATADIR/{self.checkpoint_archive_name} .",  # copy to scratchdir
+                f"cp $DATADIR/DP/{self.checkpoint_archive_name} .",  # copy to scratchdir
                 f"unzip {self.checkpoint_archive_name} *_{{5,10,15,20}}.pt >/dev/null 2>&1",
                 "\n",
             ]
@@ -138,7 +138,7 @@ class Job:
             checkpoint_script = [
                 # copy checkpoint
                 'echo "Copying checkpoint file"',
-                f"cp $DATADIR/{self.checkpoint_file_path} .",  # copy to scratchdir
+                f"cp $DATADIR/DP/{self.checkpoint_file_path} .",  # copy to scratchdir
                 "\n",
             ]
 
@@ -148,7 +148,7 @@ class Job:
             'echo "Running the script"',
         ]
         for script, args in self.execute_list:
-            exec_script.append(f"./{script} {' '.join(args)}\n")
+            exec_script.append(f"./{script} {' '.join(args)} 2>&1\n")
 
         results_script = []
         if self.copy_results:
@@ -226,45 +226,68 @@ def generate_job_script(
 
 if __name__ == "__main__":
     # Modify parameters and arguments here
-    for c in [
-        "FFDiff",
-        "FFDiffAbs",
-        "FFDiffQuadratic",
-        "FFConcat1",
-        "FFConcat2",
-        "FFConcat3",
-        "FFDot",
-        "FFLSTM",
-        "FFLSTM2",
-    ]:
-        for dataset in ["ASVspoof2021DFDataset_pair", "InTheWildDataset_pair"]:
-            dshort = f"{'InTheWild' if 'InTheWild' in dataset else 'DF21'}"
-            exec_list = []
-            for script, ep in zip(["eval.py"] * 4, (5, 10, 15, 20)):
-                exec_list.append(
-                    (
-                        script,
-                        [
-                            "--metacentrum",
-                            "--dataset",
-                            dataset,
-                            "--classifier",
-                            f"{c}",
-                            "--extractor",
-                            "XLSR_300M",
-                            "--processor",
-                            "MHFA",
-                            "--checkpoint",
-                            f"{c}_{ep}.pt",
-                        ],
-                    )
-                )
-            generate_job_script(
-                jobname=f"EVAL_{c}_{dshort}",
-                file_name=f"scripts/{c}_{dshort}.sh",
-                project_archive_name="dp.zip",
-                dataset_archive_name=f"{dshort}.tar.gz",
-                checkpoint_archive_name=f"NEW_{c}_LA19_Results.zip",
-                execute_list=exec_list,
-                train=False,
+    # for c in [
+    #     "FFDiff",
+    #     "FFDiffAbs",
+    #     "FFDiffQuadratic",
+    #     "FFConcat1",
+    #     "FFConcat2",
+    #     "FFConcat3",
+    #     "FFDot",
+    #     "FFLSTM",
+    #     "FFLSTM2",
+    # ]:
+    #     for dataset in ["ASVspoof2021DFDataset_pair", "InTheWildDataset_pair"]:
+    #         dshort = f"{'InTheWild' if 'InTheWild' in dataset else 'DF21'}"
+    #         exec_list = []
+    #         for script, ep in zip(["eval.py"] * 4, (5, 10, 15, 20)):
+    #             exec_list.append(
+    #                 (
+    #                     script,
+    #                     [
+    #                         "--metacentrum",
+    #                         "--dataset",
+    #                         dataset,
+    #                         "--classifier",
+    #                         f"{c}",
+    #                         "--extractor",
+    #                         "XLSR_300M",
+    #                         "--processor",
+    #                         "MHFA",
+    #                         "--checkpoint",
+    #                         f"{c}_{ep}.pt",
+    #                     ],
+    #                 )
+    #             )
+    #         generate_job_script(
+    #             jobname=f"EVAL_{c}_{dshort}",
+    #             file_name=f"scripts/{c}_{dshort}.sh",
+    #             project_archive_name="dp.zip",
+    #             dataset_archive_name=f"{dshort}.tar.gz",
+    #             checkpoint_archive_name=f"NEW_{c}_LA19_Results.zip",
+    #             execute_list=exec_list,
+    #             train=False,
+    #         )
+    c = "FFDot"
+    generate_job_script(
+        jobname="NEW_FFDot_LA19",
+        file_name="scripts/FFDot_LA19.sh",
+        project_archive_name="dp.zip",
+        dataset_archive_name="LA19.tar.gz",
+        execute_list=[
+            (
+                "train_and_eval.py",
+                [
+                    "--metacentrum",
+                    "--dataset",
+                    "ASVspoof2019LADataset_pair",
+                    "--classifier",
+                    f"{c}",
+                    "--extractor",
+                    "XLSR_300M",
+                    "--processor",
+                    "MHFA",
+                ],
             )
+        ],
+    )
