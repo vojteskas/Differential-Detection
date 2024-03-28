@@ -56,8 +56,11 @@ class Job:
         dataset_archive_name="LA.zip",  # name of the dataset archive
         checkpoint_file_path=None,  # path to the checkpoint file from
         checkpoint_archive_name=None,  # name of the checkpoint archive
-        executable_script="train_and_eval.py",  # name of the script to be executed
-        executable_script_args=["--metacentrum"],  # arguments for the script
+        execute_list=[
+            ("train_and_eval.py", ["--metacentrum"])
+        ],  # doubles of script name and list of arguments
+        train=True,  # if training, copy training LA19 dataset aswell
+        copy_results=True,  # copy results back to home directory
     ):
         self.jobname = jobname
         self.project_archive_path = project_archive_path
@@ -66,8 +69,9 @@ class Job:
         self.dataset_archive_name = dataset_archive_name
         self.checkpoint_file_path = checkpoint_file_path
         self.checkpoint_archive_name = checkpoint_archive_name
-        self.executable_script = executable_script
-        self.executable_script_args = executable_script_args
+        self.execute_list = execute_list
+        self.train = train
+        self.copy_results = copy_results
 
     def __str__(self):
         env_script = [
@@ -111,7 +115,7 @@ class Job:
             "\n",
         ]
         # copy 2019 dataset (training data) aswell if 2021 or InTheWild datasets are used
-        if "21" in self.dataset_archive_name or "InTheWild" in self.dataset_archive_name:
+        if self.train and ("21" in self.dataset_archive_name or "InTheWild" in self.dataset_archive_name):
             data_script.extend(
                 [
                     # copy 2019 dataset
@@ -127,7 +131,7 @@ class Job:
                 # copy checkpoint
                 'echo "Copying checkpoint archive"',
                 f"cp $DATADIR/{self.checkpoint_archive_name} .",  # copy to scratchdir
-                f'unzip {self.checkpoint_archive_name} "*_20.pt" >/dev/null 2>&1',
+                f"unzip {self.checkpoint_archive_name} *_{{5,10,15,20}}.pt >/dev/null 2>&1",
                 "\n",
             ]
         if self.checkpoint_file_path:
@@ -142,18 +146,20 @@ class Job:
             # run the script
             "chmod 755 ./*.py",
             'echo "Running the script"',
-            f'./{self.executable_script} {" ".join(self.executable_script_args)} 2>&1',
-            "\n",
         ]
+        for script, args in self.execute_list:
+            exec_script.append(f"./{script} {' '.join(args)}\n")
 
-        results_script = [
-            # copy results
-            'echo "Copying results"',
-            'find . -type d -name "__pycache__" -exec rm -rf {} +',  # remove __pycache__ directories
-            'zip -r "$archivename" ./*.png ./*.pt ./*.txt >/dev/null 2>&1',
-            f'cp "$archivename" $DATADIR/{self.project_archive_path}$archivename >/dev/null 2>&1',
-            "\n",
-        ]
+        results_script = []
+        if self.copy_results:
+            results_script = [
+                # copy results
+                'echo "Copying results"',
+                'find . -type d -name "__pycache__" -exec rm -rf {} +',  # remove __pycache__ directories
+                'zip -r "$archivename" ./*.png ./*.pt ./*.txt >/dev/null 2>&1',
+                f'cp "$archivename" $DATADIR/{self.project_archive_path}$archivename >/dev/null 2>&1',
+                "\n",
+            ]
 
         cleanup_script = [
             # cleanup
@@ -202,8 +208,9 @@ def generate_job_script(
             "dataset_archive_path",
             "dataset_archive_name",
             "checkpoint_archive_name",
-            "executable_script",
-            "executable_script_args",
+            "execute_list",
+            "train",
+            "copy_results",
         ]
     }
     pbs = PBSheaders(jobname, **pbsheaders_kwargs)
@@ -226,26 +233,38 @@ if __name__ == "__main__":
         "FFConcat1",
         "FFConcat2",
         "FFConcat3",
+        "FFDot",
         "FFLSTM",
         "FFLSTM2",
-        "FFDot",
     ]:
-        dataset = "ASVspoof2019LADataset_pair"
-        generate_job_script(
-            jobname=f"NEW_{c}_LA19",
-            file_name=f"scripts/{c}_LA19.sh",
-            project_archive_name="dp.zip",
-            dataset_archive_name="LA19.tar.gz",
-            executable_script="train_and_eval.py",
-            executable_script_args=[
-                "--metacentrum",
-                "--dataset",
-                dataset,
-                "--extractor",
-                "XLSR_300M",
-                "--processor",
-                "MHFA",
-                "--classifier",
-                f"{c}",
-            ],
-        )
+        for dataset in ["ASVspoof2021DFDataset_pair", "InTheWildDataset_pair"]:
+            dshort = f"{'InTheWild' if 'InTheWild' in dataset else 'DF21'}"
+            exec_list = []
+            for script, ep in zip(["eval.py"] * 4, (5, 10, 15, 20)):
+                exec_list.append(
+                    (
+                        script,
+                        [
+                            "--metacentrum",
+                            "--dataset",
+                            dataset,
+                            "--classifier",
+                            f"{c}",
+                            "--extractor",
+                            "XLSR_300M",
+                            "--processor",
+                            "MHFA",
+                            "--checkpoint",
+                            f"{c}_{ep}.pt",
+                        ],
+                    )
+                )
+            generate_job_script(
+                jobname=f"EVAL_{c}_{dshort}",
+                file_name=f"scripts/{c}_{dshort}.sh",
+                project_archive_name="dp.zip",
+                dataset_archive_name=f"{dshort}.tar.gz",
+                checkpoint_archive_name=f"NEW_{c}_LA19_Results.zip",
+                execute_list=exec_list,
+                train=False,
+            )
