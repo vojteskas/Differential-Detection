@@ -100,9 +100,12 @@ class BaseSklearnTrainer(BaseTrainer):
         # print(f"Scores: {np.array(scores)}")
 
         val_accuracy = np.mean(np.array(labels) == np.array(class_predictions))
-        eer = self.calculate_EER(labels, scores, plot_det=False)
+        eer = self.calculate_EER(labels, scores, plot_det=False, det_subtitle="")
 
         return val_accuracy, eer
+    
+    def eval(self, eval_dataloader, subtitle: str = ""):
+        raise NotImplementedError("Child classes should implement the eval method")
 
 
 class SklearnSaver:

@@ -47,7 +47,7 @@ class SVMDiffTrainer(BaseSklearnTrainer):
         """
         return self._val(val_dataloader)
 
-    def eval(self, eval_dataloader):
+    def eval(self, eval_dataloader, subtitle: str = ""):
         """
         Evaluate the model on the given dataloader
 

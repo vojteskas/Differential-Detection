@@ -95,7 +95,7 @@ def main():
         f"Evaluating {args.checkpoint} {type(model).__name__} {type(eval_dataloader.dataset).__name__} dataloader."
     )
 
-    trainer.eval(eval_dataloader)
+    trainer.eval(eval_dataloader, subtitle=str(args.checkpoint))
 
 
 if __name__ == "__main__":

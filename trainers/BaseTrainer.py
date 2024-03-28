@@ -43,7 +43,7 @@ class BaseTrainer:
                 "Child classes for non-PyTorch models need to implement load_model method"
             )
 
-    def calculate_EER(self, labels, predictions, plot_det) -> float:
+    def calculate_EER(self, labels, predictions, plot_det: bool, det_subtitle: str) -> float:
         """
         Calculate the Equal Error Rate (EER) from the labels and predictions
         """
@@ -79,7 +79,7 @@ class BaseTrainer:
             # )
             plt.plot(eer_probit, eer_probit, marker="o", markersize=4, label=f"EER: {eer:.2f}", color="red")
             plt.legend()
-            plt.title(f"DET Curve {type(self.model).__name__}")
-            plt.savefig(f"./{type(self.model).__name__}_DET.png")
+            plt.title(f"DET Curve {type(self.model).__name__} {det_subtitle}")
+            plt.savefig(f"./{type(self.model).__name__}_{det_subtitle}_DET.png")
 
         return eer

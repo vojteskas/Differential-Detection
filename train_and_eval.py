@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from sys import argv
 
+from classifiers.differential.FFDot import FFDot
 from config import local_config, metacentrum_config
 from common import CLASSIFIERS, EXTRACTORS, TRAINERS, get_dataloaders
 from parse_arguments import parse_args
@@ -14,6 +15,7 @@ from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.SVMDiff import SVMDiff
 
 # trainers
+from trainers.BaseFFPairTrainer import BaseFFPairTrainer
 from trainers.BaseFFTrainer import BaseFFTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
@@ -64,6 +66,9 @@ def main():
         case "SVMDiff":
             model = SVMDiff(extractor, processor, kernel=args.kernel if args.kernel else "rbf")
             trainer = SVMDiffTrainer(model)
+        case "FFDot":
+            model = FFDot(extractor, processor)
+            trainer = BaseFFPairTrainer(model)
         case _:
             try:
                 model = CLASSIFIERS[str(args.classifier)][0](
@@ -88,7 +93,7 @@ def main():
     if isinstance(trainer, BaseFFTrainer):
         # Default value of numepochs = 20
         trainer.train(train_dataloader, val_dataloader, numepochs=args.num_epochs)
-        trainer.eval(eval_dataloader)  # Eval after training
+        trainer.eval(eval_dataloader, subtitle=str(args.num_epochs))  # Eval after training
 
     elif isinstance(trainer, BaseSklearnTrainer):
         if isinstance(processor, MHFAProcessor):

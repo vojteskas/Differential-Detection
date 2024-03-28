@@ -1,3 +1,4 @@
+from re import sub
 import torch
 from torch.nn import CrossEntropyLoss
 from matplotlib import pyplot as plt
@@ -28,7 +29,7 @@ class BaseFFTrainer(BaseTrainer):
             "val_accuracies": [],
             "val_eers": [],
         }
-    
+
     def train(self, train_dataloader, val_dataloader, numepochs=20, start_epoch=1):
         """
         Common training loop
@@ -52,9 +53,9 @@ class BaseFFTrainer(BaseTrainer):
             epoch_accuracy = np.mean(accuracies)
             epoch_loss = np.mean(losses)
             print(
-                f"Epoch {epoch} finished,", 
-                f"training loss: {np.mean(losses)},", 
-                f"training accuracy: {np.mean(accuracies)}"
+                f"Epoch {epoch} finished,",
+                f"training loss: {np.mean(losses)},",
+                f"training accuracy: {np.mean(accuracies)}",
             )
 
             self.statistics["train_losses"].append(epoch_loss)
@@ -85,7 +86,7 @@ class BaseFFTrainer(BaseTrainer):
         #     self.statistics["val_losses"], self.statistics["val_accuracies"], "Validation"
         # )
         # self._plot_eer(self.statistics["val_eers"], "Validation")
-    
+
     def train_epoch(self, train_dataloader) -> tuple[list[float], list[float]]:
         """
         Train the model for one epoch on the given dataloader
@@ -94,7 +95,9 @@ class BaseFFTrainer(BaseTrainer):
         """
         raise NotImplementedError("Child classes should implement the train_epoch method")
 
-    def val(self, val_dataloader, save_scores=False, plot_det=False) -> tuple[float, float, float]:
+    def val(
+        self, val_dataloader, save_scores=False, plot_det=False, subtitle=""
+    ) -> tuple[float, float, float]:
         """
         Common validation loop
 
@@ -111,17 +114,19 @@ class BaseFFTrainer(BaseTrainer):
             losses, labels, scores, predictions, file_names = self.val_epoch(val_dataloader, save_scores)
 
             if save_scores:
-                with open(f"./{type(self.model).__name__}_scores.txt", "w") as f:
+                with open(f"./{type(self.model).__name__}_{subtitle}_scores.txt", "w") as f:
                     for file_name, score, label in zip(file_names, scores, labels):
                         f.write(f"{file_name},{score},{int(label)}\n")
 
             val_loss = np.mean(losses).astype(float)
             val_accuracy = np.mean(np.array(labels) == np.array(predictions))
-            eer = self.calculate_EER(labels, scores, plot_det=plot_det)
+            eer = self.calculate_EER(labels, scores, plot_det=plot_det, det_subtitle=subtitle)
 
             return val_loss, val_accuracy, eer
-        
-    def val_epoch(self, val_dataloader, save_scores = False) -> tuple[list[float], list[float], list[float], list[int], list[str]]:
+
+    def val_epoch(
+        self, val_dataloader, save_scores=False
+    ) -> tuple[list[float], list[float], list[float], list[int], list[str]]:
         """
         Validate the model for one epoch on the given dataloader
 
@@ -129,7 +134,7 @@ class BaseFFTrainer(BaseTrainer):
         """
         raise NotImplementedError("Child classes should implement the val_epoch method")
 
-    def eval(self, eval_dataloader):
+    def eval(self, eval_dataloader, subtitle: str = ""):
         """
         Common evaluation code
 
@@ -139,11 +144,12 @@ class BaseFFTrainer(BaseTrainer):
         """
 
         # Reuse code from val() to evaluate the model on the eval set
-        eval_loss, eval_accuracy, eer = self.val(eval_dataloader, save_scores=True, plot_det=True)
+        eval_loss, eval_accuracy, eer = self.val(
+            eval_dataloader, save_scores=True, plot_det=True, subtitle=subtitle
+        )
         print(f"Eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
         print(f"Eval EER: {eer*100}%")
 
-    
     def _plot_loss_accuracy(self, losses, accuracies, subtitle: str = ""):
         """
         Plot the loss and accuracy and save the graph to a file
