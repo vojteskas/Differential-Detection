@@ -63,7 +63,7 @@ class InTheWildDataset_pair(InTheWildDataset_base):
 
         # Get the genuine speech of the same speaker for differentiation
         speaker_recordings_df = self.protocol_df[
-            (self.protocol_df["SPEAKER_ID"] == speaker_id) & (self.protocol_df["KEY"] == "bonafide")
+            (self.protocol_df["speaker"] == speaker_id) & (self.protocol_df["label"] == "bona-fide")
         ]
         if speaker_recordings_df.empty:
             raise Exception(f"Speaker {speaker_id} genuine speech not found in protocol file")
