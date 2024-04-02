@@ -56,6 +56,7 @@ class Job:
         dataset_archive_name="LA.zip",  # name of the dataset archive
         checkpoint_file_path=None,  # path to the checkpoint file from
         checkpoint_archive_name=None,  # name of the checkpoint archive
+        checkpoint_file_from_archive_name=None,  # name of the checkpoint file from the archive
         execute_list=[
             ("train_and_eval.py", ["--metacentrum"])
         ],  # doubles of script name and list of arguments
@@ -69,6 +70,7 @@ class Job:
         self.dataset_archive_name = dataset_archive_name
         self.checkpoint_file_path = checkpoint_file_path
         self.checkpoint_archive_name = checkpoint_archive_name
+        self.checkpoint_file_from_archive_name = checkpoint_file_from_archive_name
         self.execute_list = execute_list
         self.train = train
         self.copy_results = copy_results
@@ -131,7 +133,7 @@ class Job:
                 # copy checkpoint
                 'echo "Copying checkpoint archive"',
                 f"cp $DATADIR/DP/{self.checkpoint_archive_name} .",  # copy to scratchdir
-                f"unzip {self.checkpoint_archive_name} *_{{5,10,15,20}}.pt >/dev/null 2>&1",
+                f"unzip {self.checkpoint_archive_name} {self.checkpoint_file_from_archive_name} >/dev/null 2>&1",
                 "\n",
             ]
         if self.checkpoint_file_path:
@@ -207,7 +209,9 @@ def generate_job_script(
             "project_archive_name",
             "dataset_archive_path",
             "dataset_archive_name",
+            "checkpoint_file_path",
             "checkpoint_archive_name",
+            "checkpoint_file_from_archive_name",
             "execute_list",
             "train",
             "copy_results",
@@ -239,28 +243,31 @@ if __name__ == "__main__":
         "FFLSTM2",
     ]:
         for ep in (10, 15, 20):
-            command = [(
-                "eval.py",
-                [
-                    "--metacentrum",
-                    "--dataset",
-                    dataset,
-                    "--classifier",
-                    f"{c}",
-                    "--extractor",
-                    "XLSR_300M",
-                    "--processor",
-                    "MHFA",
-                    "--checkpoint",
-                    f"{c}_{ep}.pt",
-                ],
-            )]
+            command = [
+                (
+                    "eval.py",
+                    [
+                        "--metacentrum",
+                        "--dataset",
+                        dataset,
+                        "--classifier",
+                        f"{c}",
+                        "--extractor",
+                        "XLSR_300M",
+                        "--processor",
+                        "MHFA",
+                        "--checkpoint",
+                        f"{c}_{ep}.pt",
+                    ],
+                )
+            ]
             generate_job_script(
                 jobname=f"EVAL_{c}_{dshort}_{ep}",
                 file_name=f"scripts/{c}_{dshort}_{ep}.sh",
                 project_archive_name="dp.zip",
                 dataset_archive_name=f"{dshort}.tar.gz",
-                checkpoint_archive_name=f"EVAL_{c}_{ep}_{dshort}_Results.zip",
+                checkpoint_archive_name=f"NEW_{c}_LA19_Results.zip",
+                checkpoint_file_from_archive_name=f"{c}_{ep}.pt",
                 execute_list=command,
                 train=False,
             )
