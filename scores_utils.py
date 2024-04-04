@@ -3,7 +3,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy as sp
+import torch
+from tqdm import tqdm
+
 from trainers.utils import calculate_EER
 
 from config import local_config
@@ -12,7 +14,7 @@ from config import local_config
 def draw_score_distribution(c="FFConcat1", ep=15):
     # Load the scores
     scores_headers = ["AUDIO_FILE_NAME", "SCORE", "LABEL"]
-    scores_df = pd.read_csv(f"./scores/{c}_{c}_{ep}.pt_scores.txt", sep=",", names=scores_headers)
+    scores_df = pd.read_csv(f"./scores/DF21/{c}_{c}_{ep}.pt_scores.txt", sep=",", names=scores_headers)
 
     # Filter the scores based on label
     bf_hist, bf_edges = np.histogram(scores_df[scores_df["LABEL"] == 0]["SCORE"], bins=15)
@@ -56,7 +58,7 @@ def draw_score_distribution(c="FFConcat1", ep=15):
 def split_scores_VC_TTS(c="FFConcat1", ep=15):
     # Load the scores
     scores_headers = ["AUDIO_FILE_NAME", "SCORE", "LABEL"]
-    scores_df = pd.read_csv(f"./scores/{c}_{c}_{ep}.pt_scores.txt", sep=",", names=scores_headers)
+    scores_df = pd.read_csv(f"./scores/DF21/{c}_{c}_{ep}.pt_scores.txt", sep=",", names=scores_headers)
     scores_df["SCORE"] = scores_df["SCORE"].astype(float)
 
     # Load DF21 protocol
@@ -76,19 +78,13 @@ def split_scores_VC_TTS(c="FFConcat1", ep=15):
         "-",
     ]
     protocol_df = pd.read_csv(
-        # f'{local_config["data_dir"]}{local_config["asvspoof2021df"]["eval_subdir"]}/{local_config["asvspoof2021df"]["eval_protocol"]}',
-        "../DF21_protocol.txt",
+        f'{local_config["data_dir"]}{local_config["asvspoof2021df"]["eval_subdir"]}/{local_config["asvspoof2021df"]["eval_protocol"]}',
         sep=" ",
     )
     protocol_df.columns = df21_headers
     protocol_df = protocol_df.merge(scores_df, on="AUDIO_FILE_NAME")
     eer = calculate_EER(c, protocol_df["LABEL"], protocol_df["SCORE"], False, f"DF21_{c}")
     print(f"EER for DF21: {eer*100}%")
-
-    # for subset in ["vcc2018", "vcc2020", "asvspoof", "vcc"]:
-    #     protocol_subset = protocol_df[protocol_df["SOURCE"].str.contains(subset)].reset_index(drop=True)
-    #     eer = calculate_EER(c, protocol_subset["LABEL"], protocol_subset["SCORE"], False, f"{subset}_{c}")
-    #     print(f"EER for {subset}: {eer*100}%")
 
     asvspoof_bonafide_df = protocol_df[
         (protocol_df["KEY"] == "bonafide") & (protocol_df["SOURCE"].str.contains("asvspoof"))
@@ -108,9 +104,14 @@ def split_scores_VC_TTS(c="FFConcat1", ep=15):
         print(f"EER for {subset}: {eer*100}%")
 
 
-if __name__ == "__main__":
+def fusion():
+    # Code working but not doing what I want
+    d = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    layer = torch.nn.Linear(6, 1, device=d)
+
+    # Load the scores
+    all_scores_df = pd.DataFrame()
     for c, ep in [
-        ("FF", 20),
         ("FFDiff", 20),
         ("FFDiffAbs", 15),
         ("FFDiffQuadratic", 15),
@@ -118,7 +119,42 @@ if __name__ == "__main__":
         ("FFConcat3", 10),
         ("FFLSTM", 10),
     ]:
-        print(f"Classifier: {c}")
-        # draw_score_distribution(c, ep)
-        split_scores_VC_TTS(c, ep)
-        print("\n")
+        print(f"Loading scores for {c}_{ep}")
+        scores_headers = ["AUDIO_FILE_NAME", f"SCORE_{c}", "LABEL"]
+        scores_df = pd.read_csv(f"./scores/DF21/{c}_{c}_{ep}.pt_scores.txt", sep=",", names=scores_headers)
+        if all_scores_df.empty:
+            all_scores_df.insert(0, "AUDIO_FILE_NAME", scores_df["AUDIO_FILE_NAME"])
+            all_scores_df.insert(1, "LABEL", scores_df["LABEL"])
+            all_scores_df.insert(2, f"SCORE_{c}", scores_df[f"SCORE_{c}"])
+        else:
+            all_scores_df = all_scores_df.merge(scores_df, on=["AUDIO_FILE_NAME", "LABEL"])
+    # print(all_scores_df.iloc[:, 2:])
+
+    loss = torch.nn.BCEWithLogitsLoss()
+    optimizer = torch.optim.Adam(layer.parameters())
+    for epoch in range(20):
+        batch_size = 512
+        num_scores = all_scores_df.shape[0]
+        losses = []
+        predictions = []
+        for i in tqdm(range(0, num_scores, batch_size)):
+            optimizer.zero_grad()
+            batch_scores = all_scores_df.iloc[i : i + batch_size, 2:].to_numpy()
+            batch_labels = all_scores_df.iloc[i : i + batch_size, 1].to_numpy()
+            inputs = torch.tensor(batch_scores, dtype=torch.float32).to(d)
+            labels = torch.tensor(batch_labels, dtype=torch.float32).to(d)
+            outputs = layer(inputs).squeeze()
+            pred = torch.abs(torch.round(outputs))
+            predictions.extend(pred)
+            loss_value = loss(outputs, labels)
+            loss_value.backward()
+            losses.append(loss_value.item())
+            optimizer.step()
+        accuracy = torch.mean(
+            (torch.tensor(predictions) == torch.tensor(all_scores_df["LABEL"])).float()
+        ).item()
+        print(f"Epoch {epoch}: Loss: {torch.mean(torch.tensor(losses))}, Acc: {accuracy}")
+
+
+if __name__ == "__main__":
+    pass
