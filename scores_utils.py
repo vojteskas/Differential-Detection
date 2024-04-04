@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from cProfile import label
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -45,11 +44,11 @@ def draw_score_distribution(c="FFConcat1", ep=15):
         linewidth=1.5,
         align="edge",
     )
-    plt.axvline(x=0.5, color='black', linestyle='--', label='Threshold 0.5', ymax=0.8, alpha=0.7)
+    plt.axvline(x=0.5, color="black", linestyle="--", label="Threshold 0.5", ymax=0.8, alpha=0.7)
     plt.xlabel("Scores")
     plt.ylabel("Relative frequency of bonafide/spoofed")
     plt.title(f"Distribution of scores: {c}")
-    plt.legend(loc='upper center')
+    plt.legend(loc="upper center")
     # plt.xlim(0, 1)
     plt.savefig(f"./scores/{c}_{ep}_scores.png")
 
@@ -77,7 +76,8 @@ def split_scores_VC_TTS(c="FFConcat1", ep=15):
         "-",
     ]
     protocol_df = pd.read_csv(
-        f'{local_config["data_dir"]}{local_config["asvspoof2021df"]["eval_subdir"]}/{local_config["asvspoof2021df"]["eval_protocol"]}',
+        # f'{local_config["data_dir"]}{local_config["asvspoof2021df"]["eval_subdir"]}/{local_config["asvspoof2021df"]["eval_protocol"]}',
+        "../DF21_protocol.txt",
         sep=" ",
     )
     protocol_df.columns = df21_headers
@@ -85,14 +85,32 @@ def split_scores_VC_TTS(c="FFConcat1", ep=15):
     eer = calculate_EER(c, protocol_df["LABEL"], protocol_df["SCORE"], False, f"DF21_{c}")
     print(f"EER for DF21: {eer*100}%")
 
-    for subset in ["vcc2018", "vcc2020", "asvspoof", "vcc"]:
-        protocol_subset = protocol_df[protocol_df["SOURCE"].str.contains(subset)].reset_index(drop=True)
-        eer = calculate_EER(c, protocol_subset["LABEL"], protocol_subset["SCORE"], False, f"{subset}_{c}")
+    # for subset in ["vcc2018", "vcc2020", "asvspoof", "vcc"]:
+    #     protocol_subset = protocol_df[protocol_df["SOURCE"].str.contains(subset)].reset_index(drop=True)
+    #     eer = calculate_EER(c, protocol_subset["LABEL"], protocol_subset["SCORE"], False, f"{subset}_{c}")
+    #     print(f"EER for {subset}: {eer*100}%")
+
+    asvspoof_bonafide_df = protocol_df[
+        (protocol_df["KEY"] == "bonafide") & (protocol_df["SOURCE"].str.contains("asvspoof"))
+    ].reset_index(drop=True)
+
+    tts_systems = ["A01", "A02", "A03", "A04", "A07", "A08", "A09", "A10", "A11", "A12", "A16"]
+    tts_subset = protocol_df[protocol_df["MODIF"].isin(tts_systems)].reset_index(drop=True)
+    tts_subset = pd.concat([tts_subset, asvspoof_bonafide_df], axis=0)
+
+    vc_systems = ["A05", "A06", "A17", "A18", "A19"]
+    asvspoof_vc_subset = protocol_df[protocol_df["MODIF"].isin(vc_systems)].reset_index(drop=True)
+    vcc_subset = protocol_df[protocol_df["SOURCE"].str.contains("vcc")].reset_index(drop=True)
+    vc_subset = pd.concat([asvspoof_vc_subset, vcc_subset, asvspoof_bonafide_df], axis=0)
+
+    for subset, subset_df in zip(["TTS", "VC"], [tts_subset, vc_subset]):
+        eer = calculate_EER(c, subset_df["LABEL"], subset_df["SCORE"], False, f"{subset}_{c}")
         print(f"EER for {subset}: {eer*100}%")
 
 
 if __name__ == "__main__":
     for c, ep in [
+        ("FF", 20),
         ("FFDiff", 20),
         ("FFDiffAbs", 15),
         ("FFDiffQuadratic", 15),
@@ -101,6 +119,6 @@ if __name__ == "__main__":
         ("FFLSTM", 10),
     ]:
         print(f"Classifier: {c}")
-        draw_score_distribution(c, ep)
+        # draw_score_distribution(c, ep)
         split_scores_VC_TTS(c, ep)
         print("\n")
