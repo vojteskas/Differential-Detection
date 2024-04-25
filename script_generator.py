@@ -229,42 +229,42 @@ def generate_job_script(
 
 
 if __name__ == "__main__":
-    # Modify parameters and arguments here
-    dataset = "ASVspoof2019LADataset_pair"
-    dshort = "LA19"
-    for c, ep in [
-        ("FFDiff", 20),
-        ("FFDiffAbs", 15),
-        ("FFDiffQuadratic", 15),
-        ("FFConcat1", 15),
-        ("FFConcat3", 10),
-        ("FFLSTM", 10),
-    ]:
-        command = [
-            (
-                "eval.py",
-                [
-                    "--metacentrum",
-                    "--dataset",
-                    dataset,
-                    "--classifier",
-                    f"{c}",
-                    "--extractor",
-                    "XLSR_300M",
-                    "--processor",
-                    "MHFA",
-                    "--checkpoint",
-                    f"{c}_{ep}.pt",
-                ],
-            )
-        ]
-        generate_job_script(
-            jobname=f"EVAL_{c}_{dshort}_{ep}",
-            file_name=f"scripts/{c}_{dshort}_{ep}.sh",
-            project_archive_name="dp.zip",
-            dataset_archive_name=f"{dshort}.tar.gz",
-            checkpoint_archive_name=f"NEW_{c}_LA19_Results.zip",
-            checkpoint_file_from_archive_name=f"{c}_{ep}.pt",
-            execute_list=command,
-            train=False,
-        )
+    # # Modify parameters and arguments here
+    # dataset = "ASVspoof2019LADataset_pair"
+    # dshort = "LA19"
+    # for c, ep in [
+    #     ("FFDiff", 20),
+    #     ("FFDiffAbs", 15),
+    #     ("FFDiffQuadratic", 15),
+    #     ("FFConcat1", 15),
+    #     ("FFConcat3", 10),
+    #     ("FFLSTM", 10),
+    # ]:
+    #     command = [
+    #         (
+    #             "eval.py",
+    #             [
+    #                 "--metacentrum",
+    #                 "--dataset",
+    #                 dataset,
+    #                 "--classifier",
+    #                 f"{c}",
+    #                 "--extractor",
+    #                 "XLSR_300M",
+    #                 "--processor",
+    #                 "MHFA",
+    #                 "--checkpoint",
+    #                 f"{c}_{ep}.pt",
+    #             ],
+    #         )
+    #     ]
+    #     generate_job_script(
+    #         jobname=f"EVAL_{c}_{dshort}_{ep}",
+    #         file_name=f"scripts/{c}_{dshort}_{ep}.sh",
+    #         project_archive_name="dp.zip",
+    #         dataset_archive_name=f"{dshort}.tar.gz",
+    #         checkpoint_archive_name=f"NEW_{c}_LA19_Results.zip",
+    #         checkpoint_file_from_archive_name=f"{c}_{ep}.pt",
+    #         execute_list=command,
+    #         train=False,
+    #     )
