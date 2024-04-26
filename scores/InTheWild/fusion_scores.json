@@ -1,0 +1,722 @@
+{
+    "score_FFConcat1 + score_FFConcat2": {
+        "mean": 0.1755247164939634,
+        "max": 0.17917266569083745,
+        "min": 0.13414416153635073,
+        "sqrt": 0.11882087650915195
+    },
+    "score_FFConcat1 + score_FFConcat3": {
+        "mean": 0.11044890350805048,
+        "max": 0.11611427823938741,
+        "min": 0.15107292389023957,
+        "sqrt": 0.10560742519225903
+    },
+    "score_FFConcat1 + score_FFDiff": {
+        "mean": 0.1435248473046836,
+        "max": 0.15327516577638842,
+        "min": 0.1906631851694762,
+        "sqrt": 0.13964976625172276
+    },
+    "score_FFConcat1 + score_FFDiffAbs": {
+        "mean": 0.174331187375046,
+        "max": 0.1870152359726021,
+        "min": 0.19557202532538953,
+        "sqrt": 0.15079569936271064
+    },
+    "score_FFConcat1 + score_FFDiffQuadratic": {
+        "mean": 0.21275296587108627,
+        "max": 0.23257314284642566,
+        "min": 0.1981188535791892,
+        "sqrt": 0.17180940545696743
+    },
+    "score_FFConcat1 + score_FFLSTM": {
+        "mean": 0.17265834820823397,
+        "max": 0.21949441520977653,
+        "min": 0.19887538815461278,
+        "sqrt": 0.19887538815461278
+    },
+    "score_FFConcat2 + score_FFConcat3": {
+        "mean": 0.12127529658710863,
+        "max": 0.12212423933837518,
+        "min": 0.13389198334454286,
+        "sqrt": 0.10969236893262692
+    },
+    "score_FFConcat2 + score_FFDiff": {
+        "mean": 0.14563468101498944,
+        "max": 0.15286321756861568,
+        "min": 0.13414416153635073,
+        "sqrt": 0.1202665838198772
+    },
+    "score_FFConcat2 + score_FFDiffAbs": {
+        "mean": 0.17458336556685386,
+        "max": 0.1865359259247075,
+        "min": 0.13414416153635073,
+        "sqrt": 0.12583955037537115
+    },
+    "score_FFConcat2 + score_FFDiffQuadratic": {
+        "mean": 0.21004636760132175,
+        "max": 0.23027849278443385,
+        "min": 0.13414416153635073,
+        "sqrt": 0.12989944778001794
+    },
+    "score_FFConcat2 + score_FFLSTM": {
+        "mean": 0.19456331255815812,
+        "max": 0.21958682338561952,
+        "min": 0.13414416153635073,
+        "sqrt": 0.13405175336050773
+    },
+    "score_FFConcat3 + score_FFDiff": {
+        "mean": 0.1376997025573818,
+        "max": 0.15336757395223138,
+        "min": 0.12306559026548472,
+        "sqrt": 0.11315550177781503
+    },
+    "score_FFConcat3 + score_FFDiffAbs": {
+        "mean": 0.13717029983804502,
+        "max": 0.18550216682175497,
+        "min": 0.12356994664910043,
+        "sqrt": 0.11645886460703825
+    },
+    "score_FFConcat3 + score_FFDiffQuadratic": {
+        "mean": 0.16992670360274836,
+        "max": 0.2299589527525041,
+        "min": 0.12363730848922233,
+        "sqrt": 0.12061117018752804
+    },
+    "score_FFConcat3 + score_FFLSTM": {
+        "mean": 0.12797443042139806,
+        "max": 0.2185107487782662,
+        "min": 0.12363730848922233,
+        "sqrt": 0.12398189485687316
+    },
+    "score_FFDiff + score_FFDiffAbs": {
+        "mean": 0.14726520467740067,
+        "max": 0.14518990930445425,
+        "min": 0.14836632562047508,
+        "sqrt": 0.14726520467740067
+    },
+    "score_FFDiff + score_FFDiffQuadratic": {
+        "mean": 0.15969707508314893,
+        "max": 0.15531763764657236,
+        "min": 0.1615547306016469,
+        "sqrt": 0.1597644369232708
+    },
+    "score_FFDiff + score_FFLSTM": {
+        "mean": 0.15435124038374173,
+        "max": 0.15430892487934092,
+        "min": 0.155704539518624,
+        "sqrt": 0.15435124038374173
+    },
+    "score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.18635110957302153,
+        "max": 0.1860989313812137,
+        "min": 0.18738486867597404,
+        "sqrt": 0.18635110957302153
+    },
+    "score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.18635110957302153,
+        "max": 0.17797913657192008,
+        "min": 0.18855335145917035,
+        "sqrt": 0.18635110957302153
+    },
+    "score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.2298665445766611,
+        "max": 0.20263301469600956,
+        "min": 0.23562432748384105,
+        "sqrt": 0.2298665445766611
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3": {
+        "mean": 0.10840643163786653,
+        "max": 0.11510556547215599,
+        "min": 0.13389198334454286,
+        "sqrt": 0.10179970597942009
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiff": {
+        "mean": 0.13795188074918965,
+        "max": 0.15267840121692972,
+        "min": 0.13414416153635073,
+        "sqrt": 0.1086586098296744
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiffAbs": {
+        "mean": 0.16070578785038037,
+        "max": 0.18635110957302153,
+        "min": 0.13414416153635073,
+        "sqrt": 0.1127185072343212
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiffQuadratic": {
+        "mean": 0.19270565703966014,
+        "max": 0.22970677456069627,
+        "min": 0.13414416153635073,
+        "sqrt": 0.11687081281481099
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFLSTM": {
+        "mean": 0.16268089788044238,
+        "max": 0.21931737602513193,
+        "min": 0.13414416153635073,
+        "sqrt": 0.11875351466903006
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiff": {
+        "mean": 0.13042885049935474,
+        "max": 0.15318275760054545,
+        "min": 0.15029134297909494,
+        "sqrt": 0.09893333769369067
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiffAbs": {
+        "mean": 0.12627654491886497,
+        "max": 0.18499781043813926,
+        "min": 0.1509805157143966,
+        "sqrt": 0.10069858503634568
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiffQuadratic": {
+        "mean": 0.15699047681338438,
+        "max": 0.2289925554896735,
+        "min": 0.15107292389023957,
+        "sqrt": 0.10501066063280035
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFLSTM": {
+        "mean": 0.11558487552005062,
+        "max": 0.21828361692217943,
+        "min": 0.15107292389023957,
+        "sqrt": 0.1057248797038231
+    },
+    "score_FFConcat1 + score_FFDiff + score_FFDiffAbs": {
+        "mean": 0.14251613453745218,
+        "max": 0.14516486296873318,
+        "min": 0.18905770784278608,
+        "sqrt": 0.12524278581591247
+    },
+    "score_FFConcat1 + score_FFDiff + score_FFDiffQuadratic": {
+        "mean": 0.15419147036777686,
+        "max": 0.15522522947072936,
+        "min": 0.19041100697766833,
+        "sqrt": 0.13448874790400156
+    },
+    "score_FFConcat1 + score_FFDiff + score_FFLSTM": {
+        "mean": 0.1441216118641423,
+        "max": 0.15428387854361986,
+        "min": 0.1906631851694762,
+        "sqrt": 0.13955735807587977
+    },
+    "score_FFConcat1 + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.17813890658788495,
+        "max": 0.1860065232053707,
+        "min": 0.1952274389577387,
+        "sqrt": 0.1458868592067973
+    },
+    "score_FFConcat1 + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.17112023272166577,
+        "max": 0.177954090236199,
+        "min": 0.19557202532538953,
+        "sqrt": 0.15079569936271064
+    },
+    "score_FFConcat1 + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.20947464937758414,
+        "max": 0.20266583819877199,
+        "min": 0.1981188535791892,
+        "sqrt": 0.17187676729708934
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiff": {
+        "mean": 0.1324462760338176,
+        "max": 0.15283817123289462,
+        "min": 0.13379957516869986,
+        "sqrt": 0.10501066063280035
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiffAbs": {
+        "mean": 0.13125274691490021,
+        "max": 0.1847456322463314,
+        "min": 0.13389198334454286,
+        "sqrt": 0.10705313250298429
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiffQuadratic": {
+        "mean": 0.15937753505121915,
+        "max": 0.22757189451466933,
+        "min": 0.13389198334454286,
+        "sqrt": 0.10849883981370953
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFLSTM": {
+        "mean": 0.1255200103434414,
+        "max": 0.2183760250980224,
+        "min": 0.13389198334454286,
+        "sqrt": 0.10959996075678394
+    },
+    "score_FFConcat2 + score_FFDiff + score_FFDiffAbs": {
+        "mean": 0.14150742177022074,
+        "max": 0.14518990930445425,
+        "min": 0.13414416153635073,
+        "sqrt": 0.11560992185577171
+    },
+    "score_FFConcat2 + score_FFDiff + score_FFDiffQuadratic": {
+        "mean": 0.15130005574632638,
+        "max": 0.1551328212948864,
+        "min": 0.13414416153635073,
+        "sqrt": 0.11790457191776349
+    },
+    "score_FFConcat2 + score_FFDiff + score_FFLSTM": {
+        "mean": 0.14623144557444812,
+        "max": 0.15421651670349795,
+        "min": 0.13414416153635073,
+        "sqrt": 0.1202665838198772
+    },
+    "score_FFConcat2 + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.17323006643197159,
+        "max": 0.18572929867784177,
+        "min": 0.13414416153635073,
+        "sqrt": 0.12306559026548472
+    },
+    "score_FFConcat2 + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.1713050490733517,
+        "max": 0.17797913657192008,
+        "min": 0.13414416153635073,
+        "sqrt": 0.12599932039133604
+    },
+    "score_FFConcat2 + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.2057342920048671,
+        "max": 0.20256565285588768,
+        "min": 0.13414416153635073,
+        "sqrt": 0.13005921779598284
+    },
+    "score_FFConcat3 + score_FFDiff + score_FFDiffAbs": {
+        "mean": 0.13744752436557395,
+        "max": 0.14508972396156994,
+        "min": 0.12281341207367685,
+        "sqrt": 0.11120543808347406
+    },
+    "score_FFConcat3 + score_FFDiff + score_FFDiffQuadratic": {
+        "mean": 0.14556731917486754,
+        "max": 0.15529259131085127,
+        "min": 0.12306559026548472,
+        "sqrt": 0.11287827725028608
+    },
+    "score_FFConcat3 + score_FFDiff + score_FFLSTM": {
+        "mean": 0.13861600714877026,
+        "max": 0.15430892487934092,
+        "min": 0.12306559026548472,
+        "sqrt": 0.1133152717937799
+    },
+    "score_FFConcat3 + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.16121014423399604,
+        "max": 0.18414886768687272,
+        "min": 0.12356994664910043,
+        "sqrt": 0.11476097910450514
+    },
+    "score_FFConcat3 + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.13964976625172276,
+        "max": 0.17715524015637463,
+        "min": 0.12356994664910043,
+        "sqrt": 0.11661863462300312
+    },
+    "score_FFConcat3 + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.16756469170063465,
+        "max": 0.2017668027760633,
+        "min": 0.12363730848922233,
+        "sqrt": 0.12095575655517887
+    },
+    "score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.15198922848162805,
+        "max": 0.14518990930445425,
+        "min": 0.1535947058083182,
+        "sqrt": 0.1522414066734359
+    },
+    "score_FFDiff + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.14852609563643993,
+        "max": 0.14596028337936354,
+        "min": 0.1492826302118635,
+        "sqrt": 0.14852609563643993
+    },
+    "score_FFDiff + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.1608906042020663,
+        "max": 0.15421651670349795,
+        "min": 0.16325261610418002,
+        "sqrt": 0.1609579660421882
+    },
+    "score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.18779681688374678,
+        "max": 0.17797913657192008,
+        "min": 0.19034364513754642,
+        "sqrt": 0.18788922505958977
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiff": {
+        "mean": 0.12611677490290008,
+        "max": 0.15251863120096487,
+        "min": 0.13379957516869986,
+        "sqrt": 0.09742026854284352
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiffAbs": {
+        "mean": 0.12237641753018304,
+        "max": 0.18440104587868056,
+        "min": 0.13389198334454286,
+        "sqrt": 0.09858875132603984
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiffQuadratic": {
+        "mean": 0.14868586565240482,
+        "max": 0.2266555899232809,
+        "min": 0.13389198334454286,
+        "sqrt": 0.10072363137206676
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFLSTM": {
+        "mean": 0.11400444452908158,
+        "max": 0.21812384690621456,
+        "min": 0.13389198334454286,
+        "sqrt": 0.10182475231514117
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiff + score_FFDiffAbs": {
+        "mean": 0.1377670643975037,
+        "max": 0.14516486296873318,
+        "min": 0.13414416153635073,
+        "sqrt": 0.10620418975171772
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiff + score_FFDiffQuadratic": {
+        "mean": 0.14666844011794195,
+        "max": 0.15504041311904343,
+        "min": 0.13414416153635073,
+        "sqrt": 0.10730531069479213
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiff + score_FFLSTM": {
+        "mean": 0.1378594725733467,
+        "max": 0.15419147036777686,
+        "min": 0.13414416153635073,
+        "sqrt": 0.1086586098296744
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.16706033531701897,
+        "max": 0.18550216682175497,
+        "min": 0.13414416153635073,
+        "sqrt": 0.11161738629124679
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.1587557241560394,
+        "max": 0.1778193665559552,
+        "min": 0.13414416153635073,
+        "sqrt": 0.1127185072343212
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.1876370468677819,
+        "max": 0.20243092917564387,
+        "min": 0.13414416153635073,
+        "sqrt": 0.116778404638968
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs": {
+        "mean": 0.13329521878508416,
+        "max": 0.14506467762584885,
+        "min": 0.150316389314816,
+        "sqrt": 0.09682350398338484
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiff + score_FFDiffQuadratic": {
+        "mean": 0.1412301972426918,
+        "max": 0.1551328212948864,
+        "min": 0.15029134297909494,
+        "sqrt": 0.0993703322371845
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiff + score_FFLSTM": {
+        "mean": 0.13024403414766877,
+        "max": 0.15428387854361986,
+        "min": 0.15029134297909494,
+        "sqrt": 0.09909310770965554
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.1540990621919339,
+        "max": 0.1838794203263851,
+        "min": 0.1509805157143966,
+        "sqrt": 0.10072363137206676
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.12999185595586094,
+        "max": 0.17701273930908945,
+        "min": 0.1509805157143966,
+        "sqrt": 0.10081603954790974
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.1556371776785021,
+        "max": 0.20148957824853433,
+        "min": 0.15107292389023957,
+        "sqrt": 0.1051281151443644
+    },
+    "score_FFConcat1 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.14802173925282422,
+        "max": 0.14516486296873318,
+        "min": 0.1889652996669431,
+        "sqrt": 0.12416671120855913
+    },
+    "score_FFConcat1 + score_FFDiff + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.1440292036882993,
+        "max": 0.14596028337936354,
+        "min": 0.18905770784278608,
+        "sqrt": 0.12526783215163353
+    },
+    "score_FFConcat1 + score_FFDiff + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.15547740766253723,
+        "max": 0.15419147036777686,
+        "min": 0.19041100697766833,
+        "sqrt": 0.13448874790400156
+    },
+    "score_FFConcat1 + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.17983679209041803,
+        "max": 0.177954090236199,
+        "min": 0.1952274389577387,
+        "sqrt": 0.1458194973666754
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs": {
+        "mean": 0.13304304059327632,
+        "max": 0.14508972396156994,
+        "min": 0.13379957516869986,
+        "sqrt": 0.10280841874665152
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffQuadratic": {
+        "mean": 0.1399693062836525,
+        "max": 0.1551328212948864,
+        "min": 0.13379957516869986,
+        "sqrt": 0.103934586025447
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFLSTM": {
+        "mean": 0.13279086240146845,
+        "max": 0.15421651670349795,
+        "min": 0.13379957516869986,
+        "sqrt": 0.10503570696852142
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.1522414066734359,
+        "max": 0.18361946496753592,
+        "min": 0.13389198334454286,
+        "sqrt": 0.1057248797038231
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.13322785694496225,
+        "max": 0.17701273930908945,
+        "min": 0.13389198334454286,
+        "sqrt": 0.10698577066286238
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.15715024682934925,
+        "max": 0.20137990090401162,
+        "min": 0.13389198334454286,
+        "sqrt": 0.1085912479895525
+    },
+    "score_FFConcat2 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.14513032463137374,
+        "max": 0.14518990930445425,
+        "min": 0.13414416153635073,
+        "sqrt": 0.1145088009126973
+    },
+    "score_FFConcat2 + score_FFDiff + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.14251613453745218,
+        "max": 0.14596028337936354,
+        "min": 0.13414416153635073,
+        "sqrt": 0.11558487552005062
+    },
+    "score_FFConcat2 + score_FFDiff + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.1527708093927727,
+        "max": 0.15419147036777686,
+        "min": 0.13414416153635073,
+        "sqrt": 0.11787952558204241
+    },
+    "score_FFConcat2 + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.17511276828619066,
+        "max": 0.17797913657192008,
+        "min": 0.13414416153635073,
+        "sqrt": 0.12306559026548472
+    },
+    "score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.14201177815383645,
+        "max": 0.14508972396156994,
+        "min": 0.12281341207367685,
+        "sqrt": 0.11063371985973644
+    },
+    "score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.1390530016922641,
+        "max": 0.14596028337936354,
+        "min": 0.12281341207367685,
+        "sqrt": 0.11129784625931705
+    },
+    "score_FFConcat3 + score_FFDiff + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.14742497469336552,
+        "max": 0.15421651670349795,
+        "min": 0.12306559026548472,
+        "sqrt": 0.11308813993769312
+    },
+    "score_FFConcat3 + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.16341238612014486,
+        "max": 0.17715524015637463,
+        "min": 0.12356994664910043,
+        "sqrt": 0.115013157296313
+    },
+    "score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.152174044833314,
+        "max": 0.14596028337936354,
+        "min": 0.15419147036777686,
+        "sqrt": 0.15233381484927888
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs": {
+        "mean": 0.13008426413170393,
+        "max": 0.14506467762584885,
+        "min": 0.13379957516869986,
+        "sqrt": 0.09622673942392614
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffQuadratic": {
+        "mean": 0.1360018170548487,
+        "max": 0.15497305127892153,
+        "min": 0.13379957516869986,
+        "sqrt": 0.09732786036700056
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFLSTM": {
+        "mean": 0.12558737218356328,
+        "max": 0.15419147036777686,
+        "min": 0.13379957516869986,
+        "sqrt": 0.09742026854284352
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.1468532564696279,
+        "max": 0.1835771494631351,
+        "min": 0.13389198334454286,
+        "sqrt": 0.09868115950188282
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.12448625124048887,
+        "max": 0.17690306196456673,
+        "min": 0.13389198334454286,
+        "sqrt": 0.09858875132603984
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.14733256651752255,
+        "max": 0.20127971556112728,
+        "min": 0.13389198334454286,
+        "sqrt": 0.10079099321218865
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.14191936997799348,
+        "max": 0.14516486296873318,
+        "min": 0.13414416153635073,
+        "sqrt": 0.10485089061683546
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiff + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.1389605935164211,
+        "max": 0.14596028337936354,
+        "min": 0.13414416153635073,
+        "sqrt": 0.10613682791159583
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiff + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.14792933107698125,
+        "max": 0.15416642403205577,
+        "min": 0.13414416153635073,
+        "sqrt": 0.10733035703051322
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.16875822081955205,
+        "max": 0.1778193665559552,
+        "min": 0.13414416153635073,
+        "sqrt": 0.11161738629124679
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.13827142078111943,
+        "max": 0.14506467762584885,
+        "min": 0.150316389314816,
+        "sqrt": 0.09758003855880841
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.13508551246346023,
+        "max": 0.14596028337936354,
+        "min": 0.150316389314816,
+        "sqrt": 0.09689086582350673
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiff + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.1423563645214873,
+        "max": 0.15419147036777686,
+        "min": 0.15029134297909494,
+        "sqrt": 0.09943769407730639
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.1563013040780827,
+        "max": 0.17701273930908945,
+        "min": 0.1509805157143966,
+        "sqrt": 0.10081603954790974
+    },
+    "score_FFConcat1 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.14859345747656183,
+        "max": 0.14596028337936354,
+        "min": 0.1889652996669431,
+        "sqrt": 0.124326481224524
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.13744752436557395,
+        "max": 0.14508972396156994,
+        "min": 0.13379957516869986,
+        "sqrt": 0.10223670052291389
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.13508551246346023,
+        "max": 0.14596028337936354,
+        "min": 0.13379957516869986,
+        "sqrt": 0.1028334650823726
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.14141501359437775,
+        "max": 0.15419147036777686,
+        "min": 0.13379957516869986,
+        "sqrt": 0.1040019478655689
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.1546284649112707,
+        "max": 0.17701273930908945,
+        "min": 0.13389198334454286,
+        "sqrt": 0.10588464971978798
+    },
+    "score_FFConcat2 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.14623144557444812,
+        "max": 0.14596028337936354,
+        "min": 0.13414416153635073,
+        "sqrt": 0.11457616275281918
+    },
+    "score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.14276831272926002,
+        "max": 0.14596028337936354,
+        "min": 0.12281341207367685,
+        "sqrt": 0.11095325989166621
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic": {
+        "mean": 0.1348333342716524,
+        "max": 0.14506467762584885,
+        "min": 0.13379957516869986,
+        "sqrt": 0.09590719939199638
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFLSTM": {
+        "mean": 0.13125274691490021,
+        "max": 0.14596028337936354,
+        "min": 0.13379957516869986,
+        "sqrt": 0.09622673942392614
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.13728775434960905,
+        "max": 0.15416642403205577,
+        "min": 0.13379957516869986,
+        "sqrt": 0.09732786036700056
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.1487782738282478,
+        "max": 0.17690306196456673,
+        "min": 0.13389198334454286,
+        "sqrt": 0.09868115950188282
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.14226395634564432,
+        "max": 0.14596028337936354,
+        "min": 0.13414416153635073,
+        "sqrt": 0.10485089061683546
+    },
+    "score_FFConcat1 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.1388681853405781,
+        "max": 0.14596028337936354,
+        "min": 0.150316389314816,
+        "sqrt": 0.09767244673465139
+    },
+    "score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.13795188074918965,
+        "max": 0.14596028337936354,
+        "min": 0.13379957516869986,
+        "sqrt": 0.10223670052291389
+    },
+    "score_FFConcat1 + score_FFConcat2 + score_FFConcat3 + score_FFDiff + score_FFDiffAbs + score_FFDiffQuadratic + score_FFLSTM": {
+        "mean": 0.1358420470388838,
+        "max": 0.14596028337936354,
+        "min": 0.13379957516869986,
+        "sqrt": 0.09590719939199638
+    }
+}

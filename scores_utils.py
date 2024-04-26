@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
+from itertools import combinations
+import json
+from typing import Literal
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import os
 from tqdm import tqdm
 
 from trainers.utils import calculate_EER
@@ -104,7 +108,7 @@ def split_scores_VC_TTS(c="FFConcat1", ep=15):
         print(f"EER for {subset}: {eer*100}%")
 
 
-def fusion():
+def fusion_NN():
     # Code working but not doing what I want
     d = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     layer = torch.nn.Linear(6, 1, device=d)
@@ -156,5 +160,78 @@ def fusion():
         print(f"Epoch {epoch}: Loss: {torch.mean(torch.tensor(losses))}, Acc: {accuracy}")
 
 
+def fusion_scores(dataset: Literal["DF21", "InTheWild"]):
+    dfs = []
+
+    for file in os.listdir(f"./scores/{dataset}"):
+        if ".json" in file or "fusion" in file:
+            continue  # Skip the fusion scores
+
+        df = pd.read_csv(
+            f"./scores/{dataset}/{file}", header=None, names=["file", f'score_{file.split("_")[1]}', "label"]
+        )
+        dfs.append(df)
+
+    final_df = pd.concat(dfs, axis=0).groupby(["file", "label"]).first().reset_index()
+    if dataset == "DF21":
+        final_df = final_df.drop(columns=["score_FF"])  # Only pair-input systems
+
+    scores = [
+        "score_FFConcat1",
+        "score_FFConcat2",
+        "score_FFConcat3",
+        "score_FFDiff",
+        "score_FFDiffAbs",
+        "score_FFDiffQuadratic",
+        "score_FFLSTM",
+        "score_FFLSTM2",
+    ]
+    comb = []
+    for i in range(2, len(scores) + 1):
+        comb.extend(combinations(scores, i))
+
+    score_dict = {}
+    for combination in tqdm(comb):
+        name = f" + ".join(combination)
+        mean_score = final_df[list(combination)].mean(axis=1)
+        max_score = final_df[list(combination)].max(axis=1)
+        min_score = final_df[list(combination)].min(axis=1)
+        sqrt_score = final_df[list(combination)].apply(lambda x: x.prod() ** (1 / len(combination)), axis=1)
+
+        mean_eer = calculate_EER(name, final_df["label"], mean_score, False, "")
+        max_eer = calculate_EER(name, final_df["label"], max_score, False, "")
+        min_eer = calculate_EER(name, final_df["label"], min_score, False, "")
+        sqrt_eer = calculate_EER(name, final_df["label"], sqrt_score, False, "")
+
+        score_dict[name] = {"mean": mean_eer, "max": max_eer, "min": min_eer, "sqrt": sqrt_eer}
+
+    json.dump(score_dict, open(f"./scores/{dataset}/fusion_scores.json", "w"))
+
+
+def fusion_scores_from_json(
+    dataset: Literal["DF21", "InTheWild"], number: Literal["all", "oneplusone"] = "all"
+):
+    scores = json.load(open(f"./scores/{dataset}/fusion_scores.json", "r"))
+
+    if number == "oneplusone":
+        doubles = {key: scores[key] for key in scores if len(key.split(" + ")) == 2}
+        scores = {
+            key: doubles[key]
+            for key in doubles
+            if (key.count("FFDiff") == 1 and (key.count("FFConcat") == 1 or key.count("FFLSTM") == 1))
+        }
+
+    for fusion in ["mean", "max", "min", "sqrt"]:
+        best_fusion = min(scores, key=lambda x: scores[x][fusion])
+        print(f"Best {fusion} fusion: {best_fusion}, EER: {scores[best_fusion][fusion]*100}%")
+
+
 if __name__ == "__main__":
-    pass
+    print("##### DF21 #####")
+    fusion_scores("DF21")
+    fusion_scores_from_json("DF21", "oneplusone")
+    fusion_scores_from_json("DF21", "all")
+    print("##### InTheWild #####")
+    fusion_scores("InTheWild")
+    fusion_scores_from_json("InTheWild", "oneplusone")
+    fusion_scores_from_json("InTheWild", "all")
