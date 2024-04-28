@@ -6,9 +6,13 @@ from typing import Literal
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.model_selection import train_test_split
 import torch
 import os
 from tqdm import tqdm
+from sklearn.svm import SVC
+from sklearn.decomposition import PCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
 from trainers.utils import calculate_EER
 
@@ -18,7 +22,8 @@ from config import local_config
 def draw_score_distribution(c="FFConcat1", ep=15):
     # Load the scores
     scores_headers = ["AUDIO_FILE_NAME", "SCORE", "LABEL"]
-    scores_df = pd.read_csv(f"./scores/DF21/{c}_{c}_{ep}.pt_scores.txt", sep=",", names=scores_headers)
+    # scores_df = pd.read_csv(f"./scores/DF21/{c}_{c}_{ep}.pt_scores.txt", sep=",", names=scores_headers)
+    scores_df = pd.read_csv(f"./scores/InTheWild/InTheWild_{c}_scores.txt", sep=",", names=scores_headers)
 
     # Filter the scores based on label
     bf_hist, bf_edges = np.histogram(scores_df[scores_df["LABEL"] == 0]["SCORE"], bins=15)
@@ -51,12 +56,20 @@ def draw_score_distribution(c="FFConcat1", ep=15):
         align="edge",
     )
     plt.axvline(x=0.5, color="black", linestyle="--", label="Threshold 0.5", ymax=0.8, alpha=0.7)
-    plt.xlabel("Scores")
-    plt.ylabel("Relative frequency of bonafide/spoofed")
+    plt.xlabel("Scores - Probabilities of bonafide sample")
+    plt.ylabel("Relative frequency of bonafide/spoofed samples")
     plt.title(f"Distribution of scores: {c}")
     plt.legend(loc="upper center")
     # plt.xlim(0, 1)
     plt.savefig(f"./scores/{c}_{ep}_scores.png")
+
+
+def draw_det(dataset: Literal["DF21", "InTheWild"], c="FFLSTM", ep=10):
+    # Load the scores
+    scores_headers = ["AUDIO_FILE_NAME", f"SCORE_{c}", "LABEL"]
+    name = f"{c}_{c}_{ep}.pt_scores.txt" if dataset == "DF21" else f"InTheWild_{c}_scores.txt"
+    scores_df = pd.read_csv(f"./scores/{dataset}/{name}", sep=",", names=scores_headers)
+    calculate_EER(c, scores_df["LABEL"], scores_df[f"SCORE_{c}"], True, f"{dataset}_{c}")
 
 
 def split_scores_VC_TTS(c="FFConcat1", ep=15):
@@ -108,56 +121,80 @@ def split_scores_VC_TTS(c="FFConcat1", ep=15):
         print(f"EER for {subset}: {eer*100}%")
 
 
-def fusion_NN():
-    # Code working but not doing what I want
-    d = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    layer = torch.nn.Linear(6, 1, device=d)
-
-    # Load the scores
+def get_all_scores_df(variant: Literal["DF21", "InTheWild"]) -> pd.DataFrame:
     all_scores_df = pd.DataFrame()
     for c, ep in [
         ("FFDiff", 20),
         ("FFDiffAbs", 15),
         ("FFDiffQuadratic", 15),
         ("FFConcat1", 15),
+        ("FFConcat2", 10),
         ("FFConcat3", 10),
-        ("FFLSTM", 10),
+        # ("FFLSTM", 10),
+        ("FFLSTM2", 15),
     ]:
         print(f"Loading scores for {c}_{ep}")
         scores_headers = ["AUDIO_FILE_NAME", f"SCORE_{c}", "LABEL"]
-        scores_df = pd.read_csv(f"./scores/DF21/{c}_{c}_{ep}.pt_scores.txt", sep=",", names=scores_headers)
+        scores_df = pd.read_csv(
+            f"./scores/{variant}/{(c+'_'+c+'_'+str(ep)+'.pt_scores.txt') if variant == 'DF21' else 'InTheWild_'+c+'_scores.txt'}",
+            sep=",",
+            names=scores_headers,
+        )
         if all_scores_df.empty:
             all_scores_df.insert(0, "AUDIO_FILE_NAME", scores_df["AUDIO_FILE_NAME"])
             all_scores_df.insert(1, "LABEL", scores_df["LABEL"])
             all_scores_df.insert(2, f"SCORE_{c}", scores_df[f"SCORE_{c}"])
         else:
             all_scores_df = all_scores_df.merge(scores_df, on=["AUDIO_FILE_NAME", "LABEL"])
-    # print(all_scores_df.iloc[:, 2:])
+    return all_scores_df
 
-    loss = torch.nn.BCEWithLogitsLoss()
+
+def fusion_NN(variant: Literal["DF21", "InTheWild"]):
+    d = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    layer = torch.nn.Linear(7, 2).to(d)
+
+    all_scores_df = get_all_scores_df(variant)
+
+    batch_size = 1280  # local 1060 has 1280 CUDA cores
+    loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(layer.parameters())
-    for epoch in range(20):
-        batch_size = 512
-        num_scores = all_scores_df.shape[0]
+    for epoch in range(1, 201):  # 1-indexed epochs
+        names = []
         losses = []
-        predictions = []
-        for i in tqdm(range(0, num_scores, batch_size)):
+        probs = []
+        accuracies = []
+        labels = []
+        for i in tqdm(range(0, len(all_scores_df), batch_size)):
             optimizer.zero_grad()
-            batch_scores = all_scores_df.iloc[i : i + batch_size, 2:].to_numpy()
-            batch_labels = all_scores_df.iloc[i : i + batch_size, 1].to_numpy()
-            inputs = torch.tensor(batch_scores, dtype=torch.float32).to(d)
-            labels = torch.tensor(batch_labels, dtype=torch.float32).to(d)
-            outputs = layer(inputs).squeeze()
-            pred = torch.abs(torch.round(outputs))
-            predictions.extend(pred)
-            loss_value = loss(outputs, labels)
-            loss_value.backward()
-            losses.append(loss_value.item())
+
+            batch_scores = torch.tensor(
+                all_scores_df.iloc[i : i + batch_size, 2:].values, dtype=torch.float32
+            ).to(d)
+            batch_labels = torch.tensor(
+                all_scores_df.iloc[i : i + batch_size, 1].values, dtype=torch.long
+            ).to(d)
+
+            outputs = layer(batch_scores)
+            probs_batch = torch.nn.functional.softmax(outputs, dim=1)
+
+            loss = loss_fn(outputs, batch_labels)
+
+            names.extend(all_scores_df.iloc[i : i + batch_size, 0].tolist())
+            losses.extend(loss.item() for _ in range(batch_size))
+            probs.extend(probs_batch[:, 0].tolist())
+            accuracies.extend((torch.argmax(probs_batch, 1) == batch_labels).tolist())
+            labels.extend(batch_labels.tolist())
+
+            loss.backward()
             optimizer.step()
-        accuracy = torch.mean(
-            (torch.tensor(predictions) == torch.tensor(all_scores_df["LABEL"])).float()
-        ).item()
-        print(f"Epoch {epoch}: Loss: {torch.mean(torch.tensor(losses))}, Acc: {accuracy}")
+
+        eer = calculate_EER("Fusion", labels, probs, False, "Fusion")
+        print(f"Epoch {epoch}: Loss: {np.mean(losses)}, Acc: {np.mean(accuracies)*100}%, EER: {eer*100}%")
+        print(f"Estimated parameters: {layer.weight}, {layer.bias}")
+
+        with open(f"./scores/{variant}/fusion/NN_{epoch}_scores.txt", "w") as f:
+            for file_name, score, label in zip(names, probs, labels):
+                f.write(f"{file_name},{score},{int(label)}\n")
 
 
 def fusion_scores(dataset: Literal["DF21", "InTheWild"]):
@@ -183,7 +220,7 @@ def fusion_scores(dataset: Literal["DF21", "InTheWild"]):
         "score_FFDiff",
         "score_FFDiffAbs",
         "score_FFDiffQuadratic",
-        "score_FFLSTM",
+        # "score_FFLSTM",
         "score_FFLSTM2",
     ]
     comb = []
@@ -226,12 +263,42 @@ def fusion_scores_from_json(
         print(f"Best {fusion} fusion: {best_fusion}, EER: {scores[best_fusion][fusion]*100}%")
 
 
+def fusion_LDA(variant: Literal["DF21", "InTheWild"]):
+    all_scores_df = get_all_scores_df(variant)
+
+    lda = LDA()
+    lda.fit(all_scores_df.iloc[:, 2:], all_scores_df["LABEL"])
+    x_trans = lda.transform(all_scores_df.iloc[:, 2:])
+
+    X_train, X_test, y_train, y_test = train_test_split(x_trans, all_scores_df["LABEL"], test_size=0.8)
+
+    for k in ["linear", "poly", "rbf", "sigmoid"]:
+        svm = SVC(kernel=k, probability=True)
+        svm.fit(X_train, y_train)
+        scores = svm.predict_proba(X_test)
+
+        eer = calculate_EER(f"LDA_{k}", y_test, scores[:, 0], False, f"LDA_{k}")
+        print(f"LDA + SVM({k}) EER: {eer*100}%")
+
+
+def fusion_PCA(variant: Literal["DF21", "InTheWild"]):
+    all_scores_df = get_all_scores_df(variant)
+
+    pca = PCA()
+    pca.fit(all_scores_df.iloc[:, 2:])
+    x_trans = pca.transform(all_scores_df.iloc[:, 2:])
+
+    X_train, X_test, y_train, y_test = train_test_split(x_trans, all_scores_df["LABEL"], test_size=0.8)
+
+    for k in ["linear", "poly", "rbf", "sigmoid"]:
+        svm = SVC(kernel=k, probability=True)
+        svm.fit(X_train, y_train)
+        scores = svm.predict_proba(X_test)
+
+        eer = calculate_EER(f"PCA_{k}", y_test, scores[:, 0], False, f"PCA_{k}")
+        print(f"PCA + SVM({k}) EER: {eer*100}%")
+
+
 if __name__ == "__main__":
-    print("##### DF21 #####")
-    fusion_scores("DF21")
-    fusion_scores_from_json("DF21", "oneplusone")
-    fusion_scores_from_json("DF21", "all")
-    print("##### InTheWild #####")
-    fusion_scores("InTheWild")
-    fusion_scores_from_json("InTheWild", "oneplusone")
-    fusion_scores_from_json("InTheWild", "all")
+    fusion_LDA("InTheWild")
+    fusion_PCA("InTheWild")

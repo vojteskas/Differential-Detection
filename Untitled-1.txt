@@ -1,0 +1,39 @@
+DF21
+Epoch 22: Loss: 0.024436489382589407, Acc: 99.17329677409688%, EER: 2.999690438249932%
+Estimated parameters: Parameter containing:
+tensor([[ 0.4263,  0.4366,  0.8506,  1.2361,  0.7309,  1.8708,  0.8746],
+        [-0.4385, -0.7829, -1.1703, -0.6829, -0.3849, -1.5824, -0.5788]],
+       device='cuda:0', requires_grad=True), Parameter containing:
+tensor([-3.1227,  3.6045], device='cuda:0', requires_grad=True)
+
+In The Wild
+Epoch 500: Loss: 0.22373223364353179, Acc: 90.58497750086535%, EER: 8.962001376547967%
+Estimated parameters: Parameter containing:
+tensor([[ 0.9934,  1.1664,  0.5935,  3.4065,  3.5062,  2.5376,  1.2903],
+        [-1.1786, -0.9686, -1.0363, -3.1600, -3.5356, -2.6547, -1.5927]],
+       device='cuda:0', requires_grad=True), Parameter containing:
+tensor([-2.6847,  2.7483], device='cuda:0', requires_grad=True)
+
+
+
+
+
+DF21
+PCA + SVM(linear) EER: 3.10622028408011%
+PCA + SVM(poly) EER: 3.850984546409274%
+PCA + SVM(rbf) EER: 11.925516350560365%
+PCA + SVM(sigmoid) EER: 20.074251365621155%
+LDA + SVM(linear) EER: 3.5257556786745443%
+LDA + SVM(poly) EER: 3.5257556786745443%
+LDA + SVM(rbf) EER: 15.469245580165516%
+LDA + SVM(sigmoid) EER: 46.071784005304615%
+
+In The Wild
+LDA + SVM(linear) EER: 8.995808334683536%
+LDA + SVM(poly) EER: 8.995808334683536%
+LDA + SVM(rbf) EER: 8.995808334683536%
+LDA + SVM(sigmoid) EER: 11.527840643468663%
+PCA + SVM(linear) EER: 9.609290293593249%
+PCA + SVM(poly) EER: 10.887515344319565%
+PCA + SVM(rbf) EER: 9.640800528760346%
+PCA + SVM(sigmoid) EER: 14.82826921833932%
