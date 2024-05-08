@@ -1,6 +1,6 @@
 import torch
 
-from utils import calculate_EER
+from .utils import calculate_EER
 
 class BaseTrainer:
     def __init__(self, model, device="cuda" if torch.cuda.is_available() else "cpu"):
