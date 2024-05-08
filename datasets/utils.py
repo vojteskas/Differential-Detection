@@ -1,6 +1,13 @@
 import torch
 
 def custom_pair_batch_create(batch: list):
+    """
+    Custom collate_fn for the dataloader to create batches for batch training.
+
+    Creates batches of pairs of genuine and spoofing speech for differential-based detection.
+    Shorter waveforms are padded with zeros to match the length of the longest waveform in the batch.
+    """
+    
     # Free unused memory before creating the new batch
     # This is necessary because PyTorch has trouble with dataloader memory management
     if torch.cuda.is_available():
@@ -39,6 +46,12 @@ def custom_pair_batch_create(batch: list):
     return file_names, padded_gts, padded_tests, labels
 
 def custom_single_batch_create(batch: list):
+    """
+    Custom collate_fn for the dataloader to create batches for batch training.
+
+    Creates batches of single recordings for "normal" detection.
+    Shorter waveforms are padded with zeros to match the length of the longest waveform in the batch.
+    """
     # Free unused memory before creating the new batch
     # This is necessary because PyTorch has trouble with dataloader memory management
     if torch.cuda.is_available():

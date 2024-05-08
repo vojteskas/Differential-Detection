@@ -51,10 +51,17 @@ class ASVspoof2019LADataset_base(Dataset):
 
 
 class ASVspoof2019LADataset_pair(ASVspoof2019LADataset_base):
+    """
+    Dataset class for ASVspoof2019LA that provides pairs of genuine and tested speech for differential-based detection.
+    """
+
     def __init__(self, root_dir, protocol_file_name, variant: Literal["train", "dev", "eval"] = "train"):
         super().__init__(root_dir, protocol_file_name, variant)
 
     def __getitem__(self, idx):
+        """
+        Returns tuples of the form (test_audio_file_name, gt_waveform, test_waveform, label)
+        """
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
@@ -83,10 +90,17 @@ class ASVspoof2019LADataset_pair(ASVspoof2019LADataset_base):
 
 
 class ASVspoof2019LADataset_single(ASVspoof2019LADataset_base):
+    """
+    Dataset class for ASVspoof2019LA that provides single recordings for "normal" detection.
+    """
+
     def __init__(self, root_dir, protocol_file_name, variant: Literal["train", "dev", "eval"] = "train"):
         super().__init__(root_dir, protocol_file_name, variant)
 
     def __getitem__(self, idx):
+        """
+        Returns tuples of the form (audio_file_name, waveform, label)
+        """
         if torch.is_tensor(idx):
             idx = idx.tolist()
 

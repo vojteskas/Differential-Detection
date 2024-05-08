@@ -48,6 +48,10 @@ class ASVspoof2021_base(Dataset):
 
 
 class ASVspoof2021LADataset_pair(ASVspoof2021_base):
+    """
+    Dataset class for ASVspoof2021 LA that provides pairs of genuine and tested speech for differential-based detection.
+    """
+
     def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval"):
         super().__init__(root_dir, protocol_file_name, variant)
 
@@ -56,6 +60,9 @@ class ASVspoof2021LADataset_pair(ASVspoof2021_base):
         self.protocol_df = self.protocol_df[self.protocol_df["VARIANT"] == "eval"]
 
     def __getitem__(self, idx):
+        """
+        Returns tuples of the form (test_audio_file_name, gt_waveform, test_waveform, label)
+        """
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
@@ -84,6 +91,10 @@ class ASVspoof2021LADataset_pair(ASVspoof2021_base):
 
 
 class ASVspoof2021LADataset_single(ASVspoof2021_base):
+    """
+    Dataset class for ASVspoof2021 LA that provides single speech samples for "normal" detection.
+    """
+
     def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval"):
         super().__init__(root_dir, protocol_file_name, variant)
 
@@ -92,6 +103,9 @@ class ASVspoof2021LADataset_single(ASVspoof2021_base):
         self.protocol_df = self.protocol_df[self.protocol_df["VARIANT"] == "eval"]
 
     def __getitem__(self, idx):
+        """
+        Returns tuples of the form (audio_file_name, waveform, label)
+        """
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
@@ -106,6 +120,10 @@ class ASVspoof2021LADataset_single(ASVspoof2021_base):
 
 
 class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
+    """
+    Dataset class for ASVspoof2021 DF that provides pairs of genuine and tested speech for differential-based detection.
+    """
+
     def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
         super().__init__(root_dir, protocol_file_name, variant)
 
@@ -135,15 +153,16 @@ class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
             # remove the .flac extension
             present_files = [f.split(".")[0] for f in present_files]
 
-            self.protocol_df = self.protocol_df[
-                self.protocol_df["AUDIO_FILE_NAME"].isin(present_files)
-            ]
+            self.protocol_df = self.protocol_df[self.protocol_df["AUDIO_FILE_NAME"].isin(present_files)]
 
             print(f"Using {len(self.protocol_df)} local recordings from DF21 eval set.")
 
         self.protocol_df.reset_index(drop=True, inplace=True)
 
     def __getitem__(self, idx):
+        """
+        Returns tuples of the form (test_audio_file_name, gt_waveform, test_waveform, label)
+        """
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
@@ -172,6 +191,10 @@ class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
 
 
 class ASVspoof2021DFDataset_single(ASVspoof2021_base):
+    """
+    Dataset class for ASVspoof2021 DF that provides single speech samples for "normal" detection.
+    """
+
     def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
         super().__init__(root_dir, protocol_file_name, variant)
 
@@ -201,15 +224,16 @@ class ASVspoof2021DFDataset_single(ASVspoof2021_base):
             # remove the .flac extension
             present_files = [f.split(".")[0] for f in present_files]
 
-            self.protocol_df = self.protocol_df[
-                self.protocol_df["AUDIO_FILE_NAME"].isin(present_files)
-            ]
+            self.protocol_df = self.protocol_df[self.protocol_df["AUDIO_FILE_NAME"].isin(present_files)]
 
             print(f"Using {len(self.protocol_df)} local recordings from DF21 eval set.")
 
         self.protocol_df.reset_index(drop=True, inplace=True)
 
     def __getitem__(self, idx):
+        """
+        Returns tuples of the form (audio_file_name, waveform, label)
+        """
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
@@ -221,35 +245,3 @@ class ASVspoof2021DFDataset_single(ASVspoof2021_base):
         label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
 
         return audio_file_name, waveform, label
-
-
-class ASVspoof2021DFDataset_VC_pair(ASVspoof2021DFDataset_pair):
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
-        super().__init__(root_dir, protocol_file_name, variant, local)
-
-        self.protocol_df = self.protocol_df[self.protocol_df["SOURCE"].isin(("vcc2018", "vcc2020"))]
-        self.protocol_df.reset_index(drop=True, inplace=True)
-
-
-class ASVspoof2021DFDataset_VC_single(ASVspoof2021DFDataset_single):
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
-        super().__init__(root_dir, protocol_file_name, variant, local)
-
-        self.protocol_df = self.protocol_df[self.protocol_df["SOURCE"].isin(("vcc2018", "vcc2020"))]
-        self.protocol_df.reset_index(drop=True, inplace=True)
-
-
-class ASVspoof2021DFDataset_nonVC_pair(ASVspoof2021DFDataset_pair):
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
-        super().__init__(root_dir, protocol_file_name, variant, local)
-
-        self.protocol_df = self.protocol_df[self.protocol_df["SOURCE"] == "asvspoof"]
-        self.protocol_df.reset_index(drop=True, inplace=True)
-
-
-class ASVspoof2021DFDataset_nonVC_single(ASVspoof2021DFDataset_single):
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
-        super().__init__(root_dir, protocol_file_name, variant, local)
-
-        self.protocol_df = self.protocol_df[self.protocol_df["SOURCE"] == "asvspoof"]
-        self.protocol_df.reset_index(drop=True, inplace=True)

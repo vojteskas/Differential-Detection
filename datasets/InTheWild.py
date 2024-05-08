@@ -46,10 +46,17 @@ class InTheWildDataset_base(Dataset):
 
 
 class InTheWildDataset_pair(InTheWildDataset_base):
+    """
+    Dataset class for InTheWild that provides pairs of genuine and spoofing speech for differential-based detection.
+    """
+
     def __init__(self, root_dir, protocol_file_name="meta.csv", variant="eval"):
         super().__init__(root_dir, protocol_file_name)
 
     def __getitem__(self, idx):
+        """
+        Returns tuples of the form (test_audio_file_name, gt_waveform, test_waveform, label)
+        """
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
@@ -75,10 +82,17 @@ class InTheWildDataset_pair(InTheWildDataset_base):
 
 
 class InTheWildDataset_single(InTheWildDataset_base):
+    """
+    Dataset class for InTheWild that provides single recordings for "normal" detection.
+    """
+
     def __init__(self, root_dir, protocol_file_name="meta.csv", variant="eval"):
         super().__init__(root_dir, protocol_file_name)
 
     def __getitem__(self, idx):
+        """
+        Returns tuples of the form (audio_file_name, waveform, label)
+        """
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
