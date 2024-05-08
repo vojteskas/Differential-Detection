@@ -31,10 +31,6 @@ from datasets.ASVspoof2021 import (
     ASVspoof2021LADataset_pair,
     ASVspoof2021DFDataset_single,
     ASVspoof2021DFDataset_pair,
-    ASVspoof2021DFDataset_VC_single,
-    ASVspoof2021DFDataset_VC_pair,
-    ASVspoof2021DFDataset_nonVC_single,
-    ASVspoof2021DFDataset_nonVC_pair,
 )
 from datasets.InTheWild import InTheWildDataset_pair, InTheWildDataset_single
 from datasets.Morphing import MorphingDataset_single, MorphingDataset_pair
@@ -94,10 +90,6 @@ DATASETS = {  # map the dataset name to the dataset class
     "ASVspoof2021LADataset_pair": ASVspoof2021LADataset_pair,
     "ASVspoof2021DFDataset_single": ASVspoof2021DFDataset_single,
     "ASVspoof2021DFDataset_pair": ASVspoof2021DFDataset_pair,
-    "ASVspoof2021DFDataset_VC_single": ASVspoof2021DFDataset_VC_single,
-    "ASVspoof2021DFDataset_VC_pair": ASVspoof2021DFDataset_VC_pair,
-    "ASVspoof2021DFDataset_nonVC_single": ASVspoof2021DFDataset_nonVC_single,
-    "ASVspoof2021DFDataset_nonVC_pair": ASVspoof2021DFDataset_nonVC_pair,
     "InTheWildDataset_single": InTheWildDataset_single,
     "InTheWildDataset_pair": InTheWildDataset_pair,
     "MorphingDataset_single": MorphingDataset_single,
@@ -109,6 +101,8 @@ def get_dataloaders(
     dataset="ASVspoof2019LADataset_pair", config=metacentrum_config, lstm=False
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
 
+    # Get the dataset class and config
+    # Always train on ASVspoof2019LA, evaluate on the specified dataset
     dataset_config = {}
     if "ASVspoof2019LA" in dataset:
         train_dataset_class = DATASETS[dataset]
@@ -161,6 +155,7 @@ def get_dataloaders(
     samples_weights = [train_dataset.get_class_weights()[i] for i in train_dataset.get_labels()]
     weighted_sampler = WeightedRandomSampler(samples_weights, len(train_dataset))
 
+    # Adjust batch size for LSTM models
     bs = config["batch_size"] if not lstm else config["lstm_batch_size"]
 
     # create dataloader, use custom collate_fn to pad the data to the longest recording in batch
@@ -171,11 +166,7 @@ def get_dataloaders(
         collate_fn=collate_func,
         sampler=weighted_sampler,
     )
-    val_dataloader = DataLoader(
-        val_dataset, batch_size=bs, collate_fn=collate_func, shuffle=True
-    )
-    eval_dataloader = DataLoader(
-        eval_dataset, batch_size=bs, collate_fn=collate_func, shuffle=True
-    )
+    val_dataloader = DataLoader(val_dataset, batch_size=bs, collate_fn=collate_func, shuffle=True)
+    eval_dataloader = DataLoader(eval_dataset, batch_size=bs, collate_fn=collate_func, shuffle=True)
 
     return train_dataloader, val_dataloader, eval_dataloader

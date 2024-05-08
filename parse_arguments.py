@@ -1,6 +1,6 @@
 import argparse
 
-from common import EXTRACTORS, CLASSIFIERS
+from common import CLASSIFIERS
 
 
 def parse_args():
@@ -19,15 +19,12 @@ def parse_args():
     )
 
     # dataset
-    # TODO: Allow for different datasets
-    # TODO: Allow for multiple datasets to be used
-    # For now, implicitely use the ASVspoof2019 dataset
     parser.add_argument(
         "-d",
         "--dataset",
         type=str,
         default="ASVspoof2019LADataset_pair",
-        help="Dataset to be used. One of: ASVspoof2019LADataset_pair, ASVspoof2019LADataset_single",
+        help="Dataset to be used. See common.DATASETS for available datasets.",
         required=True,
     )
 
@@ -37,7 +34,7 @@ def parse_args():
         "--extractor",
         type=str,
         default="XLSR_300M",
-        help=f"Extractor to be used. One of: {', '.join(EXTRACTORS)}",
+        help=f"Extractor to be used. See common.EXTRACTORS for available extractors.",
         required=True,
     )
 
@@ -54,12 +51,11 @@ def parse_args():
     # TODO: Allow for passing parameters to the feature processor (mainly MHFA)
 
     # classifier
-    # classifiers = ["FF, FFConcat, FFDiff", "GMMDiff", "LDAGaussianDiff", "SVMDiff"]
     parser.add_argument(
         "-c",
         "--classifier",
         type=str,
-        help=f"Classifier to be used",#. One of: {', '.join(classifiers)}",
+        help=f"Classifier to be used. See common.CLASSIFIERS for available classifiers.",
         required=True,
     )
 
@@ -81,22 +77,20 @@ def parse_args():
 
     # maybe TODO: add flag for enabling/disabling evaluation after training
 
-    # TODO: Allow for training from a checkpoint
-
     # region Optional arguments
     # training
     classifier_args.add_argument(
         "-ep",
         "--num_epochs",
         type=int,
-        help="Number of epochs to train for. Will only be used together with FFDiff classifier or MHFA pooling.",
+        help="Number of epochs to train for. Does not concernt SkLearn classifiers.",
         default=20,
     )
 
     classifier_args.add_argument(
         "--sampling",
         type=str,
-        help="Variant of sampling the data for training a non-NN model. Will only be used together with GMMDiff, LDAGaussianDiff, and SVMDiff classifiers.",
+        help="Variant of sampling the data for training SkLearn mocels. One of: 'all', 'avg_pool', 'random_sample'.",
         default="all",
     )
     # endregion

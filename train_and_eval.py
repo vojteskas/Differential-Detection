@@ -84,7 +84,6 @@ def main():
     )
 
     # TODO: Implement training of MHFA with SkLearn models
-    # skipping for now, focusing on FF(Diff)
 
     print(
         f"Training {type(model).__name__} model with {type(extractor).__name__} extractor and {type(processor).__name__} processor on {type(train_dataloader.dataset).__name__} dataloader."

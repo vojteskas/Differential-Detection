@@ -300,5 +300,6 @@ def fusion_PCA(variant: Literal["DF21", "InTheWild"]):
 
 
 if __name__ == "__main__":
-    fusion_LDA("InTheWild")
-    fusion_PCA("InTheWild")
+    # fusion_LDA("InTheWild")
+    # fusion_PCA("InTheWild")
+    pass
