@@ -1,13 +1,11 @@
-import torch.nn as nn
 import torch.nn.functional as F
 
-# TODO: Add dropout and regularization?
-# TODO: Migrate to PyTorch Lightning?
+from classifiers.FFBase import FFBase
 
 
-class FF(nn.Module):
+class FF(FFBase):
     """
-    Linear classifier for audio embeddings.
+    Feedforward classifier for audio embeddings.
     """
 
     def __init__(self, extractor, feature_processor, in_dim=1024):
@@ -21,27 +19,7 @@ class FF(nn.Module):
         param in_dim: Dimension of the input data to the classifier, divisible by 4.
         """
 
-        super().__init__()
-
-        self.extractor = extractor
-        self.feature_processor = feature_processor
-
-        # Allow variable input dimension, mainly for base (768 features) and large models (1024 features)
-        self.layer1_in_dim = in_dim
-        self.layer1_out_dim = in_dim // 2
-        self.layer2_in_dim = self.layer1_out_dim
-        self.layer2_out_dim = self.layer2_in_dim // 2
-
-        # Experiment with LayerNorm instead of BatchNorm
-        self.classifier = nn.Sequential(
-            nn.Linear(self.layer1_in_dim, self.layer1_out_dim),
-            nn.BatchNorm1d(self.layer1_out_dim),
-            nn.ReLU(),
-            nn.Linear(self.layer2_in_dim, self.layer2_out_dim),
-            nn.BatchNorm1d(self.layer2_out_dim),
-            nn.ReLU(),
-            nn.Linear(self.layer2_out_dim, 2),  # output 2 classes
-        )
+        super().__init__(extractor, feature_processor, in_dim=in_dim)
 
     def forward(self, waveforms):
         """

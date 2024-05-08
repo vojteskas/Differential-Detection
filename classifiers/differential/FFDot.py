@@ -5,7 +5,9 @@ import torch.nn.functional as F
 
 class FFDot(nn.Module):
     """
-    Linear classifier using the dot product as a difference metric.
+    WARNING: Only for testing and demonstration purposes. This classifier does not make sense and does not work (which is expected).
+
+    Feedforward classifier using the dot product as a difference metric.
     """
 
     def __init__(self, extractor, feature_processor):
