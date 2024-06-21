@@ -10,6 +10,19 @@ from classifiers.differential.SVMDiff import SVMDiff
 from classifiers.single_input.FF import FF
 from classifiers.differential.FFConcat import FFConcat1, FFConcat2, FFConcat3, FFLSTM, FFLSTM2
 
+# datasets
+from datasets.utils import custom_pair_batch_create, custom_single_batch_create
+from datasets.ASVspoof2019 import ASVspoof2019LADataset_pair, ASVspoof2019LADataset_single
+from datasets.ASVspoof2021 import (
+    ASVspoof2021LADataset_single,
+    ASVspoof2021LADataset_pair,
+    ASVspoof2021DFDataset_single,
+    ASVspoof2021DFDataset_pair,
+)
+from datasets.ASVspoof5 import ASVspoof5Dataset_pair, ASVspoof5Dataset_single
+from datasets.InTheWild import InTheWildDataset_pair, InTheWildDataset_single
+from datasets.Morphing import MorphingDataset_single, MorphingDataset_pair
+
 # extractors
 from extractors.HuBERT import HuBERT_base, HuBERT_large, HuBERT_extralarge
 from extractors.Wav2Vec2 import Wav2Vec2_base, Wav2Vec2_large, Wav2Vec2_LV60k
@@ -22,18 +35,6 @@ from trainers.FFTrainer import FFTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
 from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
 from trainers.SVMDiffTrainer import SVMDiffTrainer
-
-# datasets
-from datasets.utils import custom_pair_batch_create, custom_single_batch_create
-from datasets.ASVspoof2019 import ASVspoof2019LADataset_pair, ASVspoof2019LADataset_single
-from datasets.ASVspoof2021 import (
-    ASVspoof2021LADataset_single,
-    ASVspoof2021LADataset_pair,
-    ASVspoof2021DFDataset_single,
-    ASVspoof2021DFDataset_pair,
-)
-from datasets.InTheWild import InTheWildDataset_pair, InTheWildDataset_single
-from datasets.Morphing import MorphingDataset_single, MorphingDataset_pair
 
 from config import local_config, metacentrum_config
 
@@ -94,6 +95,8 @@ DATASETS = {  # map the dataset name to the dataset class
     "InTheWildDataset_pair": InTheWildDataset_pair,
     "MorphingDataset_single": MorphingDataset_single,
     "MorphingDataset_pair": MorphingDataset_pair,
+    "ASVspoof5Dataset_single": ASVspoof5Dataset_single,
+    "ASVspoof5Dataset_pair": ASVspoof5Dataset_pair,
 }
 
 
@@ -102,7 +105,7 @@ def get_dataloaders(
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
 
     # Get the dataset class and config
-    # Always train on ASVspoof2019LA, evaluate on the specified dataset
+    # Always train on ASVspoof2019LA, evaluate on the specified dataset (except ASVspoof5)
     dataset_config = {}
     if "ASVspoof2019LA" in dataset:
         train_dataset_class = DATASETS[dataset]
@@ -123,6 +126,11 @@ def get_dataloaders(
         train_dataset_class = DATASETS[f"ASVspoof2019LADataset_{t}"]
         eval_dataset_class = DATASETS[dataset]
         dataset_config = config["morphing"]
+    elif "ASVspoof5" in dataset:
+        t = "pair" if "pair" in dataset else "single"
+        train_dataset_class = DATASETS[dataset]
+        eval_dataset_class = DATASETS[dataset]
+        dataset_config = config["asvspoof5"]
     else:
         raise ValueError("Invalid dataset name.")
 
@@ -144,6 +152,8 @@ def get_dataloaders(
             variant="eval",
             local=True if "--local" in config["argv"] else False,
         )
+    elif "ASVspoof5" in dataset:  # ASVspoof5 does not have eval set, use the dev dataset
+            eval_dataset = val_dataset
     else:
         eval_dataset = eval_dataset_class(
             root_dir=config["data_dir"] + dataset_config["eval_subdir"],
