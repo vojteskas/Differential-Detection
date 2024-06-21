@@ -121,6 +121,55 @@ def split_scores_VC_TTS(c="FFConcat1", ep=15):
         print(f"EER for {subset}: {eer*100}%")
 
 
+def split_scores_asvspoof_VCC(c="FFConcat1", ep=15):
+    # Load the scores
+    scores_headers = ["AUDIO_FILE_NAME", "SCORE", "LABEL"]
+    scores_df = pd.read_csv(f"./scores/DF21/{c}_{c}_{ep}.pt_scores.txt", sep=",", names=scores_headers)
+    scores_df["SCORE"] = scores_df["SCORE"].astype(float)
+
+    # Load DF21 protocol
+    df21_headers = [
+        "SPEAKER_ID",
+        "AUDIO_FILE_NAME",
+        "-",
+        "SOURCE",
+        "MODIF",
+        "KEY",
+        "-",
+        "VARIANT",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+    ]
+    protocol_df = pd.read_csv(
+        f'{local_config["data_dir"]}{local_config["asvspoof2021df"]["eval_subdir"]}/{local_config["asvspoof2021df"]["eval_protocol"]}',
+        sep=" ",
+    )
+    protocol_df.columns = df21_headers
+    protocol_df = protocol_df.merge(scores_df, on="AUDIO_FILE_NAME")
+    eer = calculate_EER(c, protocol_df["LABEL"], protocol_df["SCORE"], False, f"DF21_{c}")
+    print(f"EER for DF21: {eer*100}%")
+
+    asvspoof_subset = protocol_df[protocol_df["SOURCE"].str.contains("asvspoof")].reset_index(drop=True)
+    vcc_subset = protocol_df[protocol_df["SOURCE"].str.contains("vcc")].reset_index(drop=True)
+
+    coords = [0.0, 0.0]
+    for i, (subset, subset_df) in enumerate(zip(["asvspoof", "vcc"], [asvspoof_subset, vcc_subset])):
+        eer = calculate_EER(c, subset_df["LABEL"], subset_df["SCORE"], False, f"{subset}_{c}")
+        coords[i] = eer
+        print(f"EER for {subset}: {eer*100}%")
+    border_color = ""
+    if c == "FF":
+        border_color = "black"
+    elif "Diff" in c:
+        border_color = "blue"
+    elif "Concat" in c or "LSTM" in c:
+        border_color = "red"
+    plt.scatter(coords[0]*100, coords[1]*100, label=c, edgecolors=border_color, s=100, linewidths=2)
+
+
 def get_all_scores_df(variant: Literal["DF21", "InTheWild"]) -> pd.DataFrame:
     all_scores_df = pd.DataFrame()
     for c, ep in [
@@ -300,6 +349,23 @@ def fusion_PCA(variant: Literal["DF21", "InTheWild"]):
 
 
 if __name__ == "__main__":
-    # fusion_LDA("InTheWild")
-    # fusion_PCA("InTheWild")
-    pass
+    plt.figure(figsize=(5, 5))
+
+    for c, ep in [
+        ("FF", 20),
+        ("FFDiff", 20),
+        ("FFDiffAbs", 15),
+        ("FFDiffQuadratic", 15),
+        ("FFConcat1", 15),
+        ("FFConcat2", 10),
+        ("FFConcat3", 10),
+        ("FFLSTM2", 15),
+    ]:
+        print(c)
+        split_scores_asvspoof_VCC(c, ep)
+        print()
+
+    plt.legend()
+    plt.xlabel("EER for asvspoof [%]")
+    plt.ylabel("EER for VCC [%]")
+    plt.savefig("./seen_unseen_scores.png")
