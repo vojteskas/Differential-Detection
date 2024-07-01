@@ -6,7 +6,7 @@ class PBSheaders:
     def __init__(
         self,
         jobname: str,  # name of the job
-        queue="gpu@meta-pbs.metacentrum.cz",  # queue name
+        queue="gpu@pbs-m1.metacentrum.cz",  # queue name
         walltime="24:00:00",  # maximum time the job can run
         nodes=1,  # number of nodes
         cpus=4,  # number of cpus on a node
@@ -113,7 +113,7 @@ class Job:
             # TODO: Allow for multiple datasets to be copied
             'echo "Copying dataset(s)"',
             f"cp -r $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .",  # copy to scratchdir
-            f"tar -xvzf {self.dataset_archive_name} >/dev/null 2>&1",
+            f"tar -xzf {self.dataset_archive_name} >/dev/null 2>&1",
             "\n",
         ]
         # copy 2019 dataset (training data) aswell if 2021 or InTheWild datasets are used
@@ -122,7 +122,7 @@ class Job:
                 [
                     # copy 2019 dataset
                     f"cp -r $DATADIR/{self.dataset_archive_path}LA19.tar.gz .",  # copy to scratchdir
-                    f"tar -xvzf LA19.tar.gz >/dev/null 2>&1",
+                    f"tar -xzf LA19.tar.gz >/dev/null 2>&1",
                     "\n",
                 ]
             )
@@ -268,4 +268,32 @@ if __name__ == "__main__":
     #         execute_list=command,
     #         train=False,
     #     )
-    pass
+    c = "FF"
+    dshort = "ASVspoof5"
+    for dataset in ("ASVspoof5Dataset_single", "ASVspoof5Dataset_single_augmented"):
+        for extractor in ("WavLM_base", "HuBERT_base"):
+            command = [
+                (
+                    "train_and_eval.py",
+                    [
+                        "--metacentrum",
+                        "--dataset",
+                        dataset,
+                        "--classifier",
+                        f"{c}",
+                        "--extractor",
+                        f"{extractor}",
+                        "--processor",
+                        "MHFA",
+                        "--num_epochs",
+                        "20",
+                    ],
+                )
+            ]
+            generate_job_script(
+                jobname=f"DP_{extractor}_{c}_{dshort + 'aug' if 'aug' in dataset else dshort}",
+                file_name=f"scripts/{c}_{dshort}_{dataset}_{extractor}.sh",
+                project_archive_name="dp.zip",
+                dataset_archive_name=f"{dshort}.tar.gz",
+                execute_list=command,
+            )

@@ -19,7 +19,12 @@ from datasets.ASVspoof2021 import (
     ASVspoof2021DFDataset_single,
     ASVspoof2021DFDataset_pair,
 )
-from datasets.ASVspoof5 import ASVspoof5Dataset_pair, ASVspoof5Dataset_single
+from datasets.ASVspoof5 import (
+    ASVspoof5Dataset_pair,
+    ASVspoof5Dataset_single,
+    ASVspoof5Dataset_pair_augmented,
+    ASVspoof5Dataset_single_augmented,
+)
 from datasets.InTheWild import InTheWildDataset_pair, InTheWildDataset_single
 from datasets.Morphing import MorphingDataset_single, MorphingDataset_pair
 
@@ -97,6 +102,8 @@ DATASETS = {  # map the dataset name to the dataset class
     "MorphingDataset_pair": MorphingDataset_pair,
     "ASVspoof5Dataset_single": ASVspoof5Dataset_single,
     "ASVspoof5Dataset_pair": ASVspoof5Dataset_pair,
+    "ASVspoof5Dataset_single_augmented": ASVspoof5Dataset_single_augmented,
+    "ASVspoof5Dataset_pair_augmented": ASVspoof5Dataset_pair_augmented,
 }
 
 
@@ -153,7 +160,7 @@ def get_dataloaders(
             local=True if "--local" in config["argv"] else False,
         )
     elif "ASVspoof5" in dataset:  # ASVspoof5 does not have eval set, use the dev dataset
-            eval_dataset = val_dataset
+        eval_dataset = val_dataset
     else:
         eval_dataset = eval_dataset_class(
             root_dir=config["data_dir"] + dataset_config["eval_subdir"],

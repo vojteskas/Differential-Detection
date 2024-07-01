@@ -1,4 +1,3 @@
-from re import sub
 from typing import Literal
 import torch
 from torch.utils.data import Dataset
@@ -6,6 +5,9 @@ from torchaudio import load
 import os
 import pandas as pd
 import numpy as np
+from random import randrange
+
+from datasets.RawBoost import process_Rawboost_feature
 
 
 class ASVspoof5Dataset_base(Dataset):
@@ -30,7 +32,7 @@ class ASVspoof5Dataset_base(Dataset):
         elif variant == "dev":
             subdir = "flac_D"
         elif variant == "eval":
-            subdir = "flac_E"
+            subdir = "flac_D"  # The eval set is the same as the dev set for now
         self.rec_dir = os.path.join(self.root_dir, subdir)
 
     def __len__(self):
@@ -84,7 +86,7 @@ class ASVspoof5Dataset_pair(ASVspoof5Dataset_base):
         ]
         if speaker_recordings_df.empty:
             raise Exception(f"Speaker {speaker_id} genuine speech not found in protocol file")
-        
+
         # Get a random genuine speech of the speaker using sample()
         gt_audio_file_name = speaker_recordings_df.sample(n=1).iloc[0]["AUDIO_FILE_NAME"]
         gt_audio_name = os.path.join(self.rec_dir, f"{gt_audio_file_name}.flac")
@@ -114,5 +116,106 @@ class ASVspoof5Dataset_single(ASVspoof5Dataset_base):
 
         # 0 for genuine speech, 1 for spoofing speech
         label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
+
+        return audio_file_name, waveform, label
+
+
+class Args:
+    algo = None
+    nBands = None
+    minF = None
+    maxF = None
+    minBW = None
+    maxBW = None
+    minCoeff = None
+    maxCoeff = None
+    minG = None
+    maxG = None
+    minBiasLinNonLin = None
+    maxBiasLinNonLin = None
+    N_f = None
+    P = None
+    g_sd = None
+    SNRmin = None
+    SNRmax = None
+
+
+class DefaultArgs(Args):
+    nBands = 5
+    minF = 20
+    maxF = 8000
+    minBW = 100
+    maxBW = 1000
+    minCoeff = 10
+    maxCoeff = 100
+    minG = 0
+    maxG = 0
+    minBiasLinNonLin = 5
+    maxBiasLinNonLin = 20
+    N_f = 5
+    P = 10
+    g_sd = 2
+    SNRmin = 10
+    SNRmax = 40
+
+
+class ASVspoof5Dataset_pair_augmented(ASVspoof5Dataset_pair):
+    """
+    Dataset class for ASVspoof5 that provides augmented pairs of genuine and tested speech for differential-based detection.
+    """
+
+    def __init__(
+        self,
+        root_dir="/mnt/matylda2/data/ASVspoof5",
+        protocol_file_name="ASVspoof5.train.metadata.txt",
+        variant: Literal["train", "dev", "eval"] = "train",
+    ):
+        super().__init__(root_dir, protocol_file_name, variant)
+        self.args = DefaultArgs()
+
+        self.SAMPLING_RATE = 16000
+
+    def __getitem__(self, idx):
+        """
+        Returns tuples of the form (test_audio_file_name, gt_waveform, test_waveform, label)
+        """
+
+        test_audio_file_name, gt_waveform, test_waveform, label = super().__getitem__(idx)
+
+        test_waveform = test_waveform.squeeze()
+        test_waveform = process_Rawboost_feature(
+            test_waveform, self.SAMPLING_RATE, self.args, randrange(1, 9)
+        )
+        test_waveform = torch.Tensor(np.expand_dims(test_waveform, axis=0))
+
+        return test_audio_file_name, gt_waveform, test_waveform, label
+
+
+class ASVspoof5Dataset_single_augmented(ASVspoof5Dataset_single):
+    """
+    Dataset class for ASVspoof5 that provides augmented single audio files for "normal" classification.
+    """
+
+    def __init__(
+        self,
+        root_dir="/mnt/matylda2/data/ASVspoof5",
+        protocol_file_name="ASVspoof5.train.metadata.txt",
+        variant: Literal["train", "dev", "eval"] = "train",
+    ):
+        super().__init__(root_dir, protocol_file_name, variant)
+        self.args = DefaultArgs()
+
+        self.SAMPLING_RATE = 16000
+
+    def __getitem__(self, idx):
+        """
+        Returns tuples of the form (audio_file_name, waveform, label)
+        """
+
+        audio_file_name, waveform, label = super().__getitem__(idx)
+
+        waveform = waveform.squeeze()
+        waveform = process_Rawboost_feature(waveform, self.SAMPLING_RATE, self.args, randrange(1, 9))
+        waveform = torch.Tensor(np.expand_dims(waveform, axis=0))
 
         return audio_file_name, waveform, label
