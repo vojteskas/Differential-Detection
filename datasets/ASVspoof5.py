@@ -1,13 +1,13 @@
-from re import sub
 from typing import Literal
 import torch
 from torch.utils.data import Dataset
-from torchaudio import load, save
+from torchaudio import load
 import os
 import pandas as pd
 import numpy as np
-from RawBoost import process_Rawboost_feature
-import tarfile
+from random import randrange
+
+from datasets.RawBoost import process_Rawboost_feature
 
 
 class ASVspoof5Dataset_base(Dataset):
@@ -26,31 +26,20 @@ class ASVspoof5Dataset_base(Dataset):
         self.protocol_df = pd.read_csv(protocol_file, sep=" ", header=None)
         self.protocol_df.columns = ["SPEAKER_ID", "AUDIO_FILE_NAME", "GENDER", "-", "SYSTEM_ID", "KEY"]
 
+        subdir = ""
         if variant == "train":
-            self.subdir = "flac_T"
+            subdir = "flac_T"
         elif variant == "dev":
-            self.subdir = "flac_D"
+            subdir = "flac_D"
         elif variant == "eval":
-            self.subdir = "flac_E"
-        self.rec_dir = os.path.join(self.root_dir, f"{self.subdir}.tar")
-        self.tarfile = tarfile.open(self.rec_dir, "r")
-
-        self.SAMPLING_RATE = 16000
+            subdir = "flac_D"  # The eval set is the same as the dev set for now
+        self.rec_dir = os.path.join(self.root_dir, subdir)
 
     def __len__(self):
         return len(self.protocol_df)
 
     def __getitem__(self, idx):
         raise NotImplementedError("This method should be implemented in a specific subclass")
-    
-    def __enter__(self):
-        return self
-    
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.tarfile.close()
-
-    def __del__(self):
-        self.tarfile.close()
 
     def get_labels(self) -> np.ndarray:
         """
@@ -65,15 +54,6 @@ class ASVspoof5Dataset_base(Dataset):
         class_counts = np.bincount(labels)
         class_weights = 1.0 / class_counts
         return torch.FloatTensor(class_weights)
-    
-    def load_file(self, audio_file_name):
-        """
-        Loads the audio file from the tarfile
-        """
-        member = self.tarfile.getmember(audio_file_name)
-        audio_file = self.tarfile.extractfile(member)
-        waveform, _ = load(audio_file)
-        return waveform
 
 
 class ASVspoof5Dataset_pair(ASVspoof5Dataset_base):
@@ -94,8 +74,8 @@ class ASVspoof5Dataset_pair(ASVspoof5Dataset_base):
         speaker_id = self.protocol_df.loc[idx, "SPEAKER_ID"]
 
         test_audio_file_name = self.protocol_df.loc[idx, "AUDIO_FILE_NAME"]
-        test_audio_name = os.path.join(self.subdir, f"{test_audio_file_name}.flac")
-        test_waveform = self.load_file(test_audio_name)
+        test_audio_name = os.path.join(self.rec_dir, f"{test_audio_file_name}.flac")
+        test_waveform, _ = load(test_audio_name)
 
         label = self.protocol_df.loc[idx, "KEY"]
         label = 0 if label == "bonafide" else 1
@@ -106,11 +86,11 @@ class ASVspoof5Dataset_pair(ASVspoof5Dataset_base):
         ]
         if speaker_recordings_df.empty:
             raise Exception(f"Speaker {speaker_id} genuine speech not found in protocol file")
-        
+
         # Get a random genuine speech of the speaker using sample()
         gt_audio_file_name = speaker_recordings_df.sample(n=1).iloc[0]["AUDIO_FILE_NAME"]
-        gt_audio_name = os.path.join(self.subdir, f"{gt_audio_file_name}.flac")
-        gt_waveform = self.load_file(gt_audio_name)
+        gt_audio_name = os.path.join(self.rec_dir, f"{gt_audio_file_name}.flac")
+        gt_waveform, _ = load(gt_audio_name)
 
         return test_audio_file_name, gt_waveform, test_waveform, label
 
@@ -131,13 +111,14 @@ class ASVspoof5Dataset_single(ASVspoof5Dataset_base):
             idx = idx.tolist()
 
         audio_file_name = self.protocol_df.loc[idx, "AUDIO_FILE_NAME"]
-        audio_name = os.path.join(self.subdir, f"{audio_file_name}.flac")
-        waveform = self.load_file(audio_name)
+        audio_name = os.path.join(self.rec_dir, f"{audio_file_name}.flac")
+        waveform, _ = load(audio_name)
 
         # 0 for genuine speech, 1 for spoofing speech
         label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
 
         return audio_file_name, waveform, label
+
 
 class Args:
     algo = None
@@ -158,6 +139,7 @@ class Args:
     SNRmin = None
     SNRmax = None
 
+
 class DefaultArgs(Args):
     nBands = 5
     minF = 20
@@ -176,16 +158,22 @@ class DefaultArgs(Args):
     SNRmin = 10
     SNRmax = 40
 
+
 class ASVspoof5Dataset_pair_augmented(ASVspoof5Dataset_pair):
     """
     Dataset class for ASVspoof5 that provides augmented pairs of genuine and tested speech for differential-based detection.
     """
 
-    def __init__(self, root_dir = "/mnt/matylda2/data/ASVspoof5", protocol_file_name = "ASVspoof5.train.metadata.txt", 
-                       variant: Literal["train", "dev", "eval"] = "train", args: Args = DefaultArgs(), algo: int = 0):
+    def __init__(
+        self,
+        root_dir="/mnt/matylda2/data/ASVspoof5",
+        protocol_file_name="ASVspoof5.train.metadata.txt",
+        variant: Literal["train", "dev", "eval"] = "train",
+    ):
         super().__init__(root_dir, protocol_file_name, variant)
-        self.args = args
-        self.algo = algo
+        self.args = DefaultArgs()
+
+        self.SAMPLING_RATE = 16000
 
     def __getitem__(self, idx):
         """
@@ -195,7 +183,9 @@ class ASVspoof5Dataset_pair_augmented(ASVspoof5Dataset_pair):
         test_audio_file_name, gt_waveform, test_waveform, label = super().__getitem__(idx)
 
         test_waveform = test_waveform.squeeze()
-        test_waveform = process_Rawboost_feature(test_waveform, self.SAMPLING_RATE, self.args, self.algo)
+        test_waveform = process_Rawboost_feature(
+            test_waveform, self.SAMPLING_RATE, self.args, randrange(1, 9)
+        )
         test_waveform = torch.Tensor(np.expand_dims(test_waveform, axis=0))
 
         return test_audio_file_name, gt_waveform, test_waveform, label
@@ -206,11 +196,16 @@ class ASVspoof5Dataset_single_augmented(ASVspoof5Dataset_single):
     Dataset class for ASVspoof5 that provides augmented single audio files for "normal" classification.
     """
 
-    def __init__(self, root_dir = "/mnt/matylda2/data/ASVspoof5", protocol_file_name = "ASVspoof5.train.metadata.txt", 
-                       variant: Literal["train", "dev", "eval"] = "train", args: Args = DefaultArgs(), algo: int = 0):
+    def __init__(
+        self,
+        root_dir="/mnt/matylda2/data/ASVspoof5",
+        protocol_file_name="ASVspoof5.train.metadata.txt",
+        variant: Literal["train", "dev", "eval"] = "train",
+    ):
         super().__init__(root_dir, protocol_file_name, variant)
-        self.args = args
-        self.algo = algo
+        self.args = DefaultArgs()
+
+        self.SAMPLING_RATE = 16000
 
     def __getitem__(self, idx):
         """
@@ -220,7 +215,7 @@ class ASVspoof5Dataset_single_augmented(ASVspoof5Dataset_single):
         audio_file_name, waveform, label = super().__getitem__(idx)
 
         waveform = waveform.squeeze()
-        waveform = process_Rawboost_feature(waveform, self.SAMPLING_RATE, self.args, self.algo)
+        waveform = process_Rawboost_feature(waveform, self.SAMPLING_RATE, self.args, randrange(1, 9))
         waveform = torch.Tensor(np.expand_dims(waveform, axis=0))
 
         return audio_file_name, waveform, label

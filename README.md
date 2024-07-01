@@ -36,7 +36,7 @@ DP
 
 ## Requirements
 
-**Python 3.10**, possible works with newer versions\
+**Python 3.10**, possibly works with newer versions\
 **PyTorch >2.2.0** including torchvision and torchaudio \
 packages in `requirements.txt`
 
