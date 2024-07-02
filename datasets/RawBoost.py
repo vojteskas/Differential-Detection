@@ -8,6 +8,7 @@ Copied from https://github.com/TakHemlata/RawBoost-antispoofing
 import numpy as np
 from scipy import signal
 import copy
+import torch
 
 
 def randRange(x1, x2, integer):
@@ -18,11 +19,10 @@ def randRange(x1, x2, integer):
 
 
 def normWav(x, always):
-    if always:
-        x = x / np.amax(abs(x))
-    elif np.amax(abs(x)) > 1:
-        x = x / np.amax(abs(x))
+    if always or (abs(x).max()) > 1:
+        x /= (abs(x).max())
     return x
+
 
 
 def genNotchCoeffs(nBands, minF, maxF, minBW, maxBW, minCoeff, maxCoeff, minG, maxG, fs):
@@ -96,7 +96,7 @@ def ISD_additive_noise(x, P, g_sd):
     p = np.random.permutation(x_len)[:n]
     f_r = np.multiply(((2 * np.random.rand(p.shape[0])) - 1), ((2 * np.random.rand(p.shape[0])) - 1))
     r = g_sd * x[p] * f_r
-    y[p] = (x[p] + r).float()
+    y[p] = (x[p] + r).type(torch.float32)
     y = normWav(y, 0)
     return y
 
