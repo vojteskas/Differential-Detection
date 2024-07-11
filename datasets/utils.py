@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 def custom_pair_batch_create(batch: list):
     """
@@ -37,7 +38,10 @@ def custom_pair_batch_create(batch: list):
         padded_waveform_test = torch.nn.functional.pad(
             waveform_test, (0, max_length_test - waveform_test.size(1))
         ).squeeze(0)
-        label = torch.tensor(item[3])
+        try:  # If the label is not available (or is None), set it to np.nan
+            label = torch.tensor(item[3])
+        except:
+            label = np.nan
 
         padded_gts[i] = padded_waveform_gt
         padded_tests[i] = padded_waveform_test
@@ -74,7 +78,10 @@ def custom_single_batch_create(batch: list):
         padded_waveform = torch.nn.functional.pad(
             waveform, (0, max_length - waveform.size(1))
         ).squeeze(0)
-        label = torch.tensor(item[2])
+        try:  # If the label is not available (or is None), set it to np.nan
+            label = torch.tensor(item[2])
+        except:
+            label = np.nan
 
         padded_waveforms[i] = padded_waveform
         labels[i] = label

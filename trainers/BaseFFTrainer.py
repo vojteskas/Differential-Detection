@@ -122,7 +122,7 @@ class BaseFFTrainer(BaseTrainer):
             val_loss = np.mean(losses).astype(float)
             val_accuracy = np.mean(np.array(labels) == np.array(predictions))
             # Skip EER calculation if any of the labels is None or all labels are the same
-            if None in labels:
+            if None in labels or np.nan in labels:
                 print("Skipping EER calculation due to missing labels")
                 eer = None
             elif len(set(labels)) == 1:
