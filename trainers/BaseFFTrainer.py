@@ -1,3 +1,4 @@
+from math import e
 from re import sub
 import torch
 from torch.nn import CrossEntropyLoss
@@ -97,7 +98,7 @@ class BaseFFTrainer(BaseTrainer):
 
     def val(
         self, val_dataloader, save_scores=False, plot_det=False, subtitle=""
-    ) -> tuple[float, float, float]:
+    ) -> tuple[float, float, float | None]:
         """
         Common validation loop
 
@@ -120,7 +121,15 @@ class BaseFFTrainer(BaseTrainer):
 
             val_loss = np.mean(losses).astype(float)
             val_accuracy = np.mean(np.array(labels) == np.array(predictions))
-            eer = self.calculate_EER(labels, scores, plot_det=plot_det, det_subtitle=subtitle)
+            # Skip EER calculation if any of the labels is None or all labels are the same
+            if None in labels:
+                print("Skipping EER calculation due to missing labels")
+                eer = None
+            elif len(set(labels)) == 1:
+                print("Skipping EER calculation due to all labels being the same")
+                eer = None
+            else:
+                eer = self.calculate_EER(labels, scores, plot_det=plot_det, det_subtitle=subtitle)
 
             return val_loss, val_accuracy, eer
 

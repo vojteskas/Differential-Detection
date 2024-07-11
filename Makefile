@@ -6,6 +6,7 @@ METAPATH = /DP
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
+	rm -f scripts.zip dp.zip
 
 clean_scripts:
 	rm -rf scripts.zip scripts/*.sh
@@ -15,7 +16,7 @@ scripts:
 
 pack: scripts clean
 	zip -r dp.zip classifiers datasets extractors feature_processors trainers config.py common.py parse_arguments.py train_and_eval.py eval.py requirements.txt
-	zip -r scripts.zip scripts
+	zip -r scripts.zip scripts -i "*.sh"
 
 upload: pack
 	scp dp.zip $(METAHOME)$(METAPATH)/dp.zip

@@ -107,7 +107,7 @@ metacentrum_config = {
         "eval_subdir": "",
         "train_protocol": "ASVspoof5.train.metadata.txt",
         "dev_protocol": "ASVspoof5.dev.metadata.txt",
-        "eval_protocol": "ASVspoof5.dev.metadata.txt",
+        "eval_protocol": "ASVspoof5.track_1.progress.trial.txt",
     },
     "batch_size": 32,
     "lstm_batch_size": 16,

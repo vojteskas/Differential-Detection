@@ -27,7 +27,30 @@ def main():
     args = parse_args()
 
     extractor = EXTRACTORS[args.extractor]()  # map the argument to the class and instantiate it
-    processor = MHFAProcessor() if args.processor == "MHFA" else MeanProcessor()
+    processor = None
+    if args.processor == "MHFA":
+        input_transformer_nb = extractor.transformer_layers
+        input_dim = extractor.feature_size
+
+        processor_output_dim = (
+            input_dim  # Output the same dimension as input - might want to play around with this
+        )
+        compression_dim = processor_output_dim // 8
+        head_nb = round(
+            input_transformer_nb * 4 / 3
+        )  # Half random guess number, half based on the paper and testing
+
+        processor = MHFAProcessor(
+            head_nb=head_nb,
+            input_transformer_nb=input_transformer_nb,
+            inputs_dim=input_dim,
+            compression_dim=compression_dim,
+            outputs_dim=processor_output_dim,
+        )
+    elif args.processor == "Mean":
+        processor = MeanProcessor()  # default avg pooling along the transformer layers and time frames
+    else:
+        raise ValueError("Only MHFA and Mean processors are currently supported.")
 
     model = None
     trainer = None
@@ -69,6 +92,8 @@ def main():
         dataset_config = config["inthewild"]
     elif "Morphing" in dataset:
         dataset_config = config["morphing"]
+    elif "ASVspoof5" in dataset:
+        dataset_config = config["asvspoof5"]
     else:
         raise ValueError("Invalid dataset name.")
 

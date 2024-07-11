@@ -24,15 +24,17 @@ class ASVspoof5Dataset_base(Dataset):
 
         protocol_file = os.path.join(self.root_dir, protocol_file_name)
         self.protocol_df = pd.read_csv(protocol_file, sep=" ", header=None)
-        self.protocol_df.columns = ["SPEAKER_ID", "AUDIO_FILE_NAME", "GENDER", "-", "SYSTEM_ID", "KEY"]
 
         subdir = ""
         if variant == "train":
             subdir = "flac_T"
+            self.protocol_df.columns = ["SPEAKER_ID", "AUDIO_FILE_NAME", "GENDER", "-", "SYSTEM_ID", "KEY"]
         elif variant == "dev":
             subdir = "flac_D"
+            self.protocol_df.columns = ["SPEAKER_ID", "AUDIO_FILE_NAME", "GENDER", "-", "SYSTEM_ID", "KEY"]
         elif variant == "eval":
-            subdir = "flac_D"  # The eval set is the same as the dev set for now
+            subdir = "flac_E_prog"
+            self.protocol_df.columns = ["AUDIO_FILE_NAME"]
         self.rec_dir = os.path.join(self.root_dir, subdir)
 
     def __len__(self):
@@ -102,6 +104,7 @@ class ASVspoof5Dataset_single(ASVspoof5Dataset_base):
 
     def __init__(self, root_dir, protocol_file_name, variant: Literal["train", "dev", "eval"] = "train"):
         super().__init__(root_dir, protocol_file_name, variant)
+        self.variant = variant
 
     def __getitem__(self, idx):
         """
@@ -114,8 +117,10 @@ class ASVspoof5Dataset_single(ASVspoof5Dataset_base):
         audio_name = os.path.join(self.rec_dir, f"{audio_file_name}.flac")
         waveform, _ = load(audio_name)
 
-        # 0 for genuine speech, 1 for spoofing speech
-        label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
+        if self.variant == "eval":  # No labels for eval set
+            label = None
+        else:  # 0 for genuine speech, 1 for spoofing speech
+            label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
 
         return audio_file_name, waveform, label
 
