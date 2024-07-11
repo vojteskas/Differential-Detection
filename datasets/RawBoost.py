@@ -96,7 +96,7 @@ def ISD_additive_noise(x, P, g_sd):
     p = np.random.permutation(x_len)[:n]
     f_r = np.multiply(((2 * np.random.rand(p.shape[0])) - 1), ((2 * np.random.rand(p.shape[0])) - 1))
     r = g_sd * x[p] * f_r
-    y[p] = (x[p] + r).type(torch.float32)
+    y[p] = torch.tensor(x[p] + r, dtype=torch.float32)
     y = normWav(y, 0)
     return y
 
@@ -296,7 +296,7 @@ def process_Rawboost_feature(feature, sr, args, algo):
         )
         feature2 = ISD_additive_noise(feature, args.P, args.g_sd)
 
-        feature_para = feature1 + feature2
+        feature_para = np.add(feature1, feature2)
         feature = normWav(feature_para, 0)  # normalized resultant waveform
 
     # original data without Rawboost processing
