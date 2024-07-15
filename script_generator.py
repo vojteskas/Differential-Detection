@@ -301,6 +301,14 @@ if __name__ == "__main__":
                 []
             ),
             (
+                "cp -r $DATADIR/deepfakes/datasets/naboso/mlaad.tar.gz .",
+                []
+            ),
+            (
+                "tar -xzf mlaad.tar.gz >/dev/null",
+                []
+            ),
+            (
                 "cp $DATADIR/deepfakes/datasets/ASVspoof5.train.metadata.txt .",
                 []
             ),

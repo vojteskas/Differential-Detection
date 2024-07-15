@@ -166,14 +166,32 @@ class ASVspoof5Dataset_augmented_DF21_single(ASVspoof5Dataset_base):
             df21_df = df21_df[["SPEAKER_ID", "AUDIO_FILE_NAME", "KEY"]]
             df21_df = df21_df.assign(subdir="DF21/flac")
 
-            self.protocol_df = pd.concat([asvspoof5_df, df21_df], ignore_index=True)
+            mlaad_protocol_file = os.path.join(self.root_dir, "mlaad_protocol.csv")
+            mlaad_df = pd.read_csv(mlaad_protocol_file, sep="|", header=None)
+            mlaad_df.columns = [
+                "SPEAKER_ID",
+                "FILE_NAME",
+                "FULL_PATH",
+                "DURATION",
+                "SYSTEM_ID",
+                "LANGUAGE",
+                "GENDER",
+                "KEY",
+                "SOURCE",
+                "-",
+            ]
+            mlaad_df = mlaad_df[["SPEAKER_ID", "FULL_PATH", "KEY"]]
+            mlaad_df.rename(columns={"FULL_PATH": "AUDIO_FILE_NAME"}, inplace=True)
+            mlaad_df = mlaad_df.assign(subdir="")
+
+            self.protocol_df = pd.concat([asvspoof5_df, df21_df, mlaad_df], ignore_index=True)
 
         elif variant == "dev":
             protocol_file = os.path.join(self.root_dir, protocol_file_name)
             self.protocol_df = pd.read_csv(protocol_file, sep=" ", header=None)
             self.protocol_df.columns = ["SPEAKER_ID", "AUDIO_FILE_NAME", "GENDER", "-", "SYSTEM_ID", "KEY"]
             self.protocol_df = self.protocol_df.assign(subdir="flac_D")
-        
+
         elif variant == "eval":
             protocol_file = os.path.join(self.root_dir, protocol_file_name)
             self.protocol_df = pd.read_csv(protocol_file, sep=" ", header=None)
@@ -189,7 +207,11 @@ class ASVspoof5Dataset_augmented_DF21_single(ASVspoof5Dataset_base):
 
         audio_file_name = self.protocol_df.loc[idx, "AUDIO_FILE_NAME"]
         subdir = self.protocol_df.loc[idx, "subdir"]
-        audio_name = os.path.join(self.root_dir, subdir, f"{audio_file_name}.flac")
+        audio_name = os.path.join(
+            self.root_dir,
+            subdir,
+            f"{audio_file_name}.flac" if not audio_file_name.endswith(".wav") else audio_file_name,
+        )
         waveform, _ = load(audio_name)
 
         if self.variant == "eval":  # No labels for eval set
@@ -198,6 +220,7 @@ class ASVspoof5Dataset_augmented_DF21_single(ASVspoof5Dataset_base):
             label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
 
         return audio_file_name, waveform, label
+
 
 # class Args:
 #     algo = None
