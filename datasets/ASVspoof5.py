@@ -170,13 +170,13 @@ class ASVspoof5Dataset_augmented_DF21_single(ASVspoof5Dataset_base):
 
         elif variant == "dev":
             protocol_file = os.path.join(self.root_dir, protocol_file_name)
-            self.protocol_df = pd.read_csv(protocol_file)
+            self.protocol_df = pd.read_csv(protocol_file, sep=" ", header=None)
             self.protocol_df.columns = ["SPEAKER_ID", "AUDIO_FILE_NAME", "GENDER", "-", "SYSTEM_ID", "KEY"]
             self.protocol_df = self.protocol_df.assign(subdir="flac_D")
         
         elif variant == "eval":
             protocol_file = os.path.join(self.root_dir, protocol_file_name)
-            self.protocol_df = pd.read_csv(protocol_file)
+            self.protocol_df = pd.read_csv(protocol_file, sep=" ", header=None)
             self.protocol_df.columns = ["AUDIO_FILE_NAME"]
             self.protocol_df = self.protocol_df.assign(subdir="flac_E_prog")
 

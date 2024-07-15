@@ -150,7 +150,7 @@ class Job:
             'echo "Running the script"',
         ]
         for script, args in self.execute_list:
-            exec_script.append(f"./{script} {' '.join(args)} 2>&1\n")
+            exec_script.append(f"{script} {' '.join(args)} 2>&1\n")
 
         results_script = []
         if self.copy_results:
@@ -269,12 +269,47 @@ if __name__ == "__main__":
     #         train=False,
     #     )
     c = "FF"
-    dshort = "ASVspoof5"
-    dataset = "ASVspoof5Dataset_single"
-    for extractor in ("WavLM_base", "HuBERT_base", "Wav2Vec2_base"):
+    dshort = "ASVspoof5aug"
+    dataset = "ASVspoof5Dataset_augmented_DF21_single"
+    for extractor in ("WavLM_base", "HuBERT_base", "Wav2Vec2_base", "Wav2Vec2_large", "Wav2Vec2_LV60k"):
         command = [
             (
-                "eval.py",
+                # f"cp -r $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .",  # copy to scratchdir
+                # f"tar {'-xzf' if '.gz' in self.dataset_archive_name else '-xf'} {self.dataset_archive_name} >/dev/null 2>&1",
+                # "\n",
+                "cp -r $DATADIR/deepfakes/datasets/flac_D.tar .", 
+                [],
+            ),
+            (
+                "tar -xf flac_D.tar >/dev/null",
+                []
+            ),
+            (
+                "cp -r $DATADIR/deepfakes/datasets/flac_E_prog.tar .",
+                []
+            ),
+            (
+                "tar -xf flac_E_prog.tar >/dev/null",
+                []
+            ),
+            (
+                "cp -r $DATADIR/deepfakes/datasets/DF21.tar.gz .",
+                []
+            ),
+            (
+                "tar -xzf DF21.tar.gz >/dev/null",
+                []
+            ),
+            (
+                "cp $DATADIR/deepfakes/datasets/ASVspoof5.train.metadata.txt .",
+                []
+            ),
+            (
+                "cp $DATADIR/deepfakes/datasets/ASVspoof5.dev.metadata.txt .",
+                []
+            ),
+            (
+                "./train_and_eval.py",
                 [
                     "--metacentrum",
                     "--dataset",
@@ -285,17 +320,18 @@ if __name__ == "__main__":
                     f"{extractor}",
                     "--processor",
                     "MHFA",
-                    "--checkpoint",
-                    f"{c}_10.pt",
+                    "--num_epochs",
+                    "5",
                 ],
             )
         ]
         generate_job_script(
-            jobname=f"DP_PROGRESS_{extractor}_{c}_{dshort}",
+            jobname=f"DP_{extractor}_{c}_{dshort}",
+            queue="gpu_long@pbs-m1.metacentrum.cz",
+            walltime="48:00:00",
+            scratch_size=500,
             file_name=f"scripts/{c}_{dshort}_{extractor}.sh",
             project_archive_name="dp.zip",
-            dataset_archive_name=f"flac_E_prog.tar",
-            checkpoint_archive_name=f"DP_{extractor}_{c}_{dshort}_Results.zip",
-            checkpoint_file_from_archive_name=f"{c}_10.pt",
+            dataset_archive_name=f"T_rawboost5.tar.gz",
             execute_list=command,
         )

@@ -72,7 +72,8 @@ class BaseFFTrainer(BaseTrainer):
             self.save_model(f"./{type(self.model).__name__}_{epoch}.pt")
 
             # Validation
-            if epoch % 5 == 0:
+            epochs_to_val = 1
+            if epoch % epochs_to_val == 0:
                 val_loss, val_accuracy, eer = self.val(val_dataloader)
                 print(f"Validation loss: {val_loss}, validation accuracy: {val_accuracy}")
                 print(f"Validation EER: {eer*100}%")

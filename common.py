@@ -22,8 +22,7 @@ from datasets.ASVspoof2021 import (
 from datasets.ASVspoof5 import (
     ASVspoof5Dataset_pair,
     ASVspoof5Dataset_single,
-    ASVspoof5Dataset_pair_augmented,
-    ASVspoof5Dataset_single_augmented,
+    ASVspoof5Dataset_augmented_DF21_single
 )
 from datasets.InTheWild import InTheWildDataset_pair, InTheWildDataset_single
 from datasets.Morphing import MorphingDataset_single, MorphingDataset_pair
@@ -102,8 +101,7 @@ DATASETS = {  # map the dataset name to the dataset class
     "MorphingDataset_pair": MorphingDataset_pair,
     "ASVspoof5Dataset_single": ASVspoof5Dataset_single,
     "ASVspoof5Dataset_pair": ASVspoof5Dataset_pair,
-    "ASVspoof5Dataset_single_augmented": ASVspoof5Dataset_single_augmented,
-    "ASVspoof5Dataset_pair_augmented": ASVspoof5Dataset_pair_augmented,
+    "ASVspoof5Dataset_augmented_DF21_single": ASVspoof5Dataset_augmented_DF21_single,
 }
 
 
