@@ -1,5 +1,4 @@
-from math import e
-from re import sub
+import math
 import torch
 from torch.nn import CrossEntropyLoss
 from matplotlib import pyplot as plt
@@ -117,12 +116,12 @@ class BaseFFTrainer(BaseTrainer):
             if save_scores:
                 with open(f"./{type(self.model).__name__}_{subtitle}_scores.txt", "w") as f:
                     for file_name, score, label in zip(file_names, scores, labels):
-                        f.write(f"{file_name},{score},{int(label)}\n")
+                        f.write(f"{file_name},{score},{'nan' if math.isnan(label) else int(label)}\n")
 
             val_loss = np.mean(losses).astype(float)
             val_accuracy = np.mean(np.array(labels) == np.array(predictions))
             # Skip EER calculation if any of the labels is None or all labels are the same
-            if None in labels or np.nan in labels:
+            if None in labels or any(map(lambda x: math.isnan(x), labels)):
                 print("Skipping EER calculation due to missing labels")
                 eer = None
             elif len(set(labels)) == 1:
@@ -157,7 +156,7 @@ class BaseFFTrainer(BaseTrainer):
             eval_dataloader, save_scores=True, plot_det=True, subtitle=subtitle
         )
         print(f"Eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
-        print(f"Eval EER: {eer*100}%")
+        print(f"Eval EER: {eer*100 if eer else None}%")
 
     def _plot_loss_accuracy(self, losses, accuracies, subtitle: str = ""):
         """

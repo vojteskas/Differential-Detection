@@ -1,5 +1,6 @@
 import torch
 from tqdm import tqdm
+import numpy as np
 
 from classifiers.single_input.FF import FF
 from trainers.BaseFFTrainer import BaseFFTrainer
@@ -49,13 +50,16 @@ class FFTrainer(BaseFFTrainer):
             label = label.to(self.device)
 
             logits, probs = self.model(wf)
-            loss = self.lossfn(logits, label.long())
+            if any(torch.isnan(label)):
+                loss = np.inf
+            else:
+                loss = self.lossfn(logits, label.long()).item()
 
             predictions.extend(torch.argmax(probs, 1).tolist())
 
             if save_scores:
                 file_names.extend(file_name)
-            losses.append(loss.item())
+            losses.append(loss)
             labels.extend(label.tolist())
             scores.extend(probs[:, 0].tolist())
 
