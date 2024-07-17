@@ -145,6 +145,7 @@ class ASVspoof5Dataset_augmented_DF21_single(ASVspoof5Dataset_base):
             asvspoof5_df.columns = ["SPEAKER_ID", "AUDIO_FILE_NAME", "GENDER", "-", "SYSTEM_ID", "KEY"]
             asvspoof5_df = asvspoof5_df[["SPEAKER_ID", "AUDIO_FILE_NAME", "KEY"]]
             asvspoof5_df = asvspoof5_df.assign(subdir="T_rawboost5/T")
+            asvspoof5_df = asvspoof5_df.assign(suffix=".wav")
 
             df21_protocol_file = os.path.join(self.root_dir, "DF21", "trial_metadata.txt")
             df21_df = pd.read_csv(df21_protocol_file, sep=" ", header=None)
@@ -165,6 +166,7 @@ class ASVspoof5Dataset_augmented_DF21_single(ASVspoof5Dataset_base):
             ]
             df21_df = df21_df[["SPEAKER_ID", "AUDIO_FILE_NAME", "KEY"]]
             df21_df = df21_df.assign(subdir="DF21/flac")
+            df21_df = df21_df.assign(suffix=".flac")
 
             mlaad_protocol_file = os.path.join(self.root_dir, "mlaad_protocol.csv")
             mlaad_df = pd.read_csv(mlaad_protocol_file, sep="|", header=None)
@@ -183,6 +185,7 @@ class ASVspoof5Dataset_augmented_DF21_single(ASVspoof5Dataset_base):
             mlaad_df = mlaad_df[["SPEAKER_ID", "FULL_PATH", "KEY"]]
             mlaad_df.rename(columns={"FULL_PATH": "AUDIO_FILE_NAME"}, inplace=True)
             mlaad_df = mlaad_df.assign(subdir="")
+            mlaad_df = mlaad_df.assign(suffix="")
 
             self.protocol_df = pd.concat([asvspoof5_df, df21_df, mlaad_df], ignore_index=True)
 
@@ -198,6 +201,10 @@ class ASVspoof5Dataset_augmented_DF21_single(ASVspoof5Dataset_base):
             self.protocol_df.columns = ["AUDIO_FILE_NAME"]
             self.protocol_df = self.protocol_df.assign(subdir="flac_E_prog")
 
+        # print(f"Loaded {len(self.protocol_df)} files for {variant} set")
+        # print(self.protocol_df)
+        # exit()
+
     def __getitem__(self, idx):
         """
         Returns tuples of the form (audio_file_name, waveform, label)
@@ -207,10 +214,11 @@ class ASVspoof5Dataset_augmented_DF21_single(ASVspoof5Dataset_base):
 
         audio_file_name = self.protocol_df.loc[idx, "AUDIO_FILE_NAME"]
         subdir = self.protocol_df.loc[idx, "subdir"]
+        suffix = self.protocol_df.loc[idx, "suffix"]
         audio_name = os.path.join(
             self.root_dir,
             subdir,
-            f"{audio_file_name}.flac" if not audio_file_name.endswith(".wav") else audio_file_name,
+            f"{audio_file_name}{suffix}",
         )
         waveform, _ = load(audio_name)
 

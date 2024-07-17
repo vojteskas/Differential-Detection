@@ -109,7 +109,7 @@ metacentrum_config = {
         "dev_protocol": "ASVspoof5.dev.metadata.txt",
         "eval_protocol": "ASVspoof5.track_1.progress.trial.txt",
     },
-    "batch_size": 32,
+    "batch_size": 24,
     "lstm_batch_size": 16,
     "num_epochs": 20,
 }

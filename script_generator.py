@@ -337,6 +337,7 @@ if __name__ == "__main__":
             jobname=f"DP_{extractor}_{c}_{dshort}",
             queue="gpu_long@pbs-m1.metacentrum.cz",
             walltime="48:00:00",
+            mem = 300,
             scratch_size=500,
             file_name=f"scripts/{c}_{dshort}_{extractor}.sh",
             project_archive_name="dp.zip",

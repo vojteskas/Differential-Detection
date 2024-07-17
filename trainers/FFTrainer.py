@@ -15,7 +15,7 @@ class FFTrainer(BaseFFTrainer):
         accuracies = []
         # Training loop
         for _, wf, label in tqdm(train_dataloader):
-            
+
             wf = wf.to(self.device)
             label = label.to(self.device)
 
@@ -38,7 +38,9 @@ class FFTrainer(BaseFFTrainer):
 
         return accuracies, losses
 
-    def val_epoch(self, val_dataloader, save_scores=False) -> tuple[list[float], list[float], list[float], list[int], list[str]]:
+    def val_epoch(
+        self, val_dataloader, save_scores=False
+    ) -> tuple[list[float], list[float], list[float], list[int], list[str]]:
         losses = []
         labels = []
         scores = []
