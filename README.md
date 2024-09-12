@@ -95,7 +95,7 @@ Classifier-specific arguments:
 
 Here will be listed related publications.
 
-Currently none.
+Rohdin, J. & Zhang, L. & Plchot, O. & Staněk, V. & Mihola, D. & Peng, J. & Stafylakis, T. & Beveraki, D. & Silnova, A. & Brukner, J. & Burget, L., 2024. *BUT Systems and Analyses for the ASVspoof 5 Challenge*, Art. no. arXiv:2408.11152, 2024. DOI: [10.48550/arXiv.2408.11152](https://arxiv.org/abs/2408.11152)
 
 ## Contact
 
