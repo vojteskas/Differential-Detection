@@ -7,7 +7,8 @@ from common import CLASSIFIERS, EXTRACTORS, TRAINERS, get_dataloaders
 from parse_arguments import parse_args
 
 # feature_processors
-from feature_processors.MHFAProcessor import MHFAProcessor
+from feature_processors.MHFA import MHFA
+from feature_processors.AASIST import AASIST
 from feature_processors.MeanProcessor import MeanProcessor
 
 # classifiers
@@ -43,12 +44,18 @@ def main():
             input_transformer_nb * 4 / 3
         )  # Half random guess number, half based on the paper and testing
 
-        processor = MHFAProcessor(
+        processor = MHFA(
             head_nb=head_nb,
             input_transformer_nb=input_transformer_nb,
             inputs_dim=input_dim,
             compression_dim=compression_dim,
             outputs_dim=processor_output_dim,
+        )
+    elif args.processor == "AASIST":
+        processor = AASIST(
+            inputs_dim=extractor.feature_size,
+            # compression_dim=extractor.feature_size // 8,  # compression dim is hardcoded at the moment
+            outputs_dim=extractor.feature_size,  # Output the same dimension as input, might want to play around with this
         )
     elif args.processor == "Mean":
         processor = MeanProcessor()  # default avg pooling along the transformer layers and time frames
@@ -83,7 +90,7 @@ def main():
         dataset=args.dataset, config=config, lstm=True if "LSTM" in args.classifier else False
     )
 
-    # TODO: Implement training of MHFA with SkLearn models
+    # TODO: Implement training of MHFA and AASIST with SkLearn models
 
     print(
         f"Training {type(model).__name__} model with {type(extractor).__name__} extractor and {type(processor).__name__} processor on {type(train_dataloader.dataset).__name__} dataloader."
@@ -96,10 +103,10 @@ def main():
         trainer.eval(eval_dataloader, subtitle=str(args.num_epochs))  # Eval after training
 
     elif isinstance(trainer, BaseSklearnTrainer):
-        if isinstance(processor, MHFAProcessor):
-            # SkLearn models with MHFAProcessor not yet implemented
+        if isinstance(processor, MHFA) or isinstance(processor, AASIST):
+            # SkLearn models with MHFA or AASIST not yet implemented
             raise NotImplementedError(
-                "Training of SkLearn models with MHFAProcessor is not yet implemented."
+                "Training of SkLearn models with MHFA or AASIST is not yet implemented."
             )
         # Default value of variant = all
         trainer.train(train_dataloader, val_dataloader, variant=args.variant)

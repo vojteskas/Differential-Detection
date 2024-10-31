@@ -6,7 +6,8 @@ from torch.utils.data import DataLoader, IterableDataset
 
 from config import local_config, metacentrum_config
 from common import CLASSIFIERS, DATASETS, EXTRACTORS, TRAINERS
-from feature_processors.MHFAProcessor import MHFAProcessor
+from feature_processors.MHFA import MHFA
+from feature_processors.AASIST import AASIST
 from feature_processors.MeanProcessor import MeanProcessor
 from parse_arguments import parse_args
 
@@ -40,17 +41,23 @@ def main():
             input_transformer_nb * 4 / 3
         )  # Half random guess number, half based on the paper and testing
 
-        processor = MHFAProcessor(
+        processor = MHFA(
             head_nb=head_nb,
             input_transformer_nb=input_transformer_nb,
             inputs_dim=input_dim,
             compression_dim=compression_dim,
             outputs_dim=processor_output_dim,
         )
+    elif args.processor == "AASIST":
+        processor = AASIST(
+            inputs_dim=extractor.feature_size,
+            # compression_dim=extractor.feature_size // 8,  # compression dim is hardcoded at the moment
+            outputs_dim=extractor.feature_size,  # Output the same dimension as input, might want to play around with this
+        )
     elif args.processor == "Mean":
         processor = MeanProcessor()  # default avg pooling along the transformer layers and time frames
     else:
-        raise ValueError("Only MHFA and Mean processors are currently supported.")
+        raise ValueError("Only MHFA, AASIST and Mean processors are currently supported.")
 
     model = None
     trainer = None

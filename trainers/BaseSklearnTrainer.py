@@ -45,7 +45,7 @@ class BaseSklearnTrainer(BaseTrainer):
         else:
             self.model = joblib.load(path)
 
-    def train(self, train_dataloader, val_dataloader = None):
+    def train(self, train_dataloader, val_dataloader = None, variant = "all"):
         raise NotImplementedError("Child classes should implement the train method")
 
     def _train_all(self, train_dataloader):
