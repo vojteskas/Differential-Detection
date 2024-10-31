@@ -268,79 +268,34 @@ if __name__ == "__main__":
     #         execute_list=command,
     #         train=False,
     #     )
-    c = "FF"
-    dshort = "ASVspoof5aug"
-    dataset = "ASVspoof5Dataset_augmented_DF21_single"
-    for extractor in ("WavLM_base", "HuBERT_base", "Wav2Vec2_base", "Wav2Vec2_large", "Wav2Vec2_LV60k"):
+    extractor = "XLSR_300M"
+    dshort = "DF21"
+    for c in ("FF", "FFDiff", "FFDiffAbs", "FFDiffQuadratic", "FFConcat1", "FFConcat2", "FFConcat3", "FFLSTM2"):
+        dataset = "ASVspoof2021DFDataset_single" if c == "FF" else "ASVspoof2021DFDataset_pair"
         command = [
-            (
-                # f"cp -r $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .",  # copy to scratchdir
-                # f"tar {'-xzf' if '.gz' in self.dataset_archive_name else '-xf'} {self.dataset_archive_name} >/dev/null 2>&1",
-                # "\n",
-                "cp -r $DATADIR/deepfakes/datasets/flac_D.tar .", 
-                [],
-            ),
-            (
-                "tar -xf flac_D.tar >/dev/null",
-                []
-            ),
-            (
-                "cp -r $DATADIR/deepfakes/datasets/flac_E_prog.tar .",
-                []
-            ),
-            (
-                "tar -xf flac_E_prog.tar >/dev/null",
-                []
-            ),
-            (
-                "cp -r $DATADIR/deepfakes/datasets/DF21.tar.gz .",
-                []
-            ),
-            (
-                "tar -xzf DF21.tar.gz >/dev/null",
-                []
-            ),
-            (
-                "cp -r $DATADIR/deepfakes/datasets/naboso/mlaad.tar.gz .",
-                []
-            ),
-            (
-                "tar -xzf mlaad.tar.gz >/dev/null",
-                []
-            ),
-            (
-                "cp $DATADIR/deepfakes/datasets/ASVspoof5.train.metadata.txt .",
-                []
-            ),
-            (
-                "cp $DATADIR/deepfakes/datasets/ASVspoof5.dev.metadata.txt .",
-                []
-            ),
             (
                 "./train_and_eval.py",
                 [
                     "--metacentrum",
                     "--dataset",
-                    dataset,
+                    f"{dataset}",
                     "--classifier",
                     f"{c}",
                     "--extractor",
                     f"{extractor}",
                     "--processor",
-                    "MHFA",
+                    "AASIST",
                     "--num_epochs",
-                    "5",
+                    "20",
                 ],
             )
         ]
         generate_job_script(
             jobname=f"DP_{extractor}_{c}_{dshort}",
-            queue="gpu_long@pbs-m1.metacentrum.cz",
-            walltime="48:00:00",
-            mem = 300,
-            scratch_size=500,
+            mem = 200,
+            scratch_size=200,
             file_name=f"scripts/{c}_{dshort}_{extractor}.sh",
             project_archive_name="dp.zip",
-            dataset_archive_name=f"T_rawboost5.tar.gz",
+            dataset_archive_name=f"DF21.tar.gz",
             execute_list=command,
         )

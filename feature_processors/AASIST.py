@@ -460,12 +460,10 @@ class AASIST(nn.Module, BaseProcessor):
     def forward(self, x):
         # Input x has shape: [Nb_Layer, Batch, Frame_len, Dim]
         # Take only the last layer
-        print("Taking only the last layer")
         x = x[-1]
         x = self.LL(x)
         
         # post-processing on front-end features
-        print("Post-processing on front-end features")
         # transpose to (Batch, Dim, Frame_len)
         x = x.transpose(1, 2)
         x = x.unsqueeze(dim=1) # add channel 
@@ -474,7 +472,6 @@ class AASIST(nn.Module, BaseProcessor):
         x = self.selu(x)
 
         # RawNet2-based encoder
-        print("RawNet2-based encoder")
         x = self.encoder(x)
         x = self.first_bn1(x)
         x = self.selu(x)
@@ -482,7 +479,6 @@ class AASIST(nn.Module, BaseProcessor):
         w = self.attention(x)
         
         #------------SA for spectral feature-------------#
-        print("SA for spectral feature")
         w1 = F.softmax(w,dim=-1)
         m = torch.sum(x * w1, dim=-1)
         e_S = m.transpose(1, 2) + self.pos_S 
@@ -492,7 +488,6 @@ class AASIST(nn.Module, BaseProcessor):
         out_S = self.pool_S(gat_S)  # (#bs, #node, #dim)
         
         #------------SA for temporal feature-------------#
-        print("SA for temporal feature")
         w2 = F.softmax(w,dim=-2)
         m1 = torch.sum(x * w2, dim=-2)
      
@@ -506,7 +501,6 @@ class AASIST(nn.Module, BaseProcessor):
         master1 = self.master1.expand(x.size(0), -1, -1)
         master2 = self.master2.expand(x.size(0), -1, -1)
 
-        print("inferencing")
         # inference 1
         out_T1, out_S1, master1 = self.HtrgGAT_layer_ST11(
             out_T, out_S, master=self.master1)
@@ -555,6 +549,5 @@ class AASIST(nn.Module, BaseProcessor):
         
         last_hidden = self.drop(last_hidden)
         output = self.out_layer(last_hidden)
-        print(output.shape)
         
         return output
