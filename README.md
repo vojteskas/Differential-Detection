@@ -4,7 +4,7 @@
 
 **Abstract:** Deepfake speech technology, which can create highly realistic fake audio, poses significant challenges, from enabling multi-million dollar scams to complicating legal evidence's reliability. This work introduces a novel method for detecting such deepfakes by leveraging bonafide speech samples. Unlike previous strategies, the approach uses trusted ground truth speech samples to identify spoofs, providing critical information that common methods lack. By comparing the bonafide samples with potentially manipulated ones, the aim is to effectively and reliably determine the authenticity of the speech. Results suggest that this innovative approach could be a valuable tool in identifying deepfake speech, especially recordings created using Voice Conversion techniques, offering a new line of defence against this emerging threat.
 
-This repository contains the code for my [Master's thesis](https://www.vut.cz/studenti/zav-prace/detail/152826).
+This repository contains the code for my [Master's thesis](https://www.vut.cz/studenti/zav-prace/detail/152826) and following work.
 
 ## Repository structure
 
@@ -93,7 +93,7 @@ Classifier-specific arguments:
 
 ## Publications
 
-Here will be listed related publications.
+Here, the related publications will be listed.
 
 Rohdin, J. & Zhang, L. & Plchot, O. & Staněk, V. & Mihola, D. & Peng, J. & Stafylakis, T. & Beveraki, D. & Silnova, A. & Brukner, J. & Burget, L., 2024. *BUT Systems and Analyses for the ASVspoof 5 Challenge*, Art. no. arXiv:2408.11152, 2024. DOI: [10.48550/arXiv.2408.11152](https://arxiv.org/abs/2408.11152)
 
