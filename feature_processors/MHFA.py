@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from feature_processors.BaseProcessor import BaseProcessor
 
-class MHFAProcessor(nn.Module, BaseProcessor):
+class MHFA(nn.Module, BaseProcessor):
     """
     Multi-head factorized attentive pooling layer.
     Implemented by Junyi Peng, 2022, based on the paper: https://arxiv.org/abs/2210.01273
@@ -22,7 +22,7 @@ class MHFAProcessor(nn.Module, BaseProcessor):
         param compression_dim: Compressed features dim - each head will compress from inputs_dim to this dimension
         param outputs_dim: Dimension of the output features
         """
-        super(MHFAProcessor, self).__init__()
+        super(MHFA, self).__init__()
 
         # Define learnable weights for key and value computations across layers
         self.weights_k = nn.Parameter(data=torch.ones(input_transformer_nb), requires_grad=True)
