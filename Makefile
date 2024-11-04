@@ -11,6 +11,8 @@ clean:
 clean_scripts:
 	rm -rf scripts.zip scripts/*.sh
 
+cleanall: clean clean_scripts
+
 scripts:
 	python script_generator.py
 
@@ -23,5 +25,5 @@ upload: pack
 	scp scripts.zip $(METAHOME)$(METAPATH)/scripts.zip
 	scp runner.sh $(METAHOME)$(METAPATH)/runner.sh
 
-make download:
+download:
 	scp -r $(METAHOME)$(METAPATH)/trained_models ./trained_models
