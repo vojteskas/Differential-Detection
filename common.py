@@ -172,7 +172,7 @@ def get_dataloaders(
     # samples_weights = [train_dataset.get_class_weights()[i] for i in train_dataset.get_labels()]  # old and slow solution
     samples_weights = np.vectorize(train_dataset.get_class_weights().__getitem__)(train_dataset.get_labels())  # blazing fast solution
     weighted_sampler = WeightedRandomSampler(samples_weights, len(train_dataset))
-    print(f"Weights: {samples_weights}")
+    # print(f"Weights: {samples_weights}")
     # Adjust batch size for LSTM models
     bs = config["batch_size"] if not lstm else config["lstm_batch_size"]
 

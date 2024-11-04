@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from classifiers.FFBase import FFBase
+from feature_processors.AASIST import AASIST
 
 
 class FFConcatBase(FFBase):
@@ -266,16 +267,21 @@ class FFLSTM2(FFConcatBase):
 
         emb_gt = self.extractor.extract_features(input_data_ground_truth)
         emb_test = self.extractor.extract_features(input_data_tested)
-
+        
         emb = torch.cat((emb_gt, emb_test), 2)
-        translayers, _, totalframes, _ = emb.size()
-        emb = emb.transpose(0, 1).flatten(1, 2)
+        translayers, _, totalframes, _ = emb.size() # needed for unflattening later
 
-        # LSTM attention
+        if type(self.feature_processor) is AASIST:
+            emb = emb[-1]
+        else:
+            emb = emb.transpose(0, 1).flatten(1, 2)
+
+        # LSTM 
         emb, _ = self.lstm(emb)
 
         # transform back to original shape (translayers, batch, totalframes, feature_size)
-        emb = emb.unflatten(1, (translayers, totalframes)).transpose(0, 1)
+        if type(self.feature_processor) is not AASIST:
+            emb = emb.unflatten(1, (translayers, totalframes)).transpose(0, 1)
 
         emb = self.feature_processor(emb)
 

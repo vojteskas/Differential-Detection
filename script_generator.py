@@ -268,6 +268,42 @@ if __name__ == "__main__":
     #         execute_list=command,
     #         train=False,
     #     )
+
+    # TOTO MAS POTOM READY NA EVAL, vymenit aasist za mhfa
+    # extractor = "XLSR_300M"
+    # dshort = "DF21"
+    # for c in ("FF", "FFDiff", "FFDiffAbs", "FFDiffQuadratic", "FFConcat1", "FFConcat2", "FFConcat3"):
+    #     dataset = "ASVspoof2021DFDataset_single" if c == "FF" else "ASVspoof2021DFDataset_pair"
+    #     for ep in range(5, 20):
+    #         command = [
+    #             (
+    #                 "./eval.py",
+    #                 [
+    #                     "--metacentrum",
+    #                     "--dataset",
+    #                     f"{dataset}",
+    #                     "--classifier",
+    #                     f"{c}",
+    #                     "--extractor",
+    #                     f"{extractor}",
+    #                     "--processor",
+    #                     "AASIST",
+    #                     "--checkpoint",
+    #                     f"{c}_{ep}",
+    #                 ],
+    #             )
+    #         ]
+    #         generate_job_script(
+    #             jobname=f"EVAL_{c}aasist_{dshort}",
+    #             mem = 200,
+    #             scratch_size=200,
+    #             file_name=f"scripts/eval_{c}aasist_{ep}_{dshort}.sh",
+    #             project_archive_name="dp.zip",
+    #             dataset_archive_name=f"DF21.tar.gz",
+    #             checkpoint_archive_name=f"DP_{extractor}_{c}_{dshort}_Results.zip",
+    #             checkpoint_file_from_archive_name=f"{c}_{ep}.pt",
+    #             execute_list=command,
+    #         )
     extractor = "XLSR_300M"
     dshort = "DF21"
     for c in ("FF", "FFDiff", "FFDiffAbs", "FFDiffQuadratic", "FFConcat1", "FFConcat2", "FFConcat3", "FFLSTM2"):
@@ -284,17 +320,19 @@ if __name__ == "__main__":
                     "--extractor",
                     f"{extractor}",
                     "--processor",
-                    "AASIST",
+                    "MHFA",
                     "--num_epochs",
                     "20",
                 ],
             )
         ]
         generate_job_script(
-            jobname=f"DP_{extractor}_{c}_{dshort}",
+            jobname=f"TRAIN_{c}_{dshort}",
+            queue="gpu_long@pbs-m1.metacentrum.cz",
+            walltime="60:00:00",
             mem = 200,
             scratch_size=200,
-            file_name=f"scripts/{c}_{dshort}_{extractor}.sh",
+            file_name=f"scripts/train_{c}_{dshort}.sh",
             project_archive_name="dp.zip",
             dataset_archive_name=f"DF21.tar.gz",
             execute_list=command,

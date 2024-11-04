@@ -459,8 +459,8 @@ class AASIST(nn.Module, BaseProcessor):
 
     def forward(self, x):
         # Input x has shape: [Nb_Layer, Batch, Frame_len, Dim]
-        # Take only the last layer
-        x = x[-1]
+        # Take only the last layer, leave as is if it's already 3D (for FFLSTM2)
+        x = x[-1] if x.dim() == 4 else x # [Batch, Frame_len, Dim]
         x = self.LL(x)
         
         # post-processing on front-end features
