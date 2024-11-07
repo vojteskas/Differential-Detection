@@ -53,7 +53,7 @@ class SGEheaders:
     def __init__(
         self,
         jobname: str,  # name of the job
-        queue="long.q@@gpu",  # queue name
+        queue="long.q",  # queue name
         walltime="100:00:00",  # maximum time the job can run
         cpus=4,  # number of cpus on a node
         mem=150,  # memory per node in GB
@@ -77,8 +77,8 @@ class SGEheaders:
             f"#$ -q {self.queue}",
             f"#$ -l gpu={self.gpus},gpu_ram={self.gpu_mem}G,ram_free={self.mem}G",
             f"#$ -m {self.email_notification_flags}",
-            f"#$ -o /pub/tmp/istanek/jobs/$JOB_NAME.$JOB_ID.out",
-            f"#$ -e /pub/tmp/istanek/jobs/$JOB_NAME.$JOB_ID.err",
+            f"#$ -o /pub/tmp/istanek/$JOB_NAME.$JOB_ID.out",
+            f"#$ -e /pub/tmp/istanek/$JOB_NAME.$JOB_ID.err",
         ]
 
         return "\n".join(header)
