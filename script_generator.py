@@ -77,8 +77,8 @@ class SGEheaders:
             f"#$ -q {self.queue}",
             f"#$ -l gpu={self.gpus},gpu_ram={self.gpu_mem}G,ram_free={self.mem}G",
             f"#$ -m {self.email_notification_flags}",
-            f"#$ -o /pub/tmp/istanek/$JOB_NAME.$JOB_ID.out",
-            f"#$ -e /pub/tmp/istanek/$JOB_NAME.$JOB_ID.err",
+            f"#$ -o /mnt/matylda0/istanek/jobs/$JOB_NAME.$JOB_ID.out",
+            f"#$ -e /mnt/matylda0/istanek/jobs/$JOB_NAME.$JOB_ID.err",
         ]
 
         return "\n".join(header)
