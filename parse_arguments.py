@@ -6,9 +6,10 @@ from common import CLASSIFIERS
 def parse_args():
     parser = argparse.ArgumentParser(description="Main script for training and evaluating the classifiers.")
 
-    # either --metacentrum or --local must be specified
+    # either --metacentrum, --sge or --local must be specified
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--metacentrum", action="store_true", help="Flag for running on metacentrum.")
+    group.add_argument("--sge", action="store_true", help="Flag for running on SGE on BUT FIT.")
     group.add_argument("--local", action="store_true", help="Flag for running locally.")
 
     # Add argument for loading a checkpoint

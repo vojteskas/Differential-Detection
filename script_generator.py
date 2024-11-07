@@ -2,6 +2,9 @@
 # This script generates a bash script for submitting a job to the MetaCentrum PBS system.
 
 
+from typing import Literal
+
+
 class PBSheaders:
     def __init__(
         self,
@@ -46,7 +49,48 @@ class PBSheaders:
         return self.__str__()
 
 
-class Job:
+class SGEheaders:
+    def __init__(
+        self,
+        jobname: str,  # name of the job
+        queue="long.q@@gpu",  # queue name
+        walltime="100:00:00",  # maximum time the job can run
+        cpus=4,  # number of cpus on a node
+        mem=150,  # memory per node in GB
+        gpus=1,  # number of gpus
+        gpu_mem=20,  # minimum gpu memory in GB
+        email_notification_flags="ae",  # when to send email notifications, see https://docs.metacentrum.cz/computing/email-notif/
+    ):
+        self.jobname = jobname
+        self.queue = queue
+        # self.walltime = walltime
+        # self.cpus = cpus # skip cpus, IDFK which key to use (cpu, cores, num_proc, slots, ...)
+        self.mem = mem
+        self.gpus = gpus
+        self.gpu_mem = gpu_mem
+        self.email_notification_flags = email_notification_flags
+
+    def __str__(self):
+        header = [
+            f"#!/bin/bash",
+            f"#$ -N {self.jobname}",
+            f"#$ -q {self.queue}",
+            f"#$ -l gpu={self.gpus},gpu_ram={self.gpu_mem}G,ram_free={self.mem}G",
+            f"#$ -m {self.email_notification_flags}",
+            f"#$ -o /pub/tmp/istanek/jobs/$JOB_NAME.$JOB_ID.out",
+            f"#$ -e /pub/tmp/istanek/jobs/$JOB_NAME.$JOB_ID.err",
+        ]
+
+        return "\n".join(header)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __call__(self):
+        return self.__str__()
+
+
+class PBSJob:
     def __init__(
         self,
         jobname: str,  # name of the job
@@ -177,14 +221,122 @@ class Job:
 
     def __call__(self):
         return self.__str__()
+    
+
+class SGEJob:
+    def __init__(
+        self,
+        jobname: str,  # name of the job
+        project_archive_path="jobs/",  # path to the project source archive from home (~) directory
+        project_archive_name="dp.zip",  # name of the project source archive
+        checkpoint_file_path=None,  # path to the checkpoint file from
+        checkpoint_archive_name=None,  # name of the checkpoint archive
+        checkpoint_file_from_archive_name=None,  # name of the checkpoint file from the archive
+        execute_list=[
+            ("train_and_eval.py", ["--metacentrum"])
+        ],  # doubles of script name and list of arguments
+        train=True,  # if training, copy training LA19 dataset aswell
+        copy_results=True,  # copy results back to home directory
+    ):
+        self.jobname = jobname
+        self.project_archive_path = project_archive_path
+        self.project_archive_name = project_archive_name
+        self.checkpoint_file_path = checkpoint_file_path
+        self.checkpoint_archive_name = checkpoint_archive_name
+        self.checkpoint_file_from_archive_name = checkpoint_file_from_archive_name
+        self.execute_list = execute_list
+        self.train = train
+        self.copy_results = copy_results
+
+    def __str__(self):
+        env_script = [
+            # variable declaration
+            f"name={self.jobname}",
+            f'archivename="$name"_Results.zip',
+            "HOMEDIR=/mnt/matylda0/istanek",
+            "TMPDIR=/pub/tmp/istanek",
+            "\n",
+            "cd $TMPDIR || exit 1",
+            "\n",
+            # copy project files
+            'echo "Copying project files"',
+            f"cp $HOMEDIR/{self.project_archive_path}{self.project_archive_name} $TMPDIR",  # copy to scratchdir
+            f"unzip {self.project_archive_name} >/dev/null 2>&1",
+            "\n",
+            # activate conda env
+            'echo "Activating conda environment"',
+            'eval "$(/mnt/matylda0/istanek/miniconda3/bin/conda shell.bash hook)" || { echo "Error activating conda"; exit 2; }',
+            'conda activate /mnt/matylda0/istanek/miniconda3/envs/DP || { echo "Error activating environment"; exit 2; }',
+            "\n",
+            # enable cuda and select gpu
+            'echo "Enabling CUDA and selecting GPU"',
+            'export CUDA_HOME=/usr/local/share/cuda-12.1',
+            "useGPU=$(nvidia-smi --query-gpu=index,memory.used --format=csv,noheader,nounits | sort -n -k2 | head -n1 |  awk -F', ' '{print $1}')",
+            "export CUDA_VISIBLE_DEVICES=$useGPU",
+            "\n",
+        ]
+
+        checkpoint_script = []
+        if self.checkpoint_archive_name:
+            raise NotImplementedError("Checkpoint archive script generation not implemented yet")
+            # checkpoint_script = [
+            #     # copy checkpoint
+            #     'echo "Copying checkpoint archive"',
+            #     f"cp $DATADIR/DP/{self.checkpoint_archive_name} .",  # copy to scratchdir
+            #     f"unzip {self.checkpoint_archive_name} {self.checkpoint_file_from_archive_name} >/dev/null 2>&1",
+            #     "\n",
+            # ]
+        if self.checkpoint_file_path:
+            raise NotImplementedError("Checkpoint archive script generation not implemented yet")
+            # checkpoint_script = [
+            #     # copy checkpoint
+            #     'echo "Copying checkpoint file"',
+            #     f"cp $DATADIR/DP/{self.checkpoint_file_path} .",  # copy to scratchdir
+            #     "\n",
+            # ]
+
+        exec_script = [
+            # run the script
+            "chmod 755 ./*.py",
+            'echo "Running the script"',
+        ]
+        for script, args in self.execute_list:
+            exec_script.append(f"{script} {' '.join(args)} 2>&1\n\n")
+
+        results_script = []
+        if self.copy_results:
+            results_script = [
+                # copy results
+                'echo "Copying results"',
+                'find . -type d -name "__pycache__" -exec rm -rf {} +',  # remove __pycache__ directories
+                'zip -r "$archivename" ./*.png ./*.pt ./*.txt >/dev/null 2>&1',
+                f'cp "$archivename" $HOMEDIR/{self.project_archive_path}$archivename >/dev/null 2>&1',
+                "\n",
+            ]
+
+        cleanup_script = [
+            # cleanup
+            'rm -rf "${TMPDIR:?}/*"'
+        ]
+
+        return "\n".join(
+            env_script + checkpoint_script + exec_script + results_script + cleanup_script
+        )
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __call__(self):
+        return self.__str__()
 
 
 def generate_job_script(
     jobname: str,  # name of the job
     file_name=None,  # name of the file to save the script to, if None, the script is not saved
+    server: Literal["sge", "metacentrum"] = "metacentrum",  # server to generate the script for
     **kwargs,  # keyword arguments for PBSheaders and Job
 ):
-    pbsheaders_kwargs = {
+    headers_kwargs = {
         key: value
         for key, value in kwargs.items()
         if key
@@ -217,9 +369,14 @@ def generate_job_script(
             "copy_results",
         ]
     }
-    pbs = PBSheaders(jobname, **pbsheaders_kwargs)
-    job = Job(jobname, **job_kwargs)
-    script = f"{pbs}\n\n{job}"
+    if server == "metacentrum":
+        headers = PBSheaders(jobname, **headers_kwargs)
+        job = PBSJob(jobname, **job_kwargs)
+    elif server == "sge":
+        headers = SGEheaders(jobname, **headers_kwargs)
+        job = SGEJob(jobname, **job_kwargs)
+
+    script = f"{headers}\n\n{job}"
 
     if file_name:
         with open(file_name, "w", newline="\n") as file:
@@ -306,13 +463,22 @@ if __name__ == "__main__":
     #         )
     extractor = "XLSR_300M"
     dshort = "DF21"
-    for c in ("FF", "FFDiff", "FFDiffAbs", "FFDiffQuadratic", "FFConcat1", "FFConcat2", "FFConcat3", "FFLSTM2"):
+    for c in (
+        "FF",
+        "FFDiff",
+        "FFDiffAbs",
+        "FFDiffQuadratic",
+        "FFConcat1",
+        "FFConcat2",
+        "FFConcat3",
+        "FFLSTM2",
+    ):
         dataset = "ASVspoof2021DFDataset_single" if c == "FF" else "ASVspoof2021DFDataset_pair"
         command = [
             (
                 "./train_and_eval.py",
                 [
-                    "--metacentrum",
+                    "--sge",
                     "--dataset",
                     f"{dataset}",
                     "--classifier",
@@ -327,13 +493,10 @@ if __name__ == "__main__":
             )
         ]
         generate_job_script(
-            jobname=f"TRAIN_{c}_{dshort}",
-            queue="gpu_long@pbs-m1.metacentrum.cz",
-            walltime="60:00:00",
-            mem = 200,
-            scratch_size=200,
-            file_name=f"scripts/train_{c}_{dshort}.sh",
+            jobname=f"TRAIN_SGE_{c}_{dshort}",
+            server="sge",
+            # walltime="60:00:00",
+            file_name=f"scripts/train_sge_{c}_{dshort}.sh",
             project_archive_name="dp.zip",
-            dataset_archive_name=f"DF21.tar.gz",
             execute_list=command,
         )

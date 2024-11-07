@@ -1,8 +1,10 @@
 # Variables
 METAHOME = vojteskas@skirit.ics.muni.cz:~
 METAPATH = /DP
+SGEHOME = istanek@merlin.fit.vutbr.cz:/mnt/matylda0/istanek
+SGEPATH = /jobs
 
-.PHONY: clean clean_scripts scripts pack upload
+.PHONY: clean clean_scripts scripts pack upload upload_sge
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
@@ -19,9 +21,14 @@ pack: scripts clean
 	zip -r scripts.zip scripts -i "*.sh"
 
 upload: pack
-	scp dp.zip $(METAHOME)$(METAPATH)/dp.zip
 	scp scripts.zip $(METAHOME)$(METAPATH)/scripts.zip
+	scp dp.zip $(METAHOME)$(METAPATH)/dp.zip
 	scp runner.sh $(METAHOME)$(METAPATH)/runner.sh
+
+upload_sge: pack
+	scp scripts.zip $(SGEHOME)$(SGEPATH)/scripts.zip
+	scp dp.zip $(SGEHOME)$(SGEPATH)/dp.zip
+	scp runner.sh $(SGEHOME)$(SGEPATH)/runner.sh
 
 make download:
 	scp -r $(METAHOME)$(METAPATH)/trained_models ./trained_models

@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-from sys import argv
-
 from torch.utils.data import DataLoader, IterableDataset
 
-from config import local_config, metacentrum_config
+from config import local_config, metacentrum_config, sge_config
 from common import CLASSIFIERS, DATASETS, EXTRACTORS, TRAINERS
 from feature_processors.MHFA import MHFA
 from feature_processors.AASIST import AASIST
@@ -23,9 +21,9 @@ from datasets.utils import custom_pair_batch_create, custom_single_batch_create
 
 
 def main():
-    config = metacentrum_config if "--metacentrum" in argv else local_config
-
     args = parse_args()
+
+    config = sge_config if args.sge else metacentrum_config if args.metacentrum else local_config
 
     extractor = EXTRACTORS[args.extractor]()  # map the argument to the class and instantiate it
     processor = None

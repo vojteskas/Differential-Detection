@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-from sys import argv
-
 from classifiers.differential.FFDot import FFDot
-from config import local_config, metacentrum_config
+from config import local_config, metacentrum_config, sge_config
 from common import CLASSIFIERS, EXTRACTORS, TRAINERS, get_dataloaders
 from parse_arguments import parse_args
 
@@ -16,7 +14,6 @@ from classifiers.differential.GMMDiff import GMMDiff
 from classifiers.differential.SVMDiff import SVMDiff
 
 # trainers
-from trainers.BaseFFPairTrainer import BaseFFPairTrainer
 from trainers.BaseFFTrainer import BaseFFTrainer
 from trainers.FFDotTrainer import FFDotTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
@@ -25,9 +22,9 @@ from trainers.BaseSklearnTrainer import BaseSklearnTrainer
 
 
 def main():
-    config = metacentrum_config if "--metacentrum" in argv else local_config
-
     args = parse_args()
+
+    config = sge_config if args.sge else metacentrum_config if args.metacentrum else local_config
 
     extractor = EXTRACTORS[args.extractor]()  # map the argument to the class and instantiate it
 
