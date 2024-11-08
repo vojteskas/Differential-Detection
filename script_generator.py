@@ -256,22 +256,25 @@ class SGEJob:
             "HOMEDIR=/mnt/matylda0/istanek",
             "TMPDIR=/pub/tmp/istanek",
             "\n",
-            "cd $TMPDIR || exit 1",
+            # create dir for the job
+            'echo "Creating job directory"',
+            'mkdir "$TMPDIR/$JOB_NAME.$JOB_ID" || { echo "Error creating job directory"; exit 1; }',
+            'cd "$TMPDIR/$JOB_NAME.$JOB_ID" || { echo "Error entering job directory"; exit 1; }',
             "\n",
             # copy project files
             'echo "Copying project files"',
-            f"cp $HOMEDIR/{self.project_archive_path}{self.project_archive_name} $TMPDIR",  # copy to scratchdir
-            f"unzip {self.project_archive_name} >/dev/null 2>&1",
+            f"cp $HOMEDIR/{self.project_archive_path}{self.project_archive_name} $TMPDIR" + ' || { echo "Error copying files"; exit 2; }',  # copy to scratchdir
+            f"unzip {self.project_archive_name} >/dev/null 2>&1" + ' || { echo "Error unzipping files"; exit 2; }',
             "\n",
             # activate conda env
             'echo "Activating conda environment"',
-            'eval "$(/mnt/matylda0/istanek/miniconda3/bin/conda shell.bash hook)" || { echo "Error activating conda"; exit 2; }',
-            'conda activate /mnt/matylda0/istanek/miniconda3/envs/DP || { echo "Error activating environment"; exit 2; }',
+            'eval "$($HOMEDIR/miniconda3/bin/conda shell.bash hook)" || { echo "Error activating conda"; exit 3; }',
+            'conda activate $HOMEDIR/miniconda3/envs/DP || { echo "Error activating environment"; exit 3; }',
             "\n",
             # enable cuda and select gpu
             'echo "Enabling CUDA and selecting GPU"',
             'export CUDA_HOME=/usr/local/share/cuda-12.1',
-            "useGPU=$(nvidia-smi --query-gpu=index,memory.used --format=csv,noheader,nounits | sort -n -k2 | head -n1 |  awk -F', ' '{print $1}')",
+            "useGPU=$(nvidia-smi --query-gpu=index,memory.used --format=csv,noheader,nounits | sort -n -k2 | head -n1 |  awk -F', ' '{print $1}') || { echo 'Error selecting GPU'; exit 4; }",
             "export CUDA_VISIBLE_DEVICES=$useGPU",
             "\n",
         ]
@@ -309,17 +312,16 @@ class SGEJob:
                 # copy results
                 'echo "Copying results"',
                 'find . -type d -name "__pycache__" -exec rm -rf {} +',  # remove __pycache__ directories
-                'cp ./*.out $HOMEDIR/jobs >/dev/null 2>&1',
-                'cp ./*.err $HOMEDIR/jobs >/dev/null 2>&1',
                 'zip -r "$archivename" ./*.png ./*.pt ./*.txt >/dev/null 2>&1',
-                f'cp "$archivename" $HOMEDIR/{self.project_archive_path}$archivename >/dev/null 2>&1',
+                f'cp "$archivename" $HOMEDIR/{self.project_archive_path}$archivename >/dev/null 2>&1' + ' || { echo "Error copying results"; exit 5; }',
                 "\n",
             ]
 
         cleanup_script = [
             # cleanup
             'echo "Cleaning up"',
-            'rm -rf "${TMPDIR:?}/*"',
+            'cd $TMPDIR || { echo "Error entering TMPDIR"; exit 6; }',
+            'rm -rf "$JOB_NAME.$JOB_ID"',
         ]
 
         return "\n".join(
