@@ -309,6 +309,8 @@ class SGEJob:
                 # copy results
                 'echo "Copying results"',
                 'find . -type d -name "__pycache__" -exec rm -rf {} +',  # remove __pycache__ directories
+                'cp ./*.out $HOMEDIR/jobs >/dev/null 2>&1',
+                'cp ./*.err $HOMEDIR/jobs >/dev/null 2>&1',
                 'zip -r "$archivename" ./*.png ./*.pt ./*.txt >/dev/null 2>&1',
                 f'cp "$archivename" $HOMEDIR/{self.project_archive_path}$archivename >/dev/null 2>&1',
                 "\n",
@@ -316,7 +318,8 @@ class SGEJob:
 
         cleanup_script = [
             # cleanup
-            'rm -rf "${TMPDIR:?}/*"'
+            'echo "Cleaning up"',
+            'rm -rf "${TMPDIR:?}/*"',
         ]
 
         return "\n".join(
