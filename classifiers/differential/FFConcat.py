@@ -208,15 +208,24 @@ class FFLSTM(FFConcatBase):
         emb_gt = self.extractor.extract_features(input_data_ground_truth)
         emb_test = self.extractor.extract_features(input_data_tested)
 
-        emb_gt = torch.mean(emb_gt, 0)
-        emb_test = torch.mean(emb_test, 0)
+        if type(self.feature_processor) is AASIST:
+            emb = torch.cat((emb_gt, emb_test), 2)
+            emb = emb[-1]
 
-        # emb in shape (batch, seq_len, feature_size)
-        # LSTM to find the differences between emb_gt and emb_test
-        emb = torch.cat((emb_gt, emb_test), 1)
-        emb, _ = self.lstm(emb)
+            # LSTM
+            emb, _ = self.lstm(emb)
 
-        emb = emb[:, -1, :]  # Take the last hidden state
+            # AASIST
+            emb = self.feature_processor(emb)
+        else:
+            emb_gt = torch.mean(emb_gt, 0)
+            emb_test = torch.mean(emb_test, 0)
+            emb = torch.cat((emb_gt, emb_test), 1) # emb in shape (batch, seq_len, feature_size)
+        
+            # LSTM
+            emb, _ = self.lstm(emb)
+
+            emb = emb[:, -1, :]  # Take the last hidden state
 
         out = self.classifier(emb)
         prob = F.softmax(out, dim=1)
