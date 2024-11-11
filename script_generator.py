@@ -221,7 +221,7 @@ class PBSJob:
 
     def __call__(self):
         return self.__str__()
-    
+
 
 class SGEJob:
     def __init__(
@@ -264,8 +264,10 @@ class SGEJob:
             "\n",
             # copy project files
             'echo "Copying project files"',
-            f'cp $HOMEDIR/{self.project_archive_path}{self.project_archive_name} "$JOBDIR"' + ' || { echo "Error copying files"; exit 2; }',  # copy to scratchdir
-            f"unzip {self.project_archive_name} >/dev/null 2>&1" + ' || { echo "Error unzipping files"; exit 2; }',
+            f'cp $HOMEDIR/{self.project_archive_path}{self.project_archive_name} "$JOBDIR"'
+            + ' || { echo "Error copying files"; exit 2; }',  # copy to scratchdir
+            f"unzip {self.project_archive_name} >/dev/null 2>&1"
+            + ' || { echo "Error unzipping files"; exit 2; }',
             "\n",
             # activate conda env
             'echo "Activating conda environment"',
@@ -274,7 +276,7 @@ class SGEJob:
             "\n",
             # enable cuda and select gpu
             'echo "Enabling CUDA and selecting GPU"',
-            'export CUDA_HOME=/usr/local/share/cuda-12.1',
+            "export CUDA_HOME=/usr/local/share/cuda-12.1",
             "useGPU=$(nvidia-smi --query-gpu=index,memory.used --format=csv,noheader,nounits | sort -n -k2 | head -n1 |  awk -F', ' '{print $1}') || { echo 'Error selecting GPU'; exit 4; }",
             "export CUDA_VISIBLE_DEVICES=$useGPU",
             "\n",
@@ -282,22 +284,23 @@ class SGEJob:
 
         checkpoint_script = []
         if self.checkpoint_archive_name:
-            raise NotImplementedError("Checkpoint archive script generation not implemented yet")
-            # checkpoint_script = [
-            #     # copy checkpoint
-            #     'echo "Copying checkpoint archive"',
-            #     f"cp $DATADIR/DP/{self.checkpoint_archive_name} .",  # copy to scratchdir
-            #     f"unzip {self.checkpoint_archive_name} {self.checkpoint_file_from_archive_name} >/dev/null 2>&1",
-            #     "\n",
-            # ]
+            checkpoint_script = [
+                # copy checkpoint
+                'echo "Copying checkpoint archive"',
+                f'cp "$DATADIR/jobs/{self.checkpoint_archive_name}" .'
+                + ' || { echo "Error copying checkpoint archive"; exit 5; }',  # copy to scratchdir
+                f"unzip {self.checkpoint_archive_name} {self.checkpoint_file_from_archive_name} >/dev/null 2>&1"
+                + ' || { echo "Error extracting checkpoint"; exit 5; }',
+                "\n",
+            ]
         if self.checkpoint_file_path:
-            raise NotImplementedError("Checkpoint archive script generation not implemented yet")
-            # checkpoint_script = [
-            #     # copy checkpoint
-            #     'echo "Copying checkpoint file"',
-            #     f"cp $DATADIR/DP/{self.checkpoint_file_path} .",  # copy to scratchdir
-            #     "\n",
-            # ]
+            checkpoint_script = [
+                # copy checkpoint
+                'echo "Copying checkpoint file"',
+                f'cp "$DATADIR/jobs/{self.checkpoint_file_path}" .'
+                + ' || { echo "Error copying checkpoint"; exit 5; }',  # copy to scratchdir
+                "\n",
+            ]
 
         exec_script = [
             # run the script
@@ -314,20 +317,19 @@ class SGEJob:
                 'echo "Copying results"',
                 'find . -type d -name "__pycache__" -exec rm -rf {} +',  # remove __pycache__ directories
                 'zip -r "$archivename" ./*.png ./*.pt ./*.txt >/dev/null 2>&1',
-                f'cp "$archivename" $HOMEDIR/{self.project_archive_path}$archivename >/dev/null 2>&1' + ' || { echo "Error copying results"; exit 5; }',
+                f'cp "$archivename" $HOMEDIR/{self.project_archive_path}$archivename >/dev/null 2>&1'
+                + ' || { echo "Error copying results"; exit 6; }',
                 "\n",
             ]
 
         cleanup_script = [
             # cleanup
             'echo "Cleaning up"',
-            'cd $TMPDIR || { echo "Error entering TMPDIR"; exit 6; }',
+            'cd $TMPDIR || { echo "Error entering TMPDIR"; exit 7; }',
             'rm -rf "$JOB_NAME.$JOB_ID"',
         ]
 
-        return "\n".join(
-            env_script + checkpoint_script + exec_script + results_script + cleanup_script
-        )
+        return "\n".join(env_script + checkpoint_script + exec_script + results_script + cleanup_script)
 
     def __repr__(self):
         return self.__str__()
@@ -480,29 +482,32 @@ if __name__ == "__main__":
         "FFLSTM2",
     ):
         dataset = "ASVspoof2021DFDataset_single" if c == "FF" else "ASVspoof2021DFDataset_pair"
-        command = [
-            (
-                "./train_and_eval.py",
-                [
-                    "--sge",
-                    "--dataset",
-                    f"{dataset}",
-                    "--classifier",
-                    f"{c}",
-                    "--extractor",
-                    f"{extractor}",
-                    "--processor",
-                    "MHFA",
-                    "--num_epochs",
-                    "20",
-                ],
+        for ep in range(5, 20):
+            command = [
+                (
+                    "./eval.py",
+                    [
+                        "--sge",
+                        "--dataset",
+                        f"{dataset}",
+                        "--classifier",
+                        f"{c}",
+                        "--extractor",
+                        f"{extractor}",
+                        "--processor",
+                        "MHFA",
+                        "--checkpoint",
+                        f"{c}_{ep}",
+                    ],
+                )
+            ]
+            generate_job_script(
+                jobname=f"EVAL_SGE_{c}_{ep}_{dshort}",
+                server="sge",
+                # walltime="60:00:00",
+                file_name=f"scripts/eval_sge_{c}_{ep}_{dshort}.sh",
+                project_archive_name="dp.zip",
+                checkpoint_archive_name=f"TRAIN_SGE_{c}_{dshort}_Results.zip",
+                checkpoint_file_from_archive_name=f"{c}_{ep}.pt",
+                execute_list=command,
             )
-        ]
-        generate_job_script(
-            jobname=f"TRAIN_SGE_{c}_{dshort}",
-            server="sge",
-            # walltime="60:00:00",
-            file_name=f"scripts/train_sge_{c}_{dshort}.sh",
-            project_archive_name="dp.zip",
-            execute_list=command,
-        )
