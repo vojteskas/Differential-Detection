@@ -255,15 +255,16 @@ class SGEJob:
             f'archivename="$name"_Results.zip',
             "HOMEDIR=/mnt/matylda0/istanek",
             "TMPDIR=/pub/tmp/istanek",
+            "JOBDIR=$TMPDIR/$JOB_NAME.$JOB_ID",
             "\n",
             # create dir for the job
             'echo "Creating job directory"',
-            'mkdir "$TMPDIR/$JOB_NAME.$JOB_ID" || { echo "Error creating job directory"; exit 1; }',
-            'cd "$TMPDIR/$JOB_NAME.$JOB_ID" || { echo "Error entering job directory"; exit 1; }',
+            'mkdir "$JOBDIR" || { echo "Error creating job directory"; exit 1; }',
+            'cd "$JOBDIR" || { echo "Error entering job directory"; exit 1; }',
             "\n",
             # copy project files
             'echo "Copying project files"',
-            f"cp $HOMEDIR/{self.project_archive_path}{self.project_archive_name} $TMPDIR" + ' || { echo "Error copying files"; exit 2; }',  # copy to scratchdir
+            f'cp $HOMEDIR/{self.project_archive_path}{self.project_archive_name} "$JOBDIR"' + ' || { echo "Error copying files"; exit 2; }',  # copy to scratchdir
             f"unzip {self.project_archive_name} >/dev/null 2>&1" + ' || { echo "Error unzipping files"; exit 2; }',
             "\n",
             # activate conda env
