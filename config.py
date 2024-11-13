@@ -21,10 +21,10 @@ local_config = {
     },
     "asvspoof2021df": {
         "train_subdir": "LA",
-        "dev_subdir": "LA",
+        "dev_subdir": "asvspoof2021/DF",
         "eval_subdir": "asvspoof2021/DF",
         "train_protocol": "ASVspoof2019.LA.cm.train.trl.txt",
-        "dev_protocol": "ASVspoof2019.LA.cm.dev.trl.txt",
+        "dev_protocol": "trial_metadata.txt",
         "eval_protocol": "trial_metadata.txt",
     },
     "inthewild": {
@@ -79,10 +79,10 @@ metacentrum_config = {
     },
     "asvspoof2021df": {
         "train_subdir": "LA19",
-        "dev_subdir": "LA19",
+        "dev_subdir": "DF21",
         "eval_subdir": "DF21",
         "train_protocol": "ASVspoof2019.LA.cm.train.trn.txt",
-        "dev_protocol": "ASVspoof2019.LA.cm.dev.trl.txt",
+        "dev_protocol": "trial_metadata.txt",
         "eval_protocol": "trial_metadata.txt",
     },
     "inthewild": {
@@ -137,10 +137,10 @@ sge_config = {
     },
     "asvspoof2021df": {
         "train_subdir": "LA19",
-        "dev_subdir": "LA19",
+        "dev_subdir": "DF21",
         "eval_subdir": "DF21",
         "train_protocol": "ASVspoof2019.LA.cm.train.trl.txt",
-        "dev_protocol": "ASVspoof2019.LA.cm.dev.trl.txt",
+        "dev_protocol": "trial_metadata.txt",
         "eval_protocol": "trial_metadata.txt",
     },
     "inthewild": {
@@ -167,7 +167,7 @@ sge_config = {
         "dev_protocol": "ASVspoof5.dev.metadata.txt",
         "eval_protocol": "ASVspoof5.track_1.progress.trial.txt",
     },
-    "batch_size": 16,
-    "lstm_batch_size": 8,
+    "batch_size": 32,
+    "lstm_batch_size": 16,
     "num_epochs": 20,
 }

@@ -146,21 +146,27 @@ def get_dataloaders(
         protocol_file_name=dataset_config["train_protocol"],
         variant="train",
     )
-    val_dataset = train_dataset_class(
-        root_dir=config["data_dir"] + dataset_config["dev_subdir"],
-        protocol_file_name=dataset_config["dev_protocol"],
-        variant="dev",
-    )
     if "2021DF" in dataset:
+        val_dataset = eval_dataset_class(
+            root_dir=config["data_dir"] + dataset_config["dev_subdir"],
+            protocol_file_name=dataset_config["dev_protocol"],
+            variant="progress",
+            local=True if "--local" in config["argv"] else False,
+        )
         eval_dataset = eval_dataset_class(
             root_dir=config["data_dir"] + dataset_config["eval_subdir"],
             protocol_file_name=dataset_config["eval_protocol"],
             variant="eval",
             local=True if "--local" in config["argv"] else False,
         )
-    elif "ASVspoof5" in dataset:  # ASVspoof5 does not have eval set, use the dev dataset
-        eval_dataset = val_dataset
+    # elif "ASVspoof5" in dataset:  # ASVspoof5 does not have eval set, use the dev dataset
+    #     eval_dataset = val_dataset
     else:
+        val_dataset = train_dataset_class(
+            root_dir=config["data_dir"] + dataset_config["dev_subdir"],
+            protocol_file_name=dataset_config["dev_protocol"],
+            variant="dev",
+        )
         eval_dataset = eval_dataset_class(
             root_dir=config["data_dir"] + dataset_config["eval_subdir"],
             protocol_file_name=dataset_config["eval_protocol"],

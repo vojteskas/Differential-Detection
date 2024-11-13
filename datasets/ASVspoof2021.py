@@ -15,10 +15,9 @@ class ASVspoof2021_base(Dataset):
 
     param root_dir: Path to the ASVspoof2021{LA,DF} folder
     param protocol_file_name: Name of the protocol file to use
-    param variant: "eval" to specify the dataset variant, used for consistency with ASVspoof2019LA
     """
 
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval"):
+    def __init__(self, root_dir, protocol_file_name):
         self.root_dir = root_dir  # Path to the LA/DF folder
 
         protocol_file = os.path.join(self.root_dir, protocol_file_name)
@@ -52,8 +51,8 @@ class ASVspoof2021LADataset_pair(ASVspoof2021_base):
     Dataset class for ASVspoof2021 LA that provides pairs of genuine and tested speech for differential-based detection.
     """
 
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval"):
-        super().__init__(root_dir, protocol_file_name, variant)
+    def __init__(self, root_dir, protocol_file_name):
+        super().__init__(root_dir, protocol_file_name)
 
         headers = ["SPEAKER_ID", "AUDIO_FILE_NAME", "-", "-", "MODIF", "KEY", "-", "VARIANT"]
         self.protocol_df.columns = headers
@@ -95,8 +94,8 @@ class ASVspoof2021LADataset_single(ASVspoof2021_base):
     Dataset class for ASVspoof2021 LA that provides single speech samples for "normal" detection.
     """
 
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval"):
-        super().__init__(root_dir, protocol_file_name, variant)
+    def __init__(self, root_dir, protocol_file_name):
+        super().__init__(root_dir, protocol_file_name)
 
         headers = ["SPEAKER_ID", "AUDIO_FILE_NAME", "-", "-", "MODIF", "KEY", "-", "VARIANT"]
         self.protocol_df.columns = headers
@@ -124,8 +123,8 @@ class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
     Dataset class for ASVspoof2021 DF that provides pairs of genuine and tested speech for differential-based detection.
     """
 
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
-        super().__init__(root_dir, protocol_file_name, variant)
+    def __init__(self, root_dir, protocol_file_name, variant: Literal["progress", "eval"] = "eval", local: bool = False):
+        super().__init__(root_dir, protocol_file_name)
 
         headers = [
             "SPEAKER_ID",
@@ -143,7 +142,7 @@ class ASVspoof2021DFDataset_pair(ASVspoof2021_base):
             "-",
         ]
         self.protocol_df.columns = headers
-        self.protocol_df = self.protocol_df[self.protocol_df["VARIANT"] == "eval"]
+        self.protocol_df = self.protocol_df[self.protocol_df["VARIANT"] == variant]
 
         if local:  # Needed because locally there is only a subset of the eval set
             # Keep recordings that are only present in the flac directory
@@ -195,8 +194,8 @@ class ASVspoof2021DFDataset_single(ASVspoof2021_base):
     Dataset class for ASVspoof2021 DF that provides single speech samples for "normal" detection.
     """
 
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["eval"] = "eval", local: bool = False):
-        super().__init__(root_dir, protocol_file_name, variant)
+    def __init__(self, root_dir, protocol_file_name, variant: Literal["progress", "eval"] = "eval", local: bool = False):
+        super().__init__(root_dir, protocol_file_name)
 
         headers = [
             "SPEAKER_ID",
@@ -214,7 +213,7 @@ class ASVspoof2021DFDataset_single(ASVspoof2021_base):
             "-",
         ]
         self.protocol_df.columns = headers
-        self.protocol_df = self.protocol_df[self.protocol_df["VARIANT"] == "eval"]
+        self.protocol_df = self.protocol_df[self.protocol_df["VARIANT"] == variant]
 
         if local:  # Needed because locally there is only a subset of the eval set
             # Keep recordings that are only present in the flac directory
