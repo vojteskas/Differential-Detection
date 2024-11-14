@@ -102,8 +102,6 @@ def ISD_additive_noise(x, P, g_sd):
 
 
 # Stationary signal independent noise
-
-
 def SSI_additive_noise(
     x, SNRmin, SNRmax, nBands, minF, maxF, minBW, maxBW, minCoeff, maxCoeff, minG, maxG, fs
 ):
@@ -117,7 +115,7 @@ def SSI_additive_noise(
     return x
 
 
-def process_Rawboost_feature(feature, sr, args, algo):
+def process_Rawboost_feature(feature, sr, args, algo = 5): # algo = 5 is default LnL + ISD
 
     # Data process by Convolutive noise (1st algo)
     if algo == 1:
