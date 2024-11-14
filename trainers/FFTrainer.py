@@ -11,8 +11,17 @@ class FFTrainer(BaseFFTrainer):
         super().__init__(model, device)
 
     def train_epoch(self, train_dataloader) -> tuple[list[float], list[float]]:
+        """
+        Train the model on the given dataloader for one epoch
+        Uses the optimizer and loss function defined in the constructor
+
+        param train_dataloader: Dataloader loading the training data
+        return: Tuple(lists of accuracies, list of losses)
+        """
+        # For accuracy computation in the epoch
         losses = []
         accuracies = []
+        
         # Training loop
         for _, wf, label in tqdm(train_dataloader):
 

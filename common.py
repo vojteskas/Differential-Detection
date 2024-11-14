@@ -20,11 +20,7 @@ from datasets.ASVspoof2021 import (
     ASVspoof2021DFDataset_single,
     ASVspoof2021DFDataset_pair,
 )
-from datasets.ASVspoof5 import (
-    ASVspoof5Dataset_pair,
-    ASVspoof5Dataset_single,
-    ASVspoof5Dataset_augmented_DF21_single
-)
+from datasets.ASVspoof5 import ASVspoof5Dataset_pair, ASVspoof5Dataset_single
 from datasets.InTheWild import InTheWildDataset_pair, InTheWildDataset_single
 from datasets.Morphing import MorphingDataset_single, MorphingDataset_pair
 
@@ -35,7 +31,7 @@ from extractors.WavLM import WavLM_base, WavLM_baseplus, WavLM_large
 from extractors.XLSR import XLSR_300M, XLSR_1B, XLSR_2B
 
 # trainers
-from trainers.BaseFFPairTrainer import BaseFFPairTrainer
+from trainers.FFPairTrainer import FFPairTrainer
 from trainers.FFTrainer import FFTrainer
 from trainers.GMMDiffTrainer import GMMDiffTrainer
 from trainers.LDAGaussianDiffTrainer import LDAGaussianDiffTrainer
@@ -76,15 +72,15 @@ CLASSIFIERS: Dict[str, Tuple[type, Dict[str, type]]] = {
 }
 TRAINERS = {  # Maps the classifier to the trainer
     "FF": FFTrainer,
-    "FFConcat1": BaseFFPairTrainer,
-    "FFConcat2": BaseFFPairTrainer,
-    "FFConcat3": BaseFFPairTrainer,
-    "FFDiff": BaseFFPairTrainer,
-    "FFDiffAbs": BaseFFPairTrainer,
-    "FFDiffQuadratic": BaseFFPairTrainer,
-    "FFDot": BaseFFPairTrainer,
-    "FFLSTM": BaseFFPairTrainer,
-    "FFLSTM2": BaseFFPairTrainer,
+    "FFConcat1": FFPairTrainer,
+    "FFConcat2": FFPairTrainer,
+    "FFConcat3": FFPairTrainer,
+    "FFDiff": FFPairTrainer,
+    "FFDiffAbs": FFPairTrainer,
+    "FFDiffQuadratic": FFPairTrainer,
+    "FFDot": FFPairTrainer,
+    "FFLSTM": FFPairTrainer,
+    "FFLSTM2": FFPairTrainer,
     "GMMDiff": GMMDiffTrainer,
     "LDAGaussianDiff": LDAGaussianDiffTrainer,
     "SVMDiff": SVMDiffTrainer,
@@ -102,7 +98,6 @@ DATASETS = {  # map the dataset name to the dataset class
     "MorphingDataset_pair": MorphingDataset_pair,
     "ASVspoof5Dataset_single": ASVspoof5Dataset_single,
     "ASVspoof5Dataset_pair": ASVspoof5Dataset_pair,
-    "ASVspoof5Dataset_augmented_DF21_single": ASVspoof5Dataset_augmented_DF21_single,
 }
 
 
@@ -176,7 +171,9 @@ def get_dataloaders(
     print("Creating dataloaders...")
     # there is about 90% of spoofed recordings in the dataset, balance with weighted random sampling
     # samples_weights = [train_dataset.get_class_weights()[i] for i in train_dataset.get_labels()]  # old and slow solution
-    samples_weights = np.vectorize(train_dataset.get_class_weights().__getitem__)(train_dataset.get_labels())  # blazing fast solution
+    samples_weights = np.vectorize(train_dataset.get_class_weights().__getitem__)(
+        train_dataset.get_labels()
+    )  # blazing fast solution
     weighted_sampler = WeightedRandomSampler(samples_weights, len(train_dataset))
     # print(f"Weights: {samples_weights}")
     # Adjust batch size for LSTM models

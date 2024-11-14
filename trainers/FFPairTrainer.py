@@ -1,10 +1,13 @@
 import torch
 from tqdm import tqdm
+
+from classifiers.differential.FFConcat import FFConcatBase
+from classifiers.differential.FFDiff import FFDiffBase
 from trainers.BaseFFTrainer import BaseFFTrainer
 
 
-class BaseFFPairTrainer(BaseFFTrainer):
-    def __init__(self, model, device="cuda" if torch.cuda.is_available() else "cpu"):
+class FFPairTrainer(BaseFFTrainer):
+    def __init__(self, model: FFDiffBase|FFConcatBase, device="cuda" if torch.cuda.is_available() else "cpu"):
         super().__init__(model, device)
 
     def train_epoch(self, train_dataloader) -> tuple[list[float], list[float]]:
