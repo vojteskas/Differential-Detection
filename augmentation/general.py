@@ -7,7 +7,7 @@ import torchaudio.transforms as T
 class GeneralAugmentations:
     """
     Class for general augmentations.
-    Currently supports speed, volume, time masking, voice-activity-detection, and noise augmentations.
+    Currently supports speed, volume, time masking, trimming starting silence.
     """
 
     def __init__(self, sample_rate: int = 16000, device="cuda" if torch.cuda.is_available() else "cpu"):
