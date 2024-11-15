@@ -5,3 +5,4 @@ trained_models
 *.zip
 *.png
 *.flac
+*.wav
