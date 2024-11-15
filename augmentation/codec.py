@@ -5,13 +5,13 @@ import torchaudio.transforms as T
 class CodecAugmentations:
     """
     Class for codec augmentations.
-    Currently supports mu-law and mp3 compression.
+    Currently supports mu-law compression.
     """
     def __init__(self, sample_rate: int = 16000, device="cuda" if torch.cuda.is_available() else "cpu"):
         self.device = device
         self.sample_rate = sample_rate
-        mu_encoder = T.MuLawEncoding().to(self.device)
-        mu_decoder = T.MuLawDecoding().to(self.device)
+        self.mu_encoder = T.MuLawEncoding().to(self.device)
+        self.mu_decoder = T.MuLawDecoding().to(self.device)
 
     def mu_law(
         self,
@@ -25,8 +25,9 @@ class CodecAugmentations:
 
         return: The audio waveform with mu-law compression applied.
         """
-        enc = T.MuLawEncoding()(waveform)
-        dec = T.MuLawDecoding()(enc)
+        waveform = waveform.to(self.device)
+        enc = self.mu_encoder(waveform)
+        dec = self.mu_decoder(enc)
         return dec
     
     def mp3(

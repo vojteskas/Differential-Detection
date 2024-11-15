@@ -3,5 +3,4 @@ pandas
 matplotlib
 scikit-learn
 tqdm
-librosa
-torch-audiomentations
+audiomentations

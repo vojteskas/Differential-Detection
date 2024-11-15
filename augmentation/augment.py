@@ -1,5 +1,5 @@
 import torch
-import torch_audiomentations as AA # This is what we use for noise and filter augmentations
+import audiomentations as AA # This is what we use for noise and filter augmentations
 
 from augmentation.general import GeneralAugmentations
 from augmentation.codec import CodecAugmentations
