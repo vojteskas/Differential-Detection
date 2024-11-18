@@ -7,6 +7,7 @@ class CodecAugmentations:
     Class for codec augmentations.
     Currently supports mu-law compression.
     """
+
     def __init__(self, sample_rate: int = 16000, device="cuda" if torch.cuda.is_available() else "cpu"):
         self.device = device
         self.sample_rate = sample_rate
@@ -23,13 +24,13 @@ class CodecAugmentations:
         param waveform: The audio waveform to apply mu-law compression to.
         param quantization_channels: The number of quantization channels.
 
-        return: The audio waveform with mu-law compression applied.
+        return: The audio waveform with mu-law compression and decompression applied.
         """
         waveform = waveform.to(self.device)
         enc = self.mu_encoder(waveform)
         dec = self.mu_decoder(enc)
         return dec
-    
+
     def mp3(
         self,
         waveform: torch.Tensor,
@@ -41,4 +42,6 @@ class CodecAugmentations:
 
         return: The audio waveform with mp3 compression applied.
         """
-        raise NotImplementedError("MP3 compression not yet implemented.") # Blame torchaudio for not having mp3 compression
+        raise NotImplementedError(
+            "MP3 compression not yet implemented."
+        )  # Blame torchaudio for not having mp3 compression, maybe try audiomentations

@@ -10,6 +10,30 @@ from scipy import signal
 import copy
 import torch
 
+# RawBoost data augmentation for audio data
+class Args:
+    def __init__(self):
+        # RawBoost default parameters
+        self.N_f = 5
+        self.nBands = 5
+        self.minF = 20
+        self.maxF = 8000
+        self.minBW = 100
+        self.maxBW = 1000
+        self.minCoeff = 10
+        self.maxCoeff = 100
+        self.minG = 0
+        self.maxG = 0
+        self.minBiasLinNonLin = 5
+        self.maxBiasLinNonLin = 20
+        self.P = 10
+        self.g_sd = 2
+        self.SNRmin = 10
+        self.SNRmax = 40
+
+
+args = Args()
+
 
 def randRange(x1, x2, integer):
     y = np.random.uniform(low=x1, high=x2, size=(1,))
@@ -20,9 +44,8 @@ def randRange(x1, x2, integer):
 
 def normWav(x, always):
     if always or (abs(x).max()) > 1:
-        x /= (abs(x).max())
+        x /= abs(x).max()
     return x
-
 
 
 def genNotchCoeffs(nBands, minF, maxF, minBW, maxBW, minCoeff, maxCoeff, minG, maxG, fs):
@@ -115,7 +138,7 @@ def SSI_additive_noise(
     return x
 
 
-def process_Rawboost_feature(feature, sr, args, algo = 5): # algo = 5 is default LnL + ISD
+def process_Rawboost_feature(feature, sr, algo=5):  # algo = 5 is default LnL + ISD
 
     # Data process by Convolutive noise (1st algo)
     if algo == 1:

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from typing import Literal
 import pandas as pd
 import torch
@@ -10,30 +11,26 @@ class RIRDataset:
     Class for RIR augmentation. Contains a pandas dataframe with the filepaths. Can be randomly sampled from.
     """
 
-    def __init__(self, config):
-        self.config = config
-
-        self.rir_root = config["rir_root"]
+    def __init__(self, rir_root):
+        self.rir_root = rir_root
         pointsource_df = pd.read_csv(
-            self.rir_root + "RIRS_NOISES/pointsource_noises/noise_list", sep=" ", header=None
+            rir_root + "RIRS_NOISES/pointsource_noises/noise_list", sep=" ", header=None
         ).iloc[
             :, -1
         ]  # Get the last column that contains the filepaths
         isotropic_df = pd.read_csv(
-            self.rir_root + "RIRS_NOISES/real_rirs_isotropic_noises/noise_list", sep=" ", header=None
+            rir_root + "RIRS_NOISES/real_rirs_isotropic_noises/noise_list", sep=" ", header=None
         ).iloc[
             :, -1
         ]  # Get the last column that contains the filepaths
         self.df = pd.concat([pointsource_df, isotropic_df], axis=0)
-
-        # print(f"Loaded {len(self.df)} RIRs.")
-        # print(self.df.head())
 
     def __len__(self):
         return len(self.df)
 
     def get_random_rir(self):
         path = self.rir_root + self.df.sample(1).iloc[0]
+        # path = "/mnt/d/RIR/RIRS_NOISES/pointsource_noises/noise-free-sound-0074.wav"
         try:
             rir = torchaudio.load(path)[0]
         except Exception as e:
@@ -50,13 +47,12 @@ class RIRAugmentations:
     """
 
     def __init__(
-        self, config, sample_rate: int = 16000, device="cuda" if torch.cuda.is_available() else "cpu"
+        self, rir_root: str, sample_rate: int = 16000, device="cuda" if torch.cuda.is_available() else "cpu"
     ):
         self.device = device
         self.sample_rate = sample_rate
-        self.rir_dataset = RIRDataset(config)
-
-        self.convolver = T.Convolve().to(self.device)
+        self.rir_dataset = RIRDataset(rir_root)
+        self.convolver = T.FFTConvolve().to(self.device)
 
     def apply_rir(
         self,
@@ -86,3 +82,10 @@ class RIRAugmentations:
                 rir = rir[:, : waveform.size(1)]
             wf = waveform + rir * scale_factor
             return wf / torch.max(torch.abs(wf))
+
+
+if __name__ == "__main__":
+    config = {"rir_root": "/mnt/d/RIR/"}
+    rir_augment = RIRAugmentations(config)
+    waveform, sr = torchaudio.load("real.wav")
+    augmented_waveform = rir_augment.apply_rir(waveform, method="convolve")

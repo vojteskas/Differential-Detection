@@ -72,6 +72,7 @@ class GeneralAugmentations:
         self,
         waveform: torch.Tensor,
         mask_time: Tuple[float, float],
+        selection: Literal["samples", "time"] = "samples",
     ) -> torch.Tensor:
         """
         Mask the audio in the time domain.
@@ -81,8 +82,11 @@ class GeneralAugmentations:
 
         return: The audio waveform with the mask applied.
         """
-        waveform[floor(mask_time[0] * self.sample_rate) : floor(mask_time[1] * self.sample_rate)] = 0.0
-        return waveform
+        if selection == "time":
+            waveform[floor(mask_time[0] * self.sample_rate) : floor(mask_time[1] * self.sample_rate)] = 0.0
+        elif selection == "samples":
+            waveform[mask_time[0] : mask_time[1]] = 0.0
+        return waveform 
     
     def trim_starting_silence(self, waveform: torch.Tensor) -> torch.Tensor:
         """
