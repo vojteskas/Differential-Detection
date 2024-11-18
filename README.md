@@ -10,7 +10,7 @@ This repository contains the code for my [Master's thesis](https://www.vut.cz/st
 
 ```
 DP
-├── classifiers         <- contains various data augmentation techniques
+├── augmentation        <- contains various data augmentation techniques
 ├── classifiers         <- contains the classes for models
 │   ├── differential        <- pair-input
 │   └── single_input        <- single-input
@@ -84,6 +84,9 @@ options:
 
   -c CLASSIFIER, --classifier CLASSIFIER
                         Classifier to be used. See common.CLASSIFIERS for available classifiers.
+
+Optional arguments:
+  -a, --augment         Flag for using data augmentation defined in augmentation/Augment.py
 
 Classifier-specific arguments:
   --n_components N_COMPONENTS
