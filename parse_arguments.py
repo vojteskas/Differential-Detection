@@ -60,6 +60,14 @@ def parse_args():
         required=True,
     )
 
+    # augmentations
+    parser.add_argument(
+        "-a",
+        "--augmentations",
+        action="store_true",
+        help="Flag for whether to use augmentations during training. Does nothing during evaluation.",
+    )
+
     # Add arguments specific to each classifier
     kernels = ["linear", "poly", "rbf", "sigmoid"]
     classifier_args = parser.add_argument_group("Classifier-specific arguments")

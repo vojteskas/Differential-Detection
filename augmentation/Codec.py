@@ -22,7 +22,6 @@ class CodecAugmentations:
         Apply mu-law compression to the audio waveform.
 
         param waveform: The audio waveform to apply mu-law compression to.
-        param quantization_channels: The number of quantization channels.
 
         return: The audio waveform with mu-law compression and decompression applied.
         """

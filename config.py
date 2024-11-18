@@ -2,7 +2,7 @@ local_config = {
     "argv": ["--local"],
     "device": "cuda",
     "data_dir": "/mnt/d/VUT/Deepfakes/Datasets/",
-    "rir_root": "/mnt/d/RIR/",
+    "rir_root": "/mnt/d/VUT/Deepfakes/Datasets/RIR/",
     "asvspoof2019la": {
         "train_subdir": "LA",
         "dev_subdir": "LA",

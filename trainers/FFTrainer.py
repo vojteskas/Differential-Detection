@@ -7,7 +7,9 @@ from trainers.BaseFFTrainer import BaseFFTrainer
 
 
 class FFTrainer(BaseFFTrainer):
-    def __init__(self, model: FF, device="cuda" if torch.cuda.is_available() else "cpu"):
+    def __init__(
+        self, model: FF, device="cuda" if torch.cuda.is_available() else "cpu"
+    ):
         super().__init__(model, device)
 
     def train_epoch(self, train_dataloader) -> tuple[list[float], list[float]]:
@@ -21,7 +23,7 @@ class FFTrainer(BaseFFTrainer):
         # For accuracy computation in the epoch
         losses = []
         accuracies = []
-        
+
         # Training loop
         for _, wf, label in tqdm(train_dataloader):
 

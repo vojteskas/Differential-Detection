@@ -6,7 +6,8 @@ import os
 import pandas as pd
 import numpy as np
 
-from augmentation.augment import augment_waveform
+from augmentation.Augment import Augmentor
+
 
 # Consider doing own train/val split, now its 50/50, like 80/20 should suffice and give more training data
 class ASVspoof2019LADataset_base(Dataset):
@@ -19,11 +20,23 @@ class ASVspoof2019LADataset_base(Dataset):
     param root_dir: Path to the ASVspoof2019LA folder
     param protocol_file_name: Name of the protocol file to use
     param variant: One of "train", "dev", "eval" to specify the dataset variant
+    param augment: Whether to apply data augmentation (for training)
+    param rir_root: Path to the RIR dataset for RIR augmentation
     """
 
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["train", "dev", "eval"] = "train", augment=False):
+    def __init__(
+        self,
+        root_dir,
+        protocol_file_name,
+        variant: Literal["train", "dev", "eval"] = "train",
+        augment=False,
+        rir_root="",
+    ):
+        # Enable data augmentation base on the argument passed, but only for training
         self.augment = False if variant == "train" else augment
-        
+        if self.augment:
+            self.augmentor = Augmentor(rir_root=rir_root)
+
         self.root_dir = root_dir  # Path to the LA folder
 
         protocol_file = os.path.join(self.root_dir, "ASVspoof2019_LA_cm_protocols", protocol_file_name)
@@ -58,8 +71,15 @@ class ASVspoof2019LADataset_pair(ASVspoof2019LADataset_base):
     Dataset class for ASVspoof2019LA that provides pairs of genuine and tested speech for differential-based detection.
     """
 
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["train", "dev", "eval"] = "train"):
-        super().__init__(root_dir, protocol_file_name, variant)
+    def __init__(
+        self,
+        root_dir,
+        protocol_file_name,
+        variant: Literal["train", "dev", "eval"] = "train",
+        augment=False,
+        rir_root="",
+    ):
+        super().__init__(root_dir, protocol_file_name, variant, augment, rir_root)
 
     def __getitem__(self, idx):
         """
@@ -87,10 +107,10 @@ class ASVspoof2019LADataset_pair(ASVspoof2019LADataset_base):
         gt_audio_file_name = speaker_recordings_df.sample(n=1).iloc[0]["AUDIO_FILE_NAME"]
         gt_audio_name = os.path.join(self.rec_dir, f"{gt_audio_file_name}.flac")
         gt_waveform, _ = load(gt_audio_name)  # Load the genuine speech
-        
+
         if self.augment:
-            test_waveform = augment_waveform(test_waveform)
-            gt_waveform = augment_waveform(gt_waveform)
+            test_waveform = self.augmentor.augment(test_waveform)
+            gt_waveform = self.augmentor.augment(gt_waveform)
 
         # print(f"Loaded GT:{gt_audio_name} and TEST:{test_audio_name}")
         return test_audio_file_name, gt_waveform, test_waveform, label
@@ -101,8 +121,15 @@ class ASVspoof2019LADataset_single(ASVspoof2019LADataset_base):
     Dataset class for ASVspoof2019LA that provides single recordings for "normal" detection.
     """
 
-    def __init__(self, root_dir, protocol_file_name, variant: Literal["train", "dev", "eval"] = "train"):
-        super().__init__(root_dir, protocol_file_name, variant)
+    def __init__(
+        self,
+        root_dir,
+        protocol_file_name,
+        variant: Literal["train", "dev", "eval"] = "train",
+        augment=False,
+        rir_root="",
+    ):
+        super().__init__(root_dir, protocol_file_name, variant, augment, rir_root)
 
     def __getitem__(self, idx):
         """
@@ -119,6 +146,6 @@ class ASVspoof2019LADataset_single(ASVspoof2019LADataset_base):
         label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
 
         if self.augment:
-            waveform = augment_waveform(waveform)
+            waveform = self.augmentor.augment(waveform)
 
         return audio_file_name, waveform, label
