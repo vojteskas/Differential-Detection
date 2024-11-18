@@ -102,7 +102,7 @@ DATASETS = {  # map the dataset name to the dataset class
 
 
 def get_dataloaders(
-    dataset="ASVspoof2019LADataset_pair", config=metacentrum_config, lstm=False
+    dataset="ASVspoof2019LADataset_pair", config=metacentrum_config, lstm=False, augment=False
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
 
     # Get the dataset class and config
@@ -140,6 +140,8 @@ def get_dataloaders(
         root_dir=config["data_dir"] + dataset_config["train_subdir"],
         protocol_file_name=dataset_config["train_protocol"],
         variant="train",
+        augment=augment,
+        rir_root=config["rir_root"],
     )
     if "2021DF" in dataset:
         val_dataset = eval_dataset_class(

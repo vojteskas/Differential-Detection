@@ -33,9 +33,11 @@ class ASVspoof2019LADataset_base(Dataset):
         rir_root="",
     ):
         # Enable data augmentation base on the argument passed, but only for training
-        self.augment = False if variant == "train" else augment
+        self.augment = False if variant != "train" else augment
         if self.augment:
             self.augmentor = Augmentor(rir_root=rir_root)
+
+        # print(f"Creating ASVspoof2019LA Dataset, arg augment: {augment}, self.augment: {self.augment}")
 
         self.root_dir = root_dir  # Path to the LA folder
 
@@ -108,9 +110,22 @@ class ASVspoof2019LADataset_pair(ASVspoof2019LADataset_base):
         gt_audio_name = os.path.join(self.rec_dir, f"{gt_audio_file_name}.flac")
         gt_waveform, _ = load(gt_audio_name)  # Load the genuine speech
 
+        if len(gt_waveform) == 0 or len(test_waveform) == 0:
+            print("Either GT or test waveform is empty.")
+            print(f"GT: {gt_audio_name}, test: {test_audio_name}")
+            raise Exception("Empty waveform")
+
         if self.augment:
-            test_waveform = self.augmentor.augment(test_waveform)
-            gt_waveform = self.augmentor.augment(gt_waveform)
+            try:
+                test_waveform = self.augmentor.augment(test_waveform)
+            except Exception as e:
+                print(f"Failed to augment test waveform {test_audio_name}.")
+                raise e
+            try:
+                gt_waveform = self.augmentor.augment(gt_waveform)
+            except Exception as e:
+                print(f"Failed to augment GT waveform {gt_audio_name}.")
+                raise e
 
         # print(f"Loaded GT:{gt_audio_name} and TEST:{test_audio_name}")
         return test_audio_file_name, gt_waveform, test_waveform, label

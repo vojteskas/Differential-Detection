@@ -85,7 +85,7 @@ class GeneralAugmentations:
         if selection == "time":
             waveform[floor(mask_time[0] * self.sample_rate) : floor(mask_time[1] * self.sample_rate)] = 0.0
         elif selection == "samples":
-            waveform[mask_time[0] : mask_time[1]] = 0.0
+            waveform[floor(mask_time[0]) : floor(mask_time[1])] = 0.0
         return waveform 
     
     def trim_starting_silence(self, waveform: torch.Tensor) -> torch.Tensor:

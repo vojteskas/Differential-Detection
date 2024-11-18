@@ -15,14 +15,13 @@ class RIRDataset:
         self.rir_root = rir_root
         pointsource_df = pd.read_csv(
             rir_root + "RIRS_NOISES/pointsource_noises/noise_list", sep=" ", header=None
-        ).iloc[
-            :, -1
-        ]  # Get the last column that contains the filepaths
+        ).iloc[:, -1]  # Get the last column that contains the filepaths
         isotropic_df = pd.read_csv(
             rir_root + "RIRS_NOISES/real_rirs_isotropic_noises/noise_list", sep=" ", header=None
-        ).iloc[
-            :, -1
-        ]  # Get the last column that contains the filepaths
+        ).iloc[:, -1]  # Get the last column that contains the filepaths
+        
+        # Remove RWCP from the isotropic noises (is not mono)
+        isotropic_df = isotropic_df[~isotropic_df.str.contains("RWCP")]
         self.df = pd.concat([pointsource_df, isotropic_df], axis=0)
 
     def __len__(self):
@@ -38,7 +37,7 @@ class RIRDataset:
             raise e
         if rir.size(0) > 1:
             rir = rir.mean(0)
-        return rir.squeeze().unsqueeze(0)
+        return rir.squeeze()
 
 
 class RIRAugmentations:
@@ -85,7 +84,6 @@ class RIRAugmentations:
 
 
 if __name__ == "__main__":
-    config = {"rir_root": "/mnt/d/RIR/"}
-    rir_augment = RIRAugmentations(config)
+    rir_augment = RIRAugmentations("/mnt/d/VUT/Deepfakes/Datasets/RIR/")
     waveform, sr = torchaudio.load("real.wav")
     augmented_waveform = rir_augment.apply_rir(waveform, method="convolve")

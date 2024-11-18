@@ -84,7 +84,10 @@ def main():
                 raise ValueError(f"Invalid classifier, should be one of: {list(CLASSIFIERS.keys())}")
 
     train_dataloader, val_dataloader, eval_dataloader = get_dataloaders(
-        dataset=args.dataset, config=config, lstm=True if "LSTM" in args.classifier else False
+        dataset=args.dataset,
+        config=config,
+        lstm=True if "LSTM" in args.classifier else False,
+        augment=args.augment,
     )
 
     # TODO: Implement training of MHFA and AASIST with SkLearn models

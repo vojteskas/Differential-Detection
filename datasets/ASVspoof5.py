@@ -29,7 +29,7 @@ class ASVspoof5Dataset_base(Dataset):
         rir_root="",
     ):
         # Enable data augmentation base on the argument passed, but only for training
-        self.augment = False if variant == "train" else augment
+        self.augment = False if variant != "train" else augment
         if self.augment:
             self.augmentor = Augmentor(rir_root=rir_root)
 

@@ -1,6 +1,5 @@
 local_config = {
     "argv": ["--local"],
-    "device": "cuda",
     "data_dir": "/mnt/d/VUT/Deepfakes/Datasets/",
     "rir_root": "/mnt/d/VUT/Deepfakes/Datasets/RIR/",
     "asvspoof2019la": {
@@ -59,7 +58,6 @@ local_config = {
 
 metacentrum_config = {
     "argv": ["--metacentrum"],
-    "device": "cuda",
     "data_dir": "./",
     "rir_root": "/storage/brno2/home/vojteskas/deepfakes/datasets",
     "asvspoof2019la": {
@@ -118,7 +116,6 @@ metacentrum_config = {
 
 sge_config = {
     "argv": ["--metacentrum"],
-    "device": "cuda",
     "data_dir": "/mnt/matylda0/istanek/datasets/",
     "rir_root": "/mnt/matylda0/istanek/datasets/",
     "asvspoof2019la": {

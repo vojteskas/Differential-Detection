@@ -43,9 +43,16 @@ def randRange(x1, x2, integer):
 
 
 def normWav(x, always):
-    if always or (abs(x).max()) > 1:
-        x /= abs(x).max()
-    return x
+    try:
+        if always or (abs(x).max()) > 1:
+            x /= abs(x).max()
+        return x
+    except Exception as e:
+        print(f"x: {x}")
+        print(f"x.shape: {x.shape}")
+        print(f"abs(x): {abs(x)}")
+        print(f"abs(x).max(): {abs(x).max()}")
+        raise e
 
 
 def genNotchCoeffs(nBands, minF, maxF, minBW, maxBW, minCoeff, maxCoeff, minG, maxG, fs):
@@ -75,7 +82,7 @@ def filterFIR(x, b):
     N = b.shape[0] + 1
     xpad = np.pad(x, (0, N), "constant")
     y = signal.lfilter(b, 1, xpad)
-    y = y[int(N / 2) : int(y.shape[0] - N / 2)]
+    y = y[int(N / 2) : int(np.array(y).shape[0] - N / 2)]
     return y
 
 
@@ -96,6 +103,8 @@ def LnL_convolutive_noise(
     maxBiasLinNonLin,
     fs,
 ):
+    # print("LnL_convolutive_noise")
+    # print(f"x.shape[0]: {x.shape[0]}")
     y = [0] * x.shape[0]
     for i in range(0, N_f):
         if i == 1:
@@ -103,6 +112,7 @@ def LnL_convolutive_noise(
             maxG = maxG - maxBiasLinNonLin
         b = genNotchCoeffs(nBands, minF, maxF, minBW, maxBW, minCoeff, maxCoeff, minG, maxG, fs)
         filtered = filterFIR(np.power(x, (i + 1)), b)
+        # print(f"filtered.shape[0]: {filtered.shape[0]}")
         y += filtered
     y = y - np.mean(y)
     y = normWav(y, 0)

@@ -1,4 +1,5 @@
 import audiomentations as AA
+import numpy
 import torch
 
 
@@ -60,6 +61,10 @@ class NoiseFilterAugmentations:
 
         return: The audio waveform with noise filter augmentations applied.
         """
-        numpy_waveform = waveform.squeeze().numpy()
+        numpy_waveform = waveform.squeeze()
+        if not isinstance(
+            numpy_waveform, numpy.ndarray
+        ):  # Convert from tensor to numpy array if not already
+            numpy_waveform = numpy_waveform.numpy()
         augmented_waveform = self.augment(samples=numpy_waveform, sample_rate=self.sample_rate)
         return torch.tensor(augmented_waveform)

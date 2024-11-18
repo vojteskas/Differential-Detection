@@ -16,7 +16,7 @@ class Augmentor:
 
     def __init__(self, rir_root):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        
+
         self.Codec = CodecAugmentations(device=self.device)
         self.General = GeneralAugmentations(device=self.device)
         self.NoiseFilter = NoiseFilterAugmentations()  # is cpu only as of now
@@ -34,10 +34,14 @@ class Augmentor:
         apply_LnL_ISD: bool = random.random() < 0.3  # 30% chance of applying RawBoost augmentations
         apply_noise_filter: bool = random.random() < 0.3  # 30% chance of applying noise augmentations
 
-        waveform.squeeze()
+        waveform = waveform.squeeze()
 
         if trim_starting_silence:  # 50% chance of removing the starting silence
-            waveform = self.General.trim_starting_silence(waveform)
+            trimmed_waveform = self.General.trim_starting_silence(waveform)
+            # print("Trimmed starting silence")
+            # Use the trimmed waveform only if it is not empty
+            if len(trimmed_waveform) != 0:
+                waveform = trimmed_waveform
 
         if apply_rir_timemask:
             wf_len = len(waveform)
@@ -46,17 +50,22 @@ class Augmentor:
             waveform = self.General.mask_time(
                 waveform, mask_time=(time_mask_start, time_mask_start + time_mask_duration)
             )
+            # print(f"Applied time mask {time_mask_start} to {time_mask_start + time_mask_duration}")
 
             rir_intesity = random.uniform(0.2, 0.8)
             waveform = self.RIR.apply_rir(waveform, method="convolve", scale_factor=rir_intesity)
+            # print(f"Applied RIR with intensity {rir_intesity}")
 
         if apply_mu_law:
             waveform = self.Codec.mu_law(waveform)
+            # print("Applied mu-law enc-dec")
 
         if apply_LnL_ISD:
-            waveform = process_Rawboost_feature(waveform, 16000, algo=5)
+            waveform = process_Rawboost_feature(waveform.squeeze(), 16000, algo=5)
+            # print("Applied RawBoost: LnL-ISD")
 
         if apply_noise_filter:
             waveform = self.NoiseFilter.apply_noise_filter(waveform)
+            # print("Applied noise filter")
 
-        return waveform
+        return torch.tensor(waveform).unsqueeze(0)

@@ -63,7 +63,7 @@ def parse_args():
     # augmentations
     parser.add_argument(
         "-a",
-        "--augmentations",
+        "--augment",
         action="store_true",
         help="Flag for whether to use augmentations during training. Does nothing during evaluation.",
     )
