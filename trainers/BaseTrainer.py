@@ -42,3 +42,12 @@ class BaseTrainer:
 
     def calculate_EER(self, labels, predictions, plot_det: bool, det_subtitle: str) -> float:
         return calculate_EER(type(self.model).__name__, labels, predictions, plot_det, det_subtitle)
+
+    def train(self, train_dataloader, val_dataloader, numepochs: int = 20):
+        raise NotImplementedError("Child classes should implement the train method")
+    
+    def val(self, val_dataloader):
+        raise NotImplementedError("Child classes should implement the val method")
+
+    def eval(self, eval_dataloader, subtitle: str = ""):
+        raise NotImplementedError("Child classes should implement the eval method")

@@ -115,7 +115,7 @@ metacentrum_config = {
 }
 
 sge_config = {
-    "argv": ["--metacentrum"],
+    "argv": ["--sge"],
     "data_dir": "/mnt/matylda0/istanek/datasets/",
     "rir_root": "/mnt/matylda0/istanek/datasets/",
     "asvspoof2019la": {

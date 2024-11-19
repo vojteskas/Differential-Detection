@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.mixture import GaussianMixture
 from sklearn.neighbors import NeighborhoodComponentsAnalysis
 
-from classifiers.differential.BaseSklearnModel import BaseSklearnModel
+from classifiers.BaseSklearnModel import BaseSklearnModel
 
 class GMMDiff(BaseSklearnModel):
     def __init__(

@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from classifiers.differential.BaseSklearnModel import BaseSklearnModel
+from classifiers.BaseSklearnModel import BaseSklearnModel
 from trainers.BaseTrainer import BaseTrainer
 
 

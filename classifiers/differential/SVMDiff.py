@@ -1,9 +1,11 @@
-import numpy as np
 from typing import Literal
-from sklearn.preprocessing import StandardScaler
+
+import numpy as np
 from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
-from classifiers.differential.BaseSklearnModel import BaseSklearnModel
+
+from classifiers.BaseSklearnModel import BaseSklearnModel
 
 
 class SVMDiff(BaseSklearnModel):

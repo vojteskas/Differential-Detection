@@ -3,7 +3,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 import matplotlib.pyplot as plt
 
-from classifiers.differential.BaseSklearnModel import BaseSklearnModel
+from classifiers.BaseSklearnModel import BaseSklearnModel
 
 
 class LDAGaussianDiff(BaseSklearnModel):
