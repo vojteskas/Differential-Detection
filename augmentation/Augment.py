@@ -61,7 +61,7 @@ class Augmentor:
             # print("Applied mu-law enc-dec")
 
         if apply_LnL_ISD:
-            waveform = process_Rawboost_feature(waveform.squeeze(), 16000, algo=5)
+            waveform = process_Rawboost_feature(waveform.squeeze().cpu().numpy(), 16000, algo=5)
             # print("Applied RawBoost: LnL-ISD")
 
         if apply_noise_filter:

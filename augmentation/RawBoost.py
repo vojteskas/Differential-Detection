@@ -335,4 +335,4 @@ def process_Rawboost_feature(feature, sr, algo=5):  # algo = 5 is default LnL + 
 
         feature = feature
 
-    return feature
+    return torch.Tensor(feature)

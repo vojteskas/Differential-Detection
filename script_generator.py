@@ -287,7 +287,7 @@ class SGEJob:
             checkpoint_script = [
                 # copy checkpoint
                 'echo "Copying checkpoint archive"',
-                f'cp "$DATADIR/jobs/{self.checkpoint_archive_name}" .'
+                f'cp "$HOMEDIR/jobs/{self.checkpoint_archive_name}" .'
                 + ' || { echo "Error copying checkpoint archive"; exit 5; }',  # copy to scratchdir
                 f"unzip {self.checkpoint_archive_name} {self.checkpoint_file_from_archive_name} >/dev/null 2>&1"
                 + ' || { echo "Error extracting checkpoint"; exit 5; }',
@@ -297,7 +297,7 @@ class SGEJob:
             checkpoint_script = [
                 # copy checkpoint
                 'echo "Copying checkpoint file"',
-                f'cp "$DATADIR/jobs/{self.checkpoint_file_path}" .'
+                f'cp "$HOMEDIR/jobs/{self.checkpoint_file_path}" .'
                 + ' || { echo "Error copying checkpoint"; exit 5; }',  # copy to scratchdir
                 "\n",
             ]
@@ -471,43 +471,34 @@ if __name__ == "__main__":
     #         )
     extractor = "XLSR_300M"
     dshort = "DF21"
-    for c in (
-        "FF",
-        "FFDiff",
-        "FFDiffAbs",
-        "FFDiffQuadratic",
-        "FFConcat1",
-        "FFConcat2",
-        "FFConcat3",
-        "FFLSTM2",
-    ):
-        dataset = "ASVspoof2021DFDataset_single" if c == "FF" else "ASVspoof2021DFDataset_pair"
-        for ep in range(5, 20):
-            command = [
-                (
-                    "./eval.py",
-                    [
-                        "--sge",
-                        "--dataset",
-                        f"{dataset}",
-                        "--classifier",
-                        f"{c}",
-                        "--extractor",
-                        f"{extractor}",
-                        "--processor",
-                        "MHFA",
-                        "--checkpoint",
-                        f"{c}_{ep}",
-                    ],
-                )
-            ]
-            generate_job_script(
-                jobname=f"EVAL_SGE_{c}_{ep}_{dshort}",
-                server="sge",
-                # walltime="60:00:00",
-                file_name=f"scripts/eval_sge_{c}_{ep}_{dshort}.sh",
-                project_archive_name="dp.zip",
-                checkpoint_archive_name=f"TRAIN_SGE_{c}_{dshort}_Results.zip",
-                checkpoint_file_from_archive_name=f"{c}_{ep}.pt",
-                execute_list=command,
-            )
+    c = "FFConcat1"
+    ep = 16
+    dataset = "ASVspoof2021DFDataset_pair"
+    command = [
+        (
+            "./finetune.py",
+            [
+                "--sge",
+                "--dataset",
+                f"{dataset}",
+                "--classifier",
+                f"{c}",
+                "--extractor",
+                f"{extractor}",
+                "--processor",
+                "AASIST",
+                "--checkpoint",
+                f"{c}_{ep}.pt",
+                "--augment"
+            ],
+        )
+    ]
+    generate_job_script(
+        jobname=f"FINETUNE_SGE_{c}_{dshort}",
+        server="sge",
+        # walltime="60:00:00",
+        file_name=f"scripts/finetune_sge_{c}_{dshort}.sh",
+        project_archive_name="dp.zip",
+        checkpoint_file_path=f"{c}_{ep}.pt",
+        execute_list=command,
+    )

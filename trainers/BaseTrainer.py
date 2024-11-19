@@ -32,13 +32,14 @@ class BaseTrainer:
         param path: Path to load the model from
         """
         try:
-            self.model.load_state_dict(torch.load(path))
+            self.model.load_state_dict(torch.load(path, map_location=self.device))
         except FileNotFoundError:
             raise
         except:  # Path correct, but not a PyTorch model
-            raise NotImplementedError(
-                "Child classes for non-PyTorch models need to implement load_model method"
-            )
+            # raise NotImplementedError(
+            #     "Child classes for non-PyTorch models need to implement load_model method"
+            # )
+            raise
 
     def calculate_EER(self, labels, predictions, plot_det: bool, det_subtitle: str) -> float:
         return calculate_EER(type(self.model).__name__, labels, predictions, plot_det, det_subtitle)

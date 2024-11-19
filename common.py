@@ -171,9 +171,11 @@ def get_dataloaders(
         }
         if "2021DF" in dataset:  # 2021DF has a local variant
             dev_kwargs["local"] = True if "--local" in config["argv"] else False
-
-        # Create the dataset based on dynamically created dev_kwargs
-        val_dataset = train_dataset_class(**dev_kwargs)
+            dev_kwargs["variant"] = "progress"
+            val_dataset = eval_dataset_class(**dev_kwargs)
+        else:
+            # Create the dataset based on dynamically created dev_kwargs
+            val_dataset = train_dataset_class(**dev_kwargs)
 
         # there is about 90% of spoofed recordings in the dataset, balance with weighted random sampling
         # samples_weights = [train_dataset.get_class_weights()[i] for i in train_dataset.get_labels()]  # old and slow solution
@@ -282,7 +284,7 @@ def build_model(args: Namespace) -> Tuple[FFBase | BaseSklearnModel, BaseTrainer
     # Print model info
     print(f"Building {type(model).__name__} model with {type(model.extractor).__name__} extractor", end="")
     if isinstance(model, FFBase):
-        print(f" and {type(model.processor).__name__} processor.")
+        print(f" and {type(model.feature_processor).__name__} processor.")
     else:
         print(".")
 
