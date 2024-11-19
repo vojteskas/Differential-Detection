@@ -75,7 +75,7 @@ class BaseFFTrainer(BaseTrainer):
             if epoch % epochs_to_val == 0:
                 val_loss, val_accuracy, eer = self.val(val_dataloader)
                 print(f"Validation loss: {val_loss}, validation accuracy: {val_accuracy}")
-                print(f"Validation EER: {eer*100}%")
+                print(f"Validation EER: " + "None" if eer == None else f"{eer*100}%")
                 self.statistics["val_losses"].append(val_loss)
                 self.statistics["val_accuracies"].append(val_accuracy)
                 self.statistics["val_eers"].append(eer)
@@ -182,3 +182,59 @@ class BaseFFTrainer(BaseTrainer):
         plt.xlabel("Epoch")
         plt.ylabel("EER")
         plt.savefig(f"./{type(self.model).__name__}_EER_{subtitle}.png")
+
+    def finetune(self, train_dataloader, val_dataloader, numepochs=5, finetune_ssl=False):
+        """
+        Fine-tune the model on the given dataloader for the given number of epochs.
+        TODO: Maybe do finetuning based on steps instead of epochs?
+
+        param train_dataloader: Dataloader loading the training data
+        param val_dataloader: Dataloader loading the validation/dev data
+        param numepochs: Number of epochs to fine-tune for
+        param finetune_ssl: Whether to fine-tune the SSL extractor
+        """
+
+        self.model.extractor.finetune = finetune_ssl
+        # Use the optimizer but with a smaller learning rate
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-5)
+        self.model.train()  # Set model to training mode
+        self.statistics = {  # Reset statistics
+            "train_losses": [],
+            "train_accuracies": [],
+            "val_losses": [],
+            "val_accuracies": [],
+            "val_eers": [],
+        }
+
+        for epoch in range(1, numepochs + 1):
+            print(f"Starting epoch {epoch} with {len(train_dataloader)} batches")
+
+            accuracies, losses = self.train_epoch(train_dataloader)
+
+            # Save epoch statistics
+            epoch_accuracy = np.mean(accuracies)
+            epoch_loss = np.mean(losses)
+            print(
+                f"Finetuning epoch {epoch} finished,",
+                f"Finetuning training loss: {np.mean(losses)},",
+                f"Finetuning training accuracy: {np.mean(accuracies)}",
+            )
+
+            self.statistics["train_losses"].append(epoch_loss)
+            self.statistics["train_accuracies"].append(epoch_accuracy)
+
+            self.save_model(f"./{type(self.model).__name__}_finetune_{epoch}.pt")
+
+            epochs_to_val = 1  # Validate every epoch
+            if epoch % epochs_to_val == 0:
+                val_loss, val_accuracy, eer = self.val(val_dataloader)
+                print(f"Validation loss: {val_loss}, validation accuracy: {val_accuracy}")
+                print(f"Validation EER: " + "None" if eer == None else f"{eer*100}%")
+                self.statistics["val_losses"].append(val_loss)
+                self.statistics["val_accuracies"].append(val_accuracy)
+                self.statistics["val_eers"].append(eer)
+
+        self._plot_eer(self.statistics["val_eers"], "Finetuning EER")
+        self._plot_loss_accuracy(
+            self.statistics["val_losses"], self.statistics["val_accuracies"], "Finetuning Loss & Accuracy"
+        )
