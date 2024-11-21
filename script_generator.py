@@ -97,7 +97,7 @@ class PBSJob:
         project_archive_path="DP/",  # path to the project source archive from home (~) directory
         project_archive_name="dp.zip",  # name of the project source archive
         dataset_archive_path="deepfakes/datasets/",  # path to the dataset from home (~) directory
-        dataset_archive_name="LA.zip",  # name of the dataset archive
+        dataset_archive_name="LA19.zip",  # name of the dataset archive
         checkpoint_file_path=None,  # path to the checkpoint file from
         checkpoint_archive_name=None,  # name of the checkpoint archive
         checkpoint_file_from_archive_name=None,  # name of the checkpoint file from the archive
@@ -469,6 +469,8 @@ if __name__ == "__main__":
     #             checkpoint_file_from_archive_name=f"{c}_{ep}.pt",
     #             execute_list=command,
     #         )
+
+
     extractor = "XLSR_300M"
     dshort = "DF21"
     c = "FFConcat1"
@@ -502,3 +504,38 @@ if __name__ == "__main__":
         checkpoint_file_path=f"{c}_{ep}.pt",
         execute_list=command,
     )
+
+    # extractor = "XLSR_300M"
+    # dshort = "DF21"
+    # c = "FFConcat1"
+    # ep = 16
+    # dataset = "ASVspoof2021DFDataset_pair"
+    # command = [
+    #     (
+    #         "./finetune.py",
+    #         [
+    #             "--metacentrum",
+    #             "--dataset",
+    #             f"{dataset}",
+    #             "--classifier",
+    #             f"{c}",
+    #             "--extractor",
+    #             f"{extractor}",
+    #             "--processor",
+    #             "AASIST",
+    #             "--checkpoint",
+    #             f"{c}_{ep}.pt",
+    #             "--augment"
+    #         ],
+    #     )
+    # ]
+    # generate_job_script(
+    #     jobname=f"FINETUNE_{c}_{dshort}",
+    #     server="metacentrum",
+    #     # walltime="60:00:00",
+    #     file_name=f"scripts/finetune_metacentrum_{c}_{dshort}.sh",
+    #     project_archive_name="dp.zip",
+    #     dataset_archive_name=f"DF21.tar.gz",
+    #     checkpoint_file_path=f"{c}_{ep}.pt",
+    #     execute_list=command,
+    # )

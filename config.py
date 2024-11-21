@@ -59,7 +59,7 @@ local_config = {
 metacentrum_config = {
     "argv": ["--metacentrum"],
     "data_dir": "./",
-    "rir_root": "/storage/brno2/home/vojteskas/deepfakes/datasets",
+    "rir_root": "/storage/brno2/home/vojteskas/deepfakes/datasets/",
     "asvspoof2019la": {
         "train_subdir": "LA19",
         "dev_subdir": "LA19",

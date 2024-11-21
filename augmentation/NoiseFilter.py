@@ -65,6 +65,6 @@ class NoiseFilterAugmentations:
         if not isinstance(
             numpy_waveform, numpy.ndarray
         ):  # Convert from tensor to numpy array if not already
-            numpy_waveform = numpy_waveform.numpy()
+            numpy_waveform = numpy_waveform.cpu().numpy()
         augmented_waveform = self.augment(samples=numpy_waveform, sample_rate=self.sample_rate)
         return torch.tensor(augmented_waveform)
