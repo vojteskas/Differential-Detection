@@ -77,8 +77,8 @@ class SGEheaders:
             f"#$ -q {self.queue}",
             f"#$ -l gpu={self.gpus},gpu_ram={self.gpu_mem}G,ram_free={self.mem}G",
             f"#$ -m {self.email_notification_flags}",
+            f"#$ -j y",
             f"#$ -o /mnt/matylda0/istanek/jobs/$JOB_NAME.$JOB_ID.out",
-            f"#$ -e /mnt/matylda0/istanek/jobs/$JOB_NAME.$JOB_ID.err",
         ]
 
         return "\n".join(header)
@@ -308,7 +308,7 @@ class SGEJob:
             'echo "Running the script"',
         ]
         for script, args in self.execute_list:
-            exec_script.append(f"{script} {' '.join(args)} 2>&1\n\n")
+            exec_script.append(f"{script} {' '.join(args)} 2>&1" + ' || { [ $? -eq 69 ] && { echo "Error claiming GPU!"; exit 7; } || { echo "Runtime script error!"; exit 7; } }\n\n' )
 
         results_script = []
         if self.copy_results:
@@ -318,14 +318,14 @@ class SGEJob:
                 'find . -type d -name "__pycache__" -exec rm -rf {} +',  # remove __pycache__ directories
                 'zip -r "$archivename" ./*.png ./*.pt ./*.txt >/dev/null 2>&1',
                 f'cp "$archivename" $HOMEDIR/{self.project_archive_path}$archivename >/dev/null 2>&1'
-                + ' || { echo "Error copying results"; exit 6; }',
+                + ' || { echo "Error copying results"; exit 7; }',
                 "\n",
             ]
 
         cleanup_script = [
             # cleanup
             'echo "Cleaning up"',
-            'cd $TMPDIR || { echo "Error entering TMPDIR"; exit 7; }',
+            'cd $TMPDIR || { echo "Error entering TMPDIR"; exit 8; }',
             'rm -rf "$JOB_NAME.$JOB_ID"',
         ]
 
@@ -435,75 +435,77 @@ if __name__ == "__main__":
     #     )
 
     # TOTO MAS POTOM READY NA EVAL, vymenit aasist za mhfa
-    # extractor = "XLSR_300M"
-    # dshort = "DF21"
-    # for c in ("FF", "FFDiff", "FFDiffAbs", "FFDiffQuadratic", "FFConcat1", "FFConcat2", "FFConcat3"):
-    #     dataset = "ASVspoof2021DFDataset_single" if c == "FF" else "ASVspoof2021DFDataset_pair"
-    #     for ep in range(5, 20):
-    #         command = [
-    #             (
-    #                 "./eval.py",
-    #                 [
-    #                     "--metacentrum",
-    #                     "--dataset",
-    #                     f"{dataset}",
-    #                     "--classifier",
-    #                     f"{c}",
-    #                     "--extractor",
-    #                     f"{extractor}",
-    #                     "--processor",
-    #                     "AASIST",
-    #                     "--checkpoint",
-    #                     f"{c}_{ep}",
-    #                 ],
-    #             )
-    #         ]
-    #         generate_job_script(
-    #             jobname=f"EVAL_{c}aasist_{dshort}",
-    #             mem = 200,
-    #             scratch_size=200,
-    #             file_name=f"scripts/eval_{c}aasist_{ep}_{dshort}.sh",
-    #             project_archive_name="dp.zip",
-    #             dataset_archive_name=f"DF21.tar.gz",
-    #             checkpoint_archive_name=f"DP_{extractor}_{c}_{dshort}_Results.zip",
-    #             checkpoint_file_from_archive_name=f"{c}_{ep}.pt",
-    #             execute_list=command,
-    #         )
-
-
     extractor = "XLSR_300M"
     dshort = "DF21"
-    c = "FFConcat1"
-    ep = 16
-    dataset = "ASVspoof2021DFDataset_pair"
-    command = [
-        (
-            "./finetune.py",
-            [
-                "--sge",
-                "--dataset",
-                f"{dataset}",
-                "--classifier",
-                f"{c}",
-                "--extractor",
-                f"{extractor}",
-                "--processor",
-                "AASIST",
-                "--checkpoint",
-                f"{c}_{ep}.pt",
-                "--augment"
-            ],
+    c = "FF"
+    dataset = "ASVspoof2021DFDataset_single" if c == "FF" else "ASVspoof2021DFDataset_pair"
+    for ep in range(5, 20):
+        command = [
+            (
+                "./eval.py",
+                [
+                    "--sge",
+                    "--dataset",
+                    f"{dataset}",
+                    "--classifier",
+                    f"{c}",
+                    "--extractor",
+                    f"{extractor}",
+                    "--processor",
+                    "MHFA",
+                    "--checkpoint",
+                    f"{c}_{ep}.pt",
+                ],
+            )
+        ]
+        generate_job_script(
+            jobname=f"EVAL_{c}_MHFA_{ep}_{dshort}",
+            server="sge",
+            # mem = 200,
+            # scratch_size=200,
+            file_name=f"scripts/eval_{c}_mhfa_{ep}_{dshort}.sh",
+            project_archive_name="dp.zip",
+            # dataset_archive_name=f"DF21.tar.gz",
+            # checkpoint_archive_name=f"TRAIN_SGE_{c}_{dshort}_Results.zip",
+            # checkpoint_file_from_archive_name=f"{c}_{ep}.pt",
+            checkpoint_file_path=f"{c}_MHFA/{c}_{ep}.pt",
+            execute_list=command,
         )
-    ]
-    generate_job_script(
-        jobname=f"FINETUNE_SGE_{c}_{dshort}",
-        server="sge",
-        # walltime="60:00:00",
-        file_name=f"scripts/finetune_sge_{c}_{dshort}.sh",
-        project_archive_name="dp.zip",
-        checkpoint_file_path=f"{c}_{ep}.pt",
-        execute_list=command,
-    )
+
+
+    # extractor = "XLSR_300M"
+    # dshort = "DF21"
+    # c = "FFConcat1"
+    # ep = 16
+    # dataset = "ASVspoof2021DFDataset_pair"
+    # command = [
+    #     (
+    #         "./finetune.py",
+    #         [
+    #             "--sge",
+    #             "--dataset",
+    #             f"{dataset}",
+    #             "--classifier",
+    #             f"{c}",
+    #             "--extractor",
+    #             f"{extractor}",
+    #             "--processor",
+    #             "AASIST",
+    #             "--checkpoint",
+    #             f"{c}_{ep}.pt",
+    #             "--augment"
+    #         ],
+    #     )
+    # ]
+    # generate_job_script(
+    #     jobname=f"FINETUNE_SGE_{c}_{dshort}",
+    #     server="sge",
+    #     # walltime="60:00:00",
+    #     file_name=f"scripts/finetune_sge_{c}_{dshort}.sh",
+    #     project_archive_name="dp.zip",
+    #     checkpoint_file_path=f"{c}_{ep}.pt",
+    #     execute_list=command,
+    # )
 
     # extractor = "XLSR_300M"
     # dshort = "DF21"

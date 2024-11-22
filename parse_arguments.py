@@ -2,6 +2,8 @@ import argparse
 
 from common import CLASSIFIERS
 
+from safe_gpu import safe_gpu
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Main script for training and evaluating the classifiers.")
@@ -105,4 +107,13 @@ def parse_args():
     # endregion
 
     args = parser.parse_args()
+
+    # Design antipattern doing it here, but claim GPU if running on SGE
+    # if args.sge:
+    #     try:
+    #         safe_gpu.claim_gpus()
+    #     except RuntimeError as e:
+    #         print(e)
+    #         exit(69)  # Let 69 be the exit code for error claiming GPU
+
     return args
