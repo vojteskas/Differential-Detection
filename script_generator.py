@@ -259,6 +259,7 @@ class SGEJob:
             "\n",
             # create dir for the job
             'echo "Creating job directory"',
+            '[ ! -d "$TMPDIR" ] && mkdir -p "$TMPDIR" || { echo "Error creating TMPDIR"; exit 1; }',  # check if TMPDIR exists and create if not
             'mkdir "$JOBDIR" || { echo "Error creating job directory"; exit 1; }',
             'cd "$JOBDIR" || { echo "Error entering job directory"; exit 1; }',
             "\n",
@@ -437,7 +438,7 @@ if __name__ == "__main__":
     # TOTO MAS POTOM READY NA EVAL, vymenit aasist za mhfa
     extractor = "XLSR_300M"
     dshort = "DF21"
-    c = "FF"
+    c = "FFConcat1"
     dataset = "ASVspoof2021DFDataset_single" if c == "FF" else "ASVspoof2021DFDataset_pair"
     for ep in range(5, 20):
         command = [
