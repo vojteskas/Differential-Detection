@@ -74,7 +74,7 @@ class BaseFFTrainer(BaseTrainer):
             epochs_to_val = 1
             if epoch % epochs_to_val == 0:
                 val_loss, val_accuracy, eer = self.val(val_dataloader)
-                print(f"Validation loss: {val_loss}, validation accuracy: {val_accuracy}")
+                print(f"Validation loss: {val_loss}, validation accuracy: {val_accuracy*100}%")
                 print(f"Validation EER: " + "None" if eer == None else f"{eer*100}%")
                 self.statistics["val_losses"].append(val_loss)
                 self.statistics["val_accuracies"].append(val_accuracy)
@@ -228,7 +228,7 @@ class BaseFFTrainer(BaseTrainer):
             epochs_to_val = 1  # Validate every epoch
             if epoch % epochs_to_val == 0:
                 val_loss, val_accuracy, eer = self.val(val_dataloader)
-                print(f"Validation loss: {val_loss}, validation accuracy: {val_accuracy}")
+                print(f"Validation loss: {val_loss}, validation accuracy: {val_accuracy*100}%")
                 print(f"Validation EER: " + "None" if eer == None else f"{eer*100}%")
                 self.statistics["val_losses"].append(val_loss)
                 self.statistics["val_accuracies"].append(val_accuracy)

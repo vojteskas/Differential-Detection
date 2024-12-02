@@ -259,7 +259,7 @@ class SGEJob:
             "\n",
             # create dir for the job
             'echo "Creating job directory"',
-            '[ ! -d "$TMPDIR" ] && mkdir -p "$TMPDIR" || { echo "Error creating TMPDIR"; exit 1; }',  # check if TMPDIR exists and create if not
+            # '[ ! -d "$TMPDIR" ] && mkdir -p "$TMPDIR" || { echo "Error creating TMPDIR"; exit 1; }',  # check if TMPDIR exists and create if not
             'mkdir "$JOBDIR" || { echo "Error creating job directory"; exit 1; }',
             'cd "$JOBDIR" || { echo "Error entering job directory"; exit 1; }',
             "\n",
@@ -435,110 +435,35 @@ if __name__ == "__main__":
     #         train=False,
     #     )
 
-    # TOTO MAS POTOM READY NA EVAL, vymenit aasist za mhfa
     extractor = "XLSR_300M"
-    dshort = "DF21"
-    c = "FFConcat1"
-    dataset = "ASVspoof2021DFDataset_single" if c == "FF" else "ASVspoof2021DFDataset_pair"
-    for ep in range(5, 20):
-        command = [
-            (
-                "./eval.py",
-                [
-                    "--sge",
-                    "--dataset",
-                    f"{dataset}",
-                    "--classifier",
-                    f"{c}",
-                    "--extractor",
-                    f"{extractor}",
-                    "--processor",
-                    "MHFA",
-                    "--checkpoint",
-                    f"{c}_{ep}.pt",
-                ],
-            )
-        ]
-        generate_job_script(
-            jobname=f"EVAL_{c}_MHFA_{ep}_{dshort}",
-            server="sge",
-            # mem = 200,
-            # scratch_size=200,
-            file_name=f"scripts/eval_{c}_mhfa_{ep}_{dshort}.sh",
-            project_archive_name="dp.zip",
-            # dataset_archive_name=f"DF21.tar.gz",
-            # checkpoint_archive_name=f"TRAIN_SGE_{c}_{dshort}_Results.zip",
-            # checkpoint_file_from_archive_name=f"{c}_{ep}.pt",
-            checkpoint_file_path=f"{c}_MHFA/{c}_{ep}.pt",
-            execute_list=command,
-        )
-
-
-    # extractor = "XLSR_300M"
-    # dshort = "DF21"
-    # c = "FFConcat1"
-    # ep = 16
-    # dataset = "ASVspoof2021DFDataset_pair"
-    # command = [
-    #     (
-    #         "./finetune.py",
-    #         [
-    #             "--sge",
-    #             "--dataset",
-    #             f"{dataset}",
-    #             "--classifier",
-    #             f"{c}",
-    #             "--extractor",
-    #             f"{extractor}",
-    #             "--processor",
-    #             "AASIST",
-    #             "--checkpoint",
-    #             f"{c}_{ep}.pt",
-    #             "--augment"
-    #         ],
-    #     )
-    # ]
-    # generate_job_script(
-    #     jobname=f"FINETUNE_SGE_{c}_{dshort}",
-    #     server="sge",
-    #     # walltime="60:00:00",
-    #     file_name=f"scripts/finetune_sge_{c}_{dshort}.sh",
-    #     project_archive_name="dp.zip",
-    #     checkpoint_file_path=f"{c}_{ep}.pt",
-    #     execute_list=command,
-    # )
-
-    # extractor = "XLSR_300M"
-    # dshort = "DF21"
-    # c = "FFConcat1"
-    # ep = 16
-    # dataset = "ASVspoof2021DFDataset_pair"
-    # command = [
-    #     (
-    #         "./finetune.py",
-    #         [
-    #             "--metacentrum",
-    #             "--dataset",
-    #             f"{dataset}",
-    #             "--classifier",
-    #             f"{c}",
-    #             "--extractor",
-    #             f"{extractor}",
-    #             "--processor",
-    #             "AASIST",
-    #             "--checkpoint",
-    #             f"{c}_{ep}.pt",
-    #             "--augment"
-    #         ],
-    #     )
-    # ]
-    # generate_job_script(
-    #     jobname=f"FINETUNE_{c}_{dshort}",
-    #     server="metacentrum",
-    #     # walltime="60:00:00",
-    #     file_name=f"scripts/finetune_metacentrum_{c}_{dshort}.sh",
-    #     project_archive_name="dp.zip",
-    #     dataset_archive_name=f"DF21.tar.gz",
-    #     checkpoint_file_path=f"{c}_{ep}.pt",
-    #     execute_list=command,
-    # )
+    for c in ["FF", "FFDiff", "FFDiffAbs", "FFDiffQuadratic", "FFConcat1", "FFConcat2", "FFConcat3", "FFLSTM2"]:
+        for dataset, dshort in [("ASVspoof2019LADataset", "LA19"), ("InTheWildDataset", "ITW")]:
+            dataset += f"_{'single' if c == 'FF' else 'pair'}"
+            for processor in ["MHFA", "AASIST"]:
+                command = [
+                    (
+                        "./eval.py",
+                        [
+                            "--sge",
+                            "--dataset",
+                            dataset,
+                            "--classifier",
+                            c,
+                            "--extractor",
+                            extractor,
+                            "--processor",
+                            processor,
+                            "--checkpoint",
+                            f"{c}_{processor}.pt",
+                        ],
+                    )
+                ]
+                generate_job_script(
+                    server="sge",
+                    jobname=f"EVAL_{c}_{dshort}_{processor}",
+                    file_name=f"scripts/eval_{c}_{dshort}_{processor}.sh",
+                    project_archive_name="dp.zip",
+                    checkpoint_file_path=f"{c}_{processor}.pt",
+                    execute_list=command,
+                    train=False,
+                )
