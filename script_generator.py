@@ -437,33 +437,35 @@ if __name__ == "__main__":
 
     extractor = "XLSR_300M"
     for c in ["FF", "FFDiff", "FFDiffAbs", "FFDiffQuadratic", "FFConcat1", "FFConcat2", "FFConcat3", "FFLSTM2"]:
-        for dataset, dshort in [("ASVspoof2019LADataset", "LA19"), ("InTheWildDataset", "ITW")]:
-            dataset += f"_{'single' if c == 'FF' else 'pair'}"
-            for processor in ["MHFA", "AASIST"]:
-                command = [
-                    (
-                        "./eval.py",
-                        [
-                            "--sge",
-                            "--dataset",
-                            dataset,
-                            "--classifier",
-                            c,
-                            "--extractor",
-                            extractor,
-                            "--processor",
-                            processor,
-                            "--checkpoint",
-                            f"{c}_{processor}.pt",
-                        ],
-                    )
-                ]
-                generate_job_script(
-                    server="sge",
-                    jobname=f"EVAL_{c}_{dshort}_{processor}",
-                    file_name=f"scripts/eval_{c}_{dshort}_{processor}.sh",
-                    project_archive_name="dp.zip",
-                    checkpoint_file_path=f"{c}_{processor}.pt",
-                    execute_list=command,
-                    train=False,
+        dataset = f"ASVspoof2021DFDataset_{'single' if c == 'FF' else 'pair'}"
+        dshort = "DF21"
+        for processor in ["MHFA", "AASIST"]:
+            command = [
+                (
+                    "./finetune.py",
+                    [
+                        "--metacentrum",
+                        "--dataset",
+                        dataset,
+                        "--classifier",
+                        c,
+                        "--extractor",
+                        extractor,
+                        "--processor",
+                        processor,
+                        "--checkpoint",
+                        f"{c}_{processor}.pt",
+                    ],
                 )
+            ]
+            generate_job_script(
+                server="metacentrum",
+                queue="gpu_long@pbs-m1.metacentrum.cz",
+                walltime="100:00:00",
+                jobname=f"FINETUNE_{c}_{processor}_{dshort}",
+                file_name=f"scripts/finetune_{c}_{processor}_{dshort}.sh",
+                project_archive_name="dp.zip",
+                checkpoint_file_path=f"{c}_{processor}.pt",
+                dataset_archive_name=f"{dshort}.tar.gz",
+                execute_list=command,
+            )

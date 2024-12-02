@@ -155,7 +155,7 @@ class BaseFFTrainer(BaseTrainer):
         eval_loss, eval_accuracy, eer = self.val(
             eval_dataloader, save_scores=True, plot_det=True, subtitle=subtitle
         )
-        print(f"Eval loss: {eval_loss}, eval accuracy: {eval_accuracy}")
+        print(f"Eval loss: {eval_loss}, eval accuracy: {eval_accuracy*100}%")
         print(f"Eval EER: {eer*100 if eer else None}%")
 
     def _plot_loss_accuracy(self, losses, accuracies, subtitle: str = ""):
@@ -196,7 +196,7 @@ class BaseFFTrainer(BaseTrainer):
 
         self.model.extractor.finetune = finetune_ssl
         # Use the optimizer but with a smaller learning rate
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-5)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-6)
         self.model.train()  # Set model to training mode
         self.statistics = {  # Reset statistics
             "train_losses": [],
