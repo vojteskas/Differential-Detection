@@ -196,7 +196,7 @@ class BaseFFTrainer(BaseTrainer):
 
         self.model.extractor.finetune = finetune_ssl
         # Use the optimizer but with a smaller learning rate
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-5)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-6)
         self.model.train()  # Set model to training mode
         self.statistics = {  # Reset statistics
             "train_losses": [],
