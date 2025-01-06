@@ -6,6 +6,14 @@ from typing import Union
 from feature_processors.BaseProcessor import BaseProcessor
 
 
+"""
+Audio Anti-Spoofing using Integrated Spectro-Temporal Graph Attention Networks.
+Implemented by NAVER corp., based on the paper: https://arxiv.org/pdf/2110.01200
+Distributed under the MIT License.
+Code adapted from: https://github.com/TakHemlata/SSL_Anti-spoofing/blob/main/model.py
+"""
+
+
 class GraphAttentionLayer(nn.Module):
     def __init__(self, in_dim, out_dim, **kwargs):
         super().__init__()
