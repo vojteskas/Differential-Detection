@@ -41,6 +41,7 @@ from extractors.XLSR import XLSR_1B, XLSR_2B, XLSR_300M
 from feature_processors.AASIST import AASIST
 from feature_processors.MeanProcessor import MeanProcessor
 from feature_processors.MHFA import MHFA
+from feature_processors.SLS import SLS
 
 # Trainers
 from trainers.BaseTrainer import BaseTrainer
@@ -214,8 +215,8 @@ def get_dataloaders(
 
 def build_model(args: Namespace) -> Tuple[FFBase | BaseSklearnModel, BaseTrainer]:
     # Beware of MHFA or AASIST with SkLearn models, they are not implemented yet
-    if args.processor in ["MHFA", "AASIST"] and args.classifier in ["GMMDiff", "SVMDiff", "LDAGaussianDiff"]:
-        raise NotImplementedError("Training of SkLearn models with MHFA or AASIST is not yet implemented.")
+    if args.processor in ["MHFA", "AASIST", "SLS"] and args.classifier in ["GMMDiff", "SVMDiff", "LDAGaussianDiff"]:
+        raise NotImplementedError("Training of SkLearn models with MHFA, AASIST or SLS is not yet implemented.")
     # region Extractor
     extractor = EXTRACTORS[args.extractor]()  # map the argument to the class and instantiate it
     # endregion
@@ -247,10 +248,15 @@ def build_model(args: Namespace) -> Tuple[FFBase | BaseSklearnModel, BaseTrainer
             # compression_dim=extractor.feature_size // 8,  # compression dim is hardcoded at the moment
             outputs_dim=extractor.feature_size,  # Output the same dimension as input, might want to play around with this
         )
+    elif args.processor == "SLS":
+        processor = SLS(
+            inputs_dim=extractor.feature_size,
+            outputs_dim=extractor.feature_size,  # Output the same dimension as input, might want to play around with this
+        )
     elif args.processor == "Mean":
         processor = MeanProcessor()  # default avg pooling along the transformer layers and time frames
     else:
-        raise ValueError("Only AASIST, MHFA and Mean processors are currently supported.")
+        raise ValueError("Only AASIST, MHFA, Mean and SLS processors are currently supported.")
     # endregion
 
     # region Model and trainer

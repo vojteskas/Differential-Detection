@@ -42,7 +42,7 @@ def parse_args():
     )
 
     # feature processor
-    feature_processors = ["MHFA", "AASIST", "Mean"]
+    feature_processors = ["MHFA", "AASIST", "Mean", "SLS"]
     parser.add_argument(
         "-p",
         "--processor",
