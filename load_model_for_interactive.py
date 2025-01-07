@@ -6,7 +6,6 @@ from classifiers.FFBase import FFBase
 from common import build_model
 
 
-
 def load_model_for_interactive():
     args: Namespace = Namespace()
     args.extractor = "XLSR_300M"
@@ -15,15 +14,15 @@ def load_model_for_interactive():
     args.processor = "MHFA"
     model_mhfa, _ = build_model(args)
     assert isinstance(model_mhfa, FFBase)
-    model_mhfa.load_state_dict(torch.load("FF_MHFA.pt"))
+    model_mhfa.load_state_dict(torch.load("FF_MHFA.pt", map_location=torch.device('cpu'), weights_only=True))
 
     args.processor = "AASIST"
     model_aasist, _ = build_model(args)
     assert isinstance(model_aasist, FFBase)
-    model_aasist.load_state_dict(torch.load("FF_AASIST_finetune_5.pt"))
+    model_aasist.load_state_dict(torch.load("FF_AASIST_finetune_5.pt", map_location=torch.device('cpu'), weights_only=True))
 
     print("Models loaded successfully")
-    print(model_mhfa, model_aasist)
+    # print(model_mhfa, model_aasist)
     return model_mhfa, model_aasist
 
 if __name__ == "__main__":
