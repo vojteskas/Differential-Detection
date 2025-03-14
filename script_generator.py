@@ -78,7 +78,7 @@ class SGEheaders:
             f"#$ -l gpu={self.gpus},gpu_ram={self.gpu_mem}G,ram_free={self.mem}G",
             f"#$ -m {self.email_notification_flags}",
             f"#$ -j y",
-            f"#$ -o /mnt/matylda0/istanek/jobs/$JOB_NAME.$JOB_ID.out",
+            f"#$ -o /mnt/strade/istanek/jobs/$JOB_NAME.$JOB_ID.out",
         ]
 
         return "\n".join(header)
@@ -233,9 +233,8 @@ class SGEJob:
         checkpoint_archive_name=None,  # name of the checkpoint archive
         checkpoint_file_from_archive_name=None,  # name of the checkpoint file from the archive
         execute_list=[
-            ("train_and_eval.py", ["--metacentrum"])
-        ],  # doubles of script name and list of arguments
-        train=True,  # if training, copy training LA19 dataset aswell
+            ("train_and_eval.py", ["--sge"])
+        ],  # pairs of script name and list of arguments
         copy_results=True,  # copy results back to home directory
     ):
         self.jobname = jobname
@@ -245,7 +244,6 @@ class SGEJob:
         self.checkpoint_archive_name = checkpoint_archive_name
         self.checkpoint_file_from_archive_name = checkpoint_file_from_archive_name
         self.execute_list = execute_list
-        self.train = train
         self.copy_results = copy_results
 
     def __str__(self):
@@ -253,7 +251,7 @@ class SGEJob:
             # variable declaration
             f"name={self.jobname}",
             f'archivename="$name"_Results.zip',
-            "HOMEDIR=/mnt/matylda0/istanek",
+            "HOMEDIR=/mnt/strade/istanek",
             "TMPDIR=/pub/tmp/istanek",
             "JOBDIR=$TMPDIR/$JOB_NAME.$JOB_ID",
             "\n",
@@ -309,7 +307,10 @@ class SGEJob:
             'echo "Running the script"',
         ]
         for script, args in self.execute_list:
-            exec_script.append(f"{script} {' '.join(args)} 2>&1" + ' || { [ $? -eq 69 ] && { echo "Error claiming GPU!"; exit 7; } || { echo "Runtime script error!"; exit 7; } }\n\n' )
+            exec_script.append(
+                f"{script} {' '.join(args)} 2>&1"
+                + ' || { [ $? -eq 69 ] && { echo "Error claiming GPU!"; exit 7; } || { echo "Runtime script error!"; exit 7; } }\n\n'
+            )
 
         results_script = []
         if self.copy_results:
@@ -395,77 +396,49 @@ def generate_job_script(
 
 
 if __name__ == "__main__":
-    # # Modify parameters and arguments here
-    # dataset = "ASVspoof2019LADataset_pair"
-    # dshort = "LA19"
-    # for c, ep in [
-    #     ("FFDiff", 20),
-    #     ("FFDiffAbs", 15),
-    #     ("FFDiffQuadratic", 15),
-    #     ("FFConcat1", 15),
-    #     ("FFConcat3", 10),
-    #     ("FFLSTM", 10),
-    # ]:
-    #     command = [
-    #         (
-    #             "eval.py",
-    #             [
-    #                 "--metacentrum",
-    #                 "--dataset",
-    #                 dataset,
-    #                 "--classifier",
-    #                 f"{c}",
-    #                 "--extractor",
-    #                 "XLSR_300M",
-    #                 "--processor",
-    #                 "MHFA",
-    #                 "--checkpoint",
-    #                 f"{c}_{ep}.pt",
-    #             ],
-    #         )
-    #     ]
-    #     generate_job_script(
-    #         jobname=f"EVAL_{c}_{dshort}_{ep}",
-    #         file_name=f"scripts/{c}_{dshort}_{ep}.sh",
-    #         project_archive_name="dp.zip",
-    #         dataset_archive_name=f"{dshort}.tar.gz",
-    #         checkpoint_archive_name=f"NEW_{c}_LA19_Results.zip",
-    #         checkpoint_file_from_archive_name=f"{c}_{ep}.pt",
-    #         execute_list=command,
-    #         train=False,
-    #     )
+    extractors = [
+        "Wav2Vec2_base",
+        "Wav2Vec2_large",
+        "Wav2Vec2_LV60k",
+        "XLSR_300M",
+        "XLSR_1B",
+        "XLSR_2B",
+        "HuBERT_base",
+        "HuBERT_large",
+        "HuBERT_extralarge",
+        "WavLM_base",
+        "WavLM_baseplus",
+        "WavLM_large",
+    ]
+    processors = ["MHFA", "AASIST", "SLS"]
+    dataset = "ASVspoof5Dataset_single"
+    dshort = "ASVspoof5"
+    classifier = "FF"
 
-    extractor = "XLSR_300M"
-    for c in ["FF", "FFDiff", "FFDiffAbs", "FFDiffQuadratic", "FFConcat1", "FFConcat2", "FFConcat3", "FFLSTM2"]:
-        dataset = f"ASVspoof2021DFDataset_{'single' if c == 'FF' else 'pair'}"
-        dshort = "DF21"
-        for processor in ["MHFA", "AASIST"]:
+    for extractor in extractors:
+        for processor in processors:
             command = [
                 (
-                    "./finetune.py",
+                    "./train_and_eval.py",
                     [
-                        "--metacentrum",
-                        "--dataset",
-                        dataset,
-                        "--classifier",
-                        c,
+                        "--sge",
                         "--extractor",
                         extractor,
                         "--processor",
                         processor,
-                        "--checkpoint",
-                        f"{c}_{processor}.pt",
+                        "--classifier",
+                        classifier,
+                        "--dataset",
+                        dataset,
+                        "--augment",
+                        "--num_epochs",
+                        "10",
                     ],
                 )
             ]
             generate_job_script(
-                server="metacentrum",
-                queue="gpu_long@pbs-m1.metacentrum.cz",
-                walltime="100:00:00",
-                jobname=f"FINETUNE_{c}_{processor}_{dshort}",
-                file_name=f"scripts/finetune_{c}_{processor}_{dshort}.sh",
-                project_archive_name="dp.zip",
-                checkpoint_file_path=f"{c}_{processor}.pt",
-                dataset_archive_name=f"{dshort}.tar.gz",
+                server="sge",
+                jobname=f"{extractor}_{processor}_{dshort}",
+                file_name=f"./scripts/SGE_{extractor}_{processor}_{dshort}.sh",
                 execute_list=command,
             )

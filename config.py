@@ -47,12 +47,12 @@ local_config = {
         "train_subdir": "ASVspoof5",
         "dev_subdir": "ASVspoof5",
         "eval_subdir": "ASVspoof5",
-        "train_protocol": "ASVspoof5.train.metadata.txt",
-        "dev_protocol": "ASVspoof5.dev.metadata.txt",
-        "eval_protocol": "ASVspoof5.eval.metadata.txt",
+        "train_protocol": "ASVspoof5.train.tsv",
+        "dev_protocol": "ASVspoof5.dev.track_1.tsv",
+        "eval_protocol": "ASVspoof5.eval.track_1.tsv",
     },
     "batch_size": 16,
-    "lstm_batch_size": 8,
+    "lstm_batch_size": 4,
     "num_epochs": 1,
 }
 
@@ -116,8 +116,8 @@ metacentrum_config = {
 
 sge_config = {
     "argv": ["--sge"],
-    "data_dir": "/mnt/matylda0/istanek/datasets/",
-    "rir_root": "/mnt/matylda0/istanek/datasets/",
+    "data_dir": "/mnt/strade/istanek/datasets/",
+    "rir_root": "/mnt/strade/istanek/datasets/",
     "asvspoof2019la": {
         "train_subdir": "LA19",
         "dev_subdir": "LA19",
@@ -160,14 +160,14 @@ sge_config = {
         "eval_protocol": "protocol.txt",
     },
     "asvspoof5": {
-        "train_subdir": "",
-        "dev_subdir": "",
-        "eval_subdir": "",
-        "train_protocol": "ASVspoof5.train.metadata.txt",
-        "dev_protocol": "ASVspoof5.dev.metadata.txt",
-        "eval_protocol": "ASVspoof5.track_1.progress.trial.txt",
+        "train_subdir": "ASVspoof5",
+        "dev_subdir": "ASVspoof5",
+        "eval_subdir": "ASVspoof5",
+        "train_protocol": "ASVspoof5.train.tsv",
+        "dev_protocol": "ASVspoof5.dev.track_1.tsv",
+        "eval_protocol": "ASVspoof5.eval.track_1.tsv",
     },
-    "batch_size": 32,
-    "lstm_batch_size": 16,
-    "num_epochs": 20,
+    "batch_size": 16,
+    "lstm_batch_size": 4,
+    "num_epochs": 10,
 }
