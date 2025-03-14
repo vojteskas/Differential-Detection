@@ -1,7 +1,7 @@
 # Variables
 METAHOME = vojteskas@skirit.ics.muni.cz:~
 METAPATH = /DP
-SGEHOME = istanek@merlin.fit.vutbr.cz:/mnt/matylda0/istanek
+SGEHOME = istanek@merlin.fit.vutbr.cz:/mnt/strade/istanek
 SGEPATH = /jobs
 
 .PHONY: clean clean_scripts scripts pack upload upload_sge

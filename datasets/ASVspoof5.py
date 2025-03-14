@@ -41,13 +41,23 @@ class ASVspoof5Dataset_base(Dataset):
         subdir = ""
         if variant == "train":
             subdir = "flac_T"
-            self.protocol_df.columns = ["SPEAKER_ID", "AUDIO_FILE_NAME", "GENDER", "-", "SYSTEM_ID", "KEY"]
         elif variant == "dev":
             subdir = "flac_D"
-            self.protocol_df.columns = ["SPEAKER_ID", "AUDIO_FILE_NAME", "GENDER", "-", "SYSTEM_ID", "KEY"]
         elif variant == "eval":
-            subdir = "flac_E_prog"
-            self.protocol_df.columns = ["AUDIO_FILE_NAME"]
+            subdir = "flac_E_eval"
+
+        self.protocol_df.columns = [
+            "SPEAKER_ID",
+            "AUDIO_FILE_NAME",
+            "GENDER",
+            "CODEC",
+            "CODEC_Q",
+            "CODEC_SEED",
+            "ATTACK_TAG",
+            "ATTACK_LABEL",
+            "KEY",
+            "-",
+        ]
         self.rec_dir = os.path.join(self.root_dir, subdir)
 
     def __len__(self):
@@ -148,10 +158,10 @@ class ASVspoof5Dataset_single(ASVspoof5Dataset_base):
         audio_name = os.path.join(self.rec_dir, f"{audio_file_name}.flac")
         waveform, _ = load(audio_name)
 
-        if self.variant == "eval":  # No labels for eval set
-            label = None
-        else:  # 0 for genuine speech, 1 for spoofing speech
-            label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
+        # if self.variant == "eval":  # No labels for eval set
+        #     label = None
+        # else:  # 0 for genuine speech, 1E for spoofing speech
+        label = 0 if self.protocol_df.loc[idx, "KEY"] == "bonafide" else 1
 
         if self.augment:
             waveform = self.augmentor.augment(waveform)
