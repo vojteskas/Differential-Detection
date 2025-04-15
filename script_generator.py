@@ -134,6 +134,7 @@ class PBSJob:
             'export TMPDIR="$SCRATCHDIR/TMPDIR"',
             "\n",
             # environment setup
+            # TODO: Change to use a prepared conda env in $HOMEDIR
             'echo "Creating conda environment"',
             "module add gcc",
             "module add conda-modules-py37",
@@ -152,24 +153,26 @@ class PBSJob:
             "\n",
         ]
 
+        # Changed to use default location instead of copying to
+        #
         data_script = [
-            # copy dataset
-            # TODO: Allow for multiple datasets to be copied
-            'echo "Copying dataset(s)"',
-            f"cp -r $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .",  # copy to scratchdir
-            f"tar {'-xzf' if '.gz' in self.dataset_archive_name else '-xf'} {self.dataset_archive_name} >/dev/null 2>&1",
-            "\n",
+        #     # copy dataset
+        #     # TODO: Allow for multiple datasets to be copied
+        #     'echo "Copying dataset(s)"',
+        #     f"cp -r $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .",  # copy to scratchdir
+        #     f"tar {'-xzf' if '.gz' in self.dataset_archive_name else '-xf'} {self.dataset_archive_name} >/dev/null 2>&1",
+        #     "\n",
         ]
-        # copy 2019 dataset (training data) aswell if 2021 or InTheWild datasets are used
-        if self.train and ("21" in self.dataset_archive_name or "InTheWild" in self.dataset_archive_name):
-            data_script.extend(
-                [
-                    # copy 2019 dataset
-                    f"cp -r $DATADIR/{self.dataset_archive_path}LA19.tar.gz .",  # copy to scratchdir
-                    f"tar -xzf LA19.tar.gz >/dev/null 2>&1",
-                    "\n",
-                ]
-            )
+        # # copy 2019 dataset (training data) aswell if 2021 or InTheWild datasets are used
+        # if self.train and ("21" in self.dataset_archive_name or "InTheWild" in self.dataset_archive_name):
+        #     data_script.extend(
+        #         [
+        #             # copy 2019 dataset
+        #             f"cp -r $DATADIR/{self.dataset_archive_path}LA19.tar.gz .",  # copy to scratchdir
+        #             f"tar -xzf LA19.tar.gz >/dev/null 2>&1",
+        #             "\n",
+        #         ]
+        #     )
 
         checkpoint_script = []
         if self.checkpoint_archive_name:
@@ -396,49 +399,51 @@ def generate_job_script(
 
 
 if __name__ == "__main__":
-    extractors = [
-        "Wav2Vec2_base",
-        "Wav2Vec2_large",
-        "Wav2Vec2_LV60k",
-        "XLSR_300M",
-        "XLSR_1B",
-        "XLSR_2B",
-        "HuBERT_base",
-        "HuBERT_large",
-        "HuBERT_extralarge",
-        "WavLM_base",
-        "WavLM_baseplus",
-        "WavLM_large",
+    extractor = "XLSR_300M"
+    to_finetune = [
+        ("FF", "AASIST", 10),
+        ("FFDiff", "AASIST", 9),
+        ("FFDiffAbs", "AASIST", 2),
+        ("FFDiffQuadratic", "AASIST", 4),
+        ("FFConcat1", "AASIST", 3),
+        ("FFConcat2", "AASIST", 7),
+        ("FFConcat3", "AASIST", 6),
+        ("FF", "MHFA", 1),
+        ("FFDiff", "MHFA", 10),
+        ("FFDiffAbs", "MHFA", 5),
+        ("FFDiffQuadratic", "MHFA", 4),
+        ("FFConcat1", "MHFA", 10),
+        ("FFConcat2", "MHFA", 9),
+        ("FFConcat3", "MHFA", 3),
     ]
-    processors = ["MHFA", "AASIST", "SLS"]
-    dataset = "ASVspoof5Dataset_single"
-    dshort = "ASVspoof5"
-    classifier = "FF"
 
-    for extractor in extractors:
-        for processor in processors:
-            command = [
-                (
-                    "./train_and_eval.py",
-                    [
-                        "--sge",
-                        "--extractor",
-                        extractor,
-                        "--processor",
-                        processor,
-                        "--classifier",
-                        classifier,
-                        "--dataset",
-                        dataset,
-                        "--augment",
-                        "--num_epochs",
-                        "10",
-                    ],
-                )
-            ]
-            generate_job_script(
-                server="sge",
-                jobname=f"{extractor}_{processor}_{dshort}",
-                file_name=f"./scripts/SGE_{extractor}_{processor}_{dshort}.sh",
-                execute_list=command,
+    for classifier, processor, epoch in to_finetune:
+        dataset = "ASVspoof5Dataset_single" if classifier == "FF" else "ASVspoof5Dataset_pair"
+        dshort = "ASVspoof5"
+        command = [
+            (
+                "./finetune.py",
+                [
+                    "--metacentrum",
+                    "--extractor",
+                    extractor,
+                    "--processor",
+                    processor,
+                    "--classifier",
+                    classifier,
+                    "--dataset",
+                    dataset,
+                    "--checkpoint",
+                    f"{classifier}_{processor}_{epoch}.pt",
+                ],
             )
+        ]
+        generate_job_script(
+            server="metacentrum",
+            jobname=f"FINETUNE_{classifier}_{processor}_{dshort}",
+            file_name=f"./scripts/FINETUNE_{classifier}_{processor}_{dshort}.sh",
+            execute_list=command,
+            checkpoint_file_path=f"{classifier}_{processor}_{epoch}.pt",
+            queue="gpu-long@pbs-m1.metacentrum.cz",
+            walltime="96:00:00",
+        )
