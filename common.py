@@ -29,6 +29,7 @@ from datasets.ASVspoof2021 import (
 )
 from datasets.InTheWild import InTheWildDataset_pair, InTheWildDataset_single
 from datasets.Morphing import MorphingDataset_pair, MorphingDataset_single
+from datasets.MLDF import mldf_dataset, mldf_dataloader
 from datasets.utils import custom_pair_batch_create, custom_single_batch_create
 
 # Extractors
@@ -145,6 +146,8 @@ def get_dataloaders(
         train_dataset_class = DATASETS[dataset]
         eval_dataset_class = DATASETS[dataset]
         dataset_config = config["asvspoof5"]
+    elif "MLDF" in dataset:
+        return mldf_dataloader
     else:
         raise ValueError("Invalid dataset name.")
 
