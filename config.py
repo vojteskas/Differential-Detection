@@ -58,7 +58,7 @@ local_config = {
 
 metacentrum_config = {
     "argv": ["--metacentrum"],
-    "data_dir": "./",
+    "data_dir": "/storage/brno2/home/vojteskas/deepfakes/datasets/",
     "rir_root": "/storage/brno2/home/vojteskas/deepfakes/datasets/",
     "asvspoof2019la": {
         "train_subdir": "LA19",
@@ -102,16 +102,16 @@ metacentrum_config = {
         "eval_protocol": "protocol.txt",
     },
     "asvspoof5": {
-        "train_subdir": "",
-        "dev_subdir": "",
-        "eval_subdir": "",
-        "train_protocol": "ASVspoof5.train.metadata.txt",
-        "dev_protocol": "ASVspoof5.dev.metadata.txt",
-        "eval_protocol": "ASVspoof5.track_1.progress.trial.txt",
+        "train_subdir": "ASVspoof5",
+        "dev_subdir": "ASVspoof5",
+        "eval_subdir": "ASVspoof5",
+        "train_protocol": "ASVspoof5.train.tsv",
+        "dev_protocol": "ASVspoof5.dev.track_1.tsv",
+        "eval_protocol": "ASVspoof5.eval.track_1.tsv",
     },
-    "batch_size": 32,
-    "lstm_batch_size": 16,
-    "num_epochs": 20,
+    "batch_size": 6,
+    "lstm_batch_size": 4,
+    "num_epochs": 10,
 }
 
 sge_config = {
@@ -167,7 +167,7 @@ sge_config = {
         "dev_protocol": "ASVspoof5.dev.track_1.tsv",
         "eval_protocol": "ASVspoof5.eval.track_1.tsv",
     },
-    "batch_size": 16,
+    "batch_size": 6,
     "lstm_batch_size": 4,
     "num_epochs": 10,
 }
