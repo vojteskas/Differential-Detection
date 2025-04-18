@@ -167,7 +167,7 @@ def split_scores_asvspoof_VCC(c="FFConcat1", ep=15):
         border_color = "blue"
     elif "Concat" in c or "LSTM" in c:
         border_color = "red"
-    plt.scatter(coords[0]*100, coords[1]*100, label=c, edgecolors=border_color, s=100, linewidths=2)
+    plt.scatter(coords[0] * 100, coords[1] * 100, label=c, edgecolors=border_color, s=100, linewidths=2)
 
 
 def get_all_scores_df(variant: Literal["DF21", "InTheWild"]) -> pd.DataFrame:
@@ -246,32 +246,74 @@ def fusion_NN(variant: Literal["DF21", "InTheWild"]):
                 f.write(f"{file_name},{score},{int(label)}\n")
 
 
-def fusion_scores(dataset: Literal["DF21", "InTheWild"]):
-    dfs = []
+def fusion_scores(dataset: Literal["DF21", "ITW"]):
+    # region old
+    # dfs = []
 
-    for file in os.listdir(f"./scores/{dataset}"):
-        if ".json" in file or "fusion" in file:
-            continue  # Skip the fusion scores
+    # for file in os.listdir(f"./scores/{dataset}"):
+    #     if ".json" in file or "fusion" in file:
+    #         continue  # Skip the fusion scores
+
+    #     df = pd.read_csv(
+    #         f"./scores/{dataset}/{file}", header=None, names=["file", f'score_{file.split("_")[1]}', "label"]
+    #     )
+    #     dfs.append(df)
+
+    # final_df = pd.concat(dfs, axis=0).groupby(["file", "label"]).first().reset_index()
+    # if dataset == "DF21":
+    #     final_df = final_df.drop(columns=["score_FF"])  # Only pair-input systems
+
+    # scores = [
+    #     "score_FFConcat1",
+    #     "score_FFConcat2",
+    #     "score_FFConcat3",
+    #     "score_FFDiff",
+    #     "score_FFDiffAbs",
+    #     "score_FFDiffQuadratic",
+    #     # "score_FFLSTM",
+    #     "score_FFLSTM2",
+    # ]
+    # comb = []
+    # for i in range(2, len(scores) + 1):
+    #     comb.extend(combinations(scores, i))
+
+    # score_dict = {}
+    # for combination in tqdm(comb):
+    #     name = f" + ".join(combination)
+    #     mean_score = final_df[list(combination)].mean(axis=1)
+    #     max_score = final_df[list(combination)].max(axis=1)
+    #     min_score = final_df[list(combination)].min(axis=1)
+    #     sqrt_score = final_df[list(combination)].apply(lambda x: x.prod() ** (1 / len(combination)), axis=1)
+
+    #     mean_eer = calculate_EER(name, final_df["label"], mean_score, False, "")
+    #     max_eer = calculate_EER(name, final_df["label"], max_score, False, "")
+    #     min_eer = calculate_EER(name, final_df["label"], min_score, False, "")
+    #     sqrt_eer = calculate_EER(name, final_df["label"], sqrt_score, False, "")
+
+    #     score_dict[name] = {"mean": mean_eer, "max": max_eer, "min": min_eer, "sqrt": sqrt_eer}
+
+    # json.dump(score_dict, open(f"./scores/{dataset}/fusion_scores.json", "w"))
+    # endregion
+
+    dfs = []
+    for file in os.listdir(f"./scores/final/"):
+        if dataset not in file or ".json" in file:
+            continue
 
         df = pd.read_csv(
-            f"./scores/{dataset}/{file}", header=None, names=["file", f'score_{file.split("_")[1]}', "label"]
+            f"./scores/final/{file}",
+            header=None,
+            names=["file", f'score_{file.split("_")[0]}_{file.split("_")[1]}', "label"],
         )
+
         dfs.append(df)
-
+    
     final_df = pd.concat(dfs, axis=0).groupby(["file", "label"]).first().reset_index()
-    if dataset == "DF21":
-        final_df = final_df.drop(columns=["score_FF"])  # Only pair-input systems
+    # final_df = final_df.drop(columns=["score_FF_MHFA", "score_FF_AASIST"])  # Only pair-input systems
+    # final_df = final_df.drop(columns=[col for col in final_df.columns if "Diff" in col])  # Drop diff models as they suck
 
-    scores = [
-        "score_FFConcat1",
-        "score_FFConcat2",
-        "score_FFConcat3",
-        "score_FFDiff",
-        "score_FFDiffAbs",
-        "score_FFDiffQuadratic",
-        # "score_FFLSTM",
-        "score_FFLSTM2",
-    ]
+    # do combinations from all the score_* columns
+    scores = [col for col in final_df.columns if col.startswith("score_FF")]
     comb = []
     for i in range(2, len(scores) + 1):
         comb.extend(combinations(scores, i))
@@ -282,16 +324,17 @@ def fusion_scores(dataset: Literal["DF21", "InTheWild"]):
         mean_score = final_df[list(combination)].mean(axis=1)
         max_score = final_df[list(combination)].max(axis=1)
         min_score = final_df[list(combination)].min(axis=1)
-        sqrt_score = final_df[list(combination)].apply(lambda x: x.prod() ** (1 / len(combination)), axis=1)
+        sqrt_score = (final_df[list(combination)]**0.5).sum(axis=1) / len(combination)
+        geom_score = final_df[list(combination)].prod(axis=1) ** (1 / len(combination))
 
         mean_eer = calculate_EER(name, final_df["label"], mean_score, False, "")
         max_eer = calculate_EER(name, final_df["label"], max_score, False, "")
         min_eer = calculate_EER(name, final_df["label"], min_score, False, "")
         sqrt_eer = calculate_EER(name, final_df["label"], sqrt_score, False, "")
+        geom_eer = calculate_EER(name, final_df["label"], geom_score, False, "")
 
-        score_dict[name] = {"mean": mean_eer, "max": max_eer, "min": min_eer, "sqrt": sqrt_eer}
-
-    json.dump(score_dict, open(f"./scores/{dataset}/fusion_scores.json", "w"))
+        score_dict[name] = {"mean": mean_eer, "max": max_eer, "min": min_eer, "sqrt": sqrt_eer, "geom": geom_eer}
+    json.dump(score_dict, open(f"./scores/final/fusion_scores_{dataset}.json", "w"))
 
 
 def fusion_scores_from_json(
@@ -349,23 +392,34 @@ def fusion_PCA(variant: Literal["DF21", "InTheWild"]):
 
 
 if __name__ == "__main__":
-    plt.figure(figsize=(5, 5))
+    # calculate eer for all score files in the scores directory
+    # for file in os.listdir("./scores"):
+    #     if not file.endswith("scores.txt"):
+    #         continue
 
-    for c, ep in [
-        ("FF", 20),
-        ("FFDiff", 20),
-        ("FFDiffAbs", 15),
-        ("FFDiffQuadratic", 15),
-        ("FFConcat1", 15),
-        ("FFConcat2", 10),
-        ("FFConcat3", 10),
-        ("FFLSTM2", 15),
-    ]:
-        print(c)
-        split_scores_asvspoof_VCC(c, ep)
-        print()
+    #     print(f"Calculating EER for {file}:", end=" ")
+    #     scores_headers = ["AUDIO_FILE_NAME", "SCORE", "LABEL"]
+    #     scores_df = pd.read_csv(f"./scores/{file}", sep=",", names=scores_headers)
+    #     eer = calculate_EER(file, scores_df["LABEL"], scores_df["SCORE"], False, file)
+    #     print(f"{eer*100:.3}%")
 
-    plt.legend()
-    plt.xlabel("EER for asvspoof [%]")
-    plt.ylabel("EER for VCC [%]")
-    plt.savefig("./seen_unseen_scores.png")
+    for dataset in ["DF21", "ITW"]:
+        # fusion_scores(dataset)
+
+        scores = json.load(open(f"./scores/final/fusion_scores_{dataset}.json", "r"))
+        # keep only the combinations of scores that have both AASIST and MHFA
+        scores = {
+            key: scores[key]
+            for key in scores
+            if ("AASIST" in key and "MHFA" in key) # and "FF_" not in key
+        }
+        
+        best_fusion = {}
+        print("================================================================")
+        for fusion in ["mean", "max", "min", "sqrt", "geom"]:
+            min_fusion = min(scores, key=lambda x: scores[x][fusion])
+            print(f"Best {dataset} {fusion} fusion: {min_fusion}, EER: {scores[min_fusion][fusion]*100}%")
+            best_fusion[fusion] = (min_fusion, scores[min_fusion][fusion]*100)
+
+        bf = min(best_fusion, key=lambda x: best_fusion[x][1])
+        print(f">>>>> Best {dataset} fusion: {bf} ({best_fusion[bf][0]}), EER: {best_fusion[bf][1]}% <<<<<")
