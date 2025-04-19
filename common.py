@@ -205,7 +205,7 @@ def get_dataloaders(
 
     # Create the dataset based on dynamically created eval_kwargs
     eval_dataset = eval_dataset_class(**eval_kwargs)
-    eval_dataloader = DataLoader(eval_dataset, batch_size=bs, collate_fn=collate_func, shuffle=True)
+    eval_dataloader = DataLoader(eval_dataset, batch_size=bs+2, collate_fn=collate_func, shuffle=True)
 
     if eval_only:
         return eval_dataloader

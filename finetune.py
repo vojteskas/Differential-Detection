@@ -33,7 +33,7 @@ def main():
 
     # Fine-tune the model
     if isinstance(trainer, BaseFFTrainer):
-        trainer.finetune(train_dataloader, eval_dataloader, numepochs=10, finetune_ssl=True)
+        trainer.finetune(train_dataloader, eval_dataloader, numepochs=8, finetune_ssl=True)
         # trainer.eval(eval_dataloader, subtitle="finetune")
     else:
         raise NotImplementedError("Fine-tuning is only implemented for FF models.")

@@ -56,7 +56,7 @@ class SGEheaders:
         queue="long.q",  # queue name
         walltime="100:00:00",  # maximum time the job can run
         cpus=4,  # number of cpus on a node
-        mem=150,  # memory per node in GB
+        mem=10,  # memory per node in GB
         gpus=1,  # number of gpus
         gpu_mem=20,  # minimum gpu memory in GB
         email_notification_flags="ae",  # when to send email notifications, see https://docs.metacentrum.cz/computing/email-notif/
@@ -156,12 +156,12 @@ class PBSJob:
         # Changed to use default location instead of copying to
         #
         data_script = [
-        #     # copy dataset
-        #     # TODO: Allow for multiple datasets to be copied
-        #     'echo "Copying dataset(s)"',
-        #     f"cp -r $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .",  # copy to scratchdir
-        #     f"tar {'-xzf' if '.gz' in self.dataset_archive_name else '-xf'} {self.dataset_archive_name} >/dev/null 2>&1",
-        #     "\n",
+            #     # copy dataset
+            #     # TODO: Allow for multiple datasets to be copied
+            #     'echo "Copying dataset(s)"',
+            #     f"cp -r $DATADIR/{self.dataset_archive_path}{self.dataset_archive_name} .",  # copy to scratchdir
+            #     f"tar {'-xzf' if '.gz' in self.dataset_archive_name else '-xf'} {self.dataset_archive_name} >/dev/null 2>&1",
+            #     "\n",
         ]
         # # copy 2019 dataset (training data) aswell if 2021 or InTheWild datasets are used
         # if self.train and ("21" in self.dataset_archive_name or "InTheWild" in self.dataset_archive_name):
@@ -235,9 +235,7 @@ class SGEJob:
         checkpoint_file_path=None,  # path to the checkpoint file from
         checkpoint_archive_name=None,  # name of the checkpoint archive
         checkpoint_file_from_archive_name=None,  # name of the checkpoint file from the archive
-        execute_list=[
-            ("train_and_eval.py", ["--sge"])
-        ],  # pairs of script name and list of arguments
+        execute_list=[("train_and_eval.py", ["--sge"])],  # pairs of script name and list of arguments
         copy_results=True,  # copy results back to home directory
     ):
         self.jobname = jobname
@@ -401,20 +399,19 @@ def generate_job_script(
 if __name__ == "__main__":
     extractor = "XLSR_300M"
     to_finetune = [
-        ("FF", "AASIST", 10),
-        ("FFDiff", "AASIST", 9),
-        ("FFDiffAbs", "AASIST", 2),
-        ("FFDiffQuadratic", "AASIST", 4),
-        ("FFConcat1", "AASIST", 3),
-        ("FFConcat2", "AASIST", 7),
-        ("FFConcat3", "AASIST", 6),
-        ("FF", "MHFA", 1),
-        ("FFDiff", "MHFA", 10),
-        ("FFDiffAbs", "MHFA", 5),
-        ("FFDiffQuadratic", "MHFA", 4),
-        ("FFConcat1", "MHFA", 10),
-        ("FFConcat2", "MHFA", 9),
-        ("FFConcat3", "MHFA", 3),
+        ("FFDiff", "AASIST", 2),
+        ("FFDiffAbs", "AASIST", 1),
+        ("FFDiffQuadratic", "AASIST", 2),
+        ("FFConcat1", "AASIST", 1),
+        ("FFConcat2", "AASIST", 1),
+        ("FFConcat3", "AASIST", 1),
+        ("FF", "MHFA", 3),
+        ("FFDiff", "MHFA", 1),
+        ("FFDiffAbs", "MHFA", 1),
+        ("FFDiffQuadratic", "MHFA", 2),
+        ("FFConcat1", "MHFA", 2),
+        ("FFConcat2", "MHFA", 1),
+        ("FFConcat3", "MHFA", 1),
     ]
 
     for classifier, processor, epoch in to_finetune:
@@ -424,7 +421,7 @@ if __name__ == "__main__":
             (
                 "./finetune.py",
                 [
-                    "--metacentrum",
+                    "--sge",
                     "--extractor",
                     extractor,
                     "--processor",
@@ -434,16 +431,45 @@ if __name__ == "__main__":
                     "--dataset",
                     dataset,
                     "--checkpoint",
-                    f"{classifier}_{processor}_{epoch}.pt",
+                    f"{classifier}_{processor}_ASVspoof5_finetune_{epoch}.pt",
                 ],
             )
         ]
         generate_job_script(
-            server="metacentrum",
+            server="sge",
+            gpu_mem=40,
             jobname=f"FINETUNE_{classifier}_{processor}_{dshort}",
             file_name=f"./scripts/FINETUNE_{classifier}_{processor}_{dshort}.sh",
             execute_list=command,
-            checkpoint_file_path=f"{classifier}_{processor}_{epoch}.pt",
-            queue="gpu-long@pbs-m1.metacentrum.cz",
-            walltime="96:00:00",
+            checkpoint_file_path=f"finetune_models/{classifier}_{processor}_ASVspoof5_finetune_{epoch}.pt",
         )
+
+    # classifier, processor, epoch = ("FF", "AASIST", 5)
+    # dshort = "ASVspoof5"
+    # generate_job_script(
+    #     server="metacentrum",
+    #     jobname=f"EVFIN_{classifier}_{processor}_{dshort}",
+    #     file_name=f"./scripts/EVFIN_{classifier}_{processor}_{dshort}.sh",
+    #     execute_list=[
+    #         (
+    #             "./eval.py",
+    #             [
+    #                 "--metacentrum",
+    #                 "--extractor",
+    #                 extractor,
+    #                 "--processor",
+    #                 processor,
+    #                 "--classifier",
+    #                 classifier,
+    #                 "--dataset",
+    #                 "ASVspoof5Dataset_single",
+    #                 "--checkpoint",
+    #                 f"{classifier}_{processor}_ASVspoof5_finetune_{epoch}.pt",
+    #             ],
+    #         )
+    #     ],
+    #     checkpoint_file_path=f"finetune_models/{classifier}_{processor}_ASVspoof5_finetune_{epoch}.pt",
+    #     queue="gpu@pbs-m1.metacentrum.cz",
+    #     walltime="48:00:00",
+    #     gpu_mem=40,
+    # )
